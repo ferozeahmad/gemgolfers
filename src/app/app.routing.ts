@@ -297,6 +297,13 @@ export const appRoutes: Route[] = [
                     ).then((m) => m.MergeProfilesModule),
             },
             {
+                path: 'handicapCalculation',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/handicap-calculation/handicap-calculation.module'
+                    ).then((m) => m.HandicapCalculationModule),
+            },
+            {
                 path: 'clubs',
                 loadChildren: () =>
                     import('app/modules/admin/clubs/clubs.module').then(

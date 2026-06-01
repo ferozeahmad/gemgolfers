@@ -262,6 +262,14 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     private mapPlayer(p: any): any {
+        // When a club admin is logged in, prefer the membership record that belongs
+        // to their club so the Club column always shows the current club's name even
+        // for players that are also members of other clubs.
+        const memberships: any[] = p.membershipQL || [];
+        const preferred = (this.isClubAdmin && this.loggedInuser?.adminClubId)
+            ? (memberships.find((m: any) => m.clubId === this.loggedInuser.adminClubId) ?? memberships[0])
+            : memberships[0];
+
         return {
             id: p.id,
             Name: ((p.firstName || '').trim() + ' ' + (p.lastName || '').trim()).trim(),
@@ -271,8 +279,8 @@ export class PlayersComponent implements OnInit, OnDestroy {
             MembershipNo: p.membershipNumber,
             Category: p.playerCategory === 'Senior' ? 'Senior Amateurs' : p.playerCategory,
             Handicap: p.handicap,
-            club: p.membershipQL?.[0]?.club?.name ?? '—',
-            homeClubId: p.membershipQL?.[0]?.clubId,
+            club: preferred?.club?.name ?? '—',
+            homeClubId: preferred?.clubId,
         };
     }
 
@@ -568,12 +576,38 @@ export class PlayersComponent implements OnInit, OnDestroy {
 
     // ── Bulk operations ────────────────────────────────────────────────────────
 
-    exportToExcel(): void {
-        const data = this.players.map(({ id, view, Edit, Delete, homeClubId, ...rest }) => rest);
-        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
-        const wb: XLSX.WorkBook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Players');
-        XLSX.writeFile(wb, 'Players_report.xlsx');
+    private async fetchAllPlayersForExport(): Promise<any[]> {
+        if (this.isEntityFiltered) {
+            return this._allEntityPlayers;
+        }
+        const baseWhere = this.buildWhere();
+        const namedWhere = this.withNameFilter(baseWhere, true);
+        const unnamedWhere = this.withNameFilter(baseWhere, false);
+        const [namedResult, unnamedResult] = await Promise.all([
+            this._facadeService.getPlayersPaginated(namedWhere, 10000, 0),
+            this._facadeService.getPlayersPaginated(unnamedWhere, 10000, 0),
+        ]);
+        const named = (namedResult?.player || []).map((p: any) => this.mapPlayer(p));
+        const unnamed = (unnamedResult?.player || []).map((p: any) => this.mapPlayer(p));
+        return [...named, ...unnamed];
+    }
+
+    async exportToExcel(): Promise<void> {
+        this.isLoading = true;
+        this._changeDetectorRef.markForCheck();
+        try {
+            const allPlayers = await this.fetchAllPlayersForExport();
+            const data = allPlayers.map(({ id, view, Edit, Delete, homeClubId, ...rest }) => rest);
+            const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
+            const wb: XLSX.WorkBook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Players');
+            XLSX.writeFile(wb, 'Players_report.xlsx');
+        } catch (err) {
+            console.error(err);
+        } finally {
+            this.isLoading = false;
+            this._changeDetectorRef.markForCheck();
+        }
     }
 
     async verifyUserEmails(): Promise<void> {
@@ -594,17 +628,27 @@ export class PlayersComponent implements OnInit, OnDestroy {
         });
     }
 
-    downloadPDF(): void {
-        const doc = new jsPDF();
-        const col = ['Sr.', 'Name', 'Phone', 'Email', 'Mem/No', 'Category', 'Handicap'];
-        const rows = this.players.map((p, i) => [
-            i + 1, p.Name, p.Phone || '', p.Email || '',
-            p.MembershipNo || '', p.Category || '', p.Handicap ?? '',
-        ]);
-        doc.setFontSize(18);
-        doc.text('Players List', 15, 15);
-        (doc as any).autoTable(col, rows, { startY: 25, theme: 'grid' });
-        doc.save('Players.pdf');
+    async downloadPDF(): Promise<void> {
+        this.isLoading = true;
+        this._changeDetectorRef.markForCheck();
+        try {
+            const allPlayers = await this.fetchAllPlayersForExport();
+            const doc = new jsPDF();
+            const col = ['Sr.', 'Name', 'Phone', 'Email', 'Mem/No', 'Category', 'Handicap'];
+            const rows = allPlayers.map((p, i) => [
+                i + 1, p.Name, p.Phone || '', p.Email || '',
+                p.MembershipNo || '', p.Category || '', p.Handicap ?? '',
+            ]);
+            doc.setFontSize(18);
+            doc.text('Players List', 15, 15);
+            (doc as any).autoTable(col, rows, { startY: 25, theme: 'grid' });
+            doc.save('Players.pdf');
+        } catch (err) {
+            console.error(err);
+        } finally {
+            this.isLoading = false;
+            this._changeDetectorRef.markForCheck();
+        }
     }
 
     // ── Excel import (unchanged logic) ─────────────────────────────────────────

@@ -133,7 +133,7 @@ export class DialogAddExisitingPlayerComponent implements OnInit {
               //console.log(item);
               let exist = matching.filter((a) => {
                 return a.id == item.id;
-              });
+              }); 
               
               //console.log(exist.length);
               

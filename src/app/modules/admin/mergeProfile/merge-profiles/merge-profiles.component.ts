@@ -50,8 +50,8 @@ export class MergeProfilesComponent implements OnInit {
     ];
     loggedInuser: UserSessionModel;
     constructor(
-        private handicapService: HandicapService,
         private _facadeService: FacadeService,
+        private handicapService: HandicapService,
         public snackBar: MatSnackBar,
         public dialog: MatDialog, private _localStorage: LocalStorageService,
     ) { }
@@ -99,119 +99,6 @@ export class MergeProfilesComponent implements OnInit {
                 },
                 (error) => console.log('error')
             );
-    }
-
-    calculateHandicapCONGU() {
-        let oldPlayer = Object.assign({}, this.selectionA.selected);
-        let newPlayer = Object.assign({}, this.selectionB.selected);
-        if (
-            JSON.stringify(oldPlayer) === '{}' &&
-            JSON.stringify(newPlayer) === '{}'
-        ) {
-            this.snackBar.open('Please! Select Player.', 'x', {
-                duration: 5000,
-            });
-        } else {
-            const dialogRef = this.dialog.open(DialogMergeComponent, {
-                width: '350px',
-                data: {
-                    text: 'Do you want to calculate handicap again?',
-                    isPanelty: false,
-                },
-            });
-            dialogRef.afterClosed().subscribe(async (result) => {
-                if (result != undefined && result != '') {
-                    let obj: any = {};
-                    if (newPlayer && newPlayer[0]) {
-                        obj = {
-                            playerId: newPlayer[0].id,
-                            count: result,
-                        };
-                    } else {
-                        obj = {
-                            playerId: oldPlayer[0].id,
-                            count: result,
-                        };
-                    }
-                    await this.handicapService
-                        .calculateHandicap(obj)
-                        .then((response) => {
-                            //console.log(response);
-                            this.selectionA.clear(true);
-                            this.selectionB.clear(true);
-                            this.snackBar.open(
-                                'Handicap Calculated Successfully.',
-                                'x',
-                                {
-                                    duration: 5000,
-                                }
-                            );
-                        })
-                        .catch((err) => {
-                            //console.log('error' + err);
-                            this.snackBar.open('Error!.', 'x', {
-                                duration: 5000,
-                            });
-                        });
-                }
-            });
-        }
-    }
-    calculateHandicapWHS() {
-        let oldPlayer = Object.assign({}, this.selectionA.selected);
-        let newPlayer = Object.assign({}, this.selectionB.selected);
-        if (
-            JSON.stringify(oldPlayer) === '{}' &&
-            JSON.stringify(newPlayer) === '{}'
-        ) {
-            this.snackBar.open('Please! Select Player.', 'x', {
-                duration: 5000,
-            });
-        } else {
-            const dialogRef = this.dialog.open(DialogMergeComponent, {
-                width: '350px',
-                data: {
-                    text: 'Do you want to calculate handicap again?',
-                    isPanelty: false,
-                },
-            });
-            dialogRef.afterClosed().subscribe(async (result) => {
-                if (result != undefined && result != '') {
-                    let obj: any = {};
-                    if (newPlayer && newPlayer[0]) {
-                        obj = {
-                            playerId: newPlayer[0].id,
-                            count: result,
-                        };
-                    } else {
-                        obj = {
-                            playerId: oldPlayer[0].id,
-                            count: result,
-                        };
-                    }
-                    await this.handicapService
-                        .calculateHandicapWHS(obj)
-                        .then((response) => {
-                            //console.log(response);
-                            this.selectionA.clear(true);
-                            this.selectionB.clear(true);
-                            this.snackBar.open(
-                                'Handicap Calculated Successfully.',
-                                'x',
-                                {
-                                    duration: 5000,
-                                }
-                            );
-                        })
-                        .catch((err) => {
-                            //console.log('error' + err);
-                            this.snackBar.open('Error!.', 'x', {
-                                duration: 5000,
-                            });
-                        });
-                }
-            });
-        }
     }
 
     async mergeProfiles() {

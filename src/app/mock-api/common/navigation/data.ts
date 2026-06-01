@@ -193,6 +193,15 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 link: '/handicaps/WHS',
                 moduleId: '0107c4af-39b4-4127-8ebe-4df7f353ae11',
             },
+            {
+                id: 'handicaps.calculation',
+                title: 'Handicap Calculation',
+                type: 'basic',
+                icon: 'heroicons_outline:calculator',
+                link: '/handicapCalculation',
+                moduleId: 'hc-calculation-admin-only',
+                meta: { adminOnly: true },
+            },
         ],
     },
     {
@@ -313,7 +322,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 icon: 'heroicons_outline:table',
                 link: '/mergeProfile',
                 moduleId: 'b43c9cdd-050b-4967-9161-9ab27b8a2109',
-                meta: { adminOnly: true },
+                meta: { superAdminOnly: true },
             },
         ],
     },
@@ -372,7 +381,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 icon: 'heroicons_outline:table',
                 link: '/mergeProfile',
                 moduleId: 'af0df7bf-f5e9-447b-bba7-6c69bceea3e8',
-                meta: { adminOnly: true },
+                meta: { superAdminOnly: true },
             },
             {
                 id: 'feedback.news',

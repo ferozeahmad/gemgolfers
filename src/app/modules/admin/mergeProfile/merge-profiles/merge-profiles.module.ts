@@ -33,15 +33,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MergeProfilesComponent } from './merge-profiles.component';
 import { MergeProfilesRoutingModule } from './merge-proflies.routing';
-import { DialogMergeComponent } from '../../dialogs/dialog-merge-profile/dialog-merge.component';
-import { MatSlideToggle, MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { SharedDialogsModule } from '../../dialogs/shared-dialogs.module';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 
 @NgModule({
-  declarations: [MergeProfilesComponent,DialogMergeComponent],
+  declarations: [MergeProfilesComponent],
   imports: [
     CommonModule,
     MergeProfilesRoutingModule,
+    SharedDialogsModule,
     ReactiveFormsModule,
     MatTableModule,
     MatFormFieldModule,
