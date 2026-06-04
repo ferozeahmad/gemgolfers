@@ -1218,15 +1218,15 @@ export class MatchplayComponent implements OnInit, OnChanges {
                     ? flightData.tee
                     : '';
                 this.flightPlayers[findex]['Hole9Scores'] =
-                    this.flightPlayers[findex][0].Hole9Scores;
+                    this.flightPlayers[findex][0]?.Hole9Scores;
                 this.flightPlayers[findex]['Hole18Scores'] =
-                    this.flightPlayers[findex][0].Hole18Scores;
+                    this.flightPlayers[findex][0]?.Hole18Scores;
                 this.flightPlayers[findex]['gross9Total'] =
-                    this.flightPlayers[findex][0].gross9Total;
+                    this.flightPlayers[findex][0]?.gross9Total;
                 this.flightPlayers[findex]['gross18Total'] =
-                    this.flightPlayers[findex][0].gross18Total;
+                    this.flightPlayers[findex][0]?.gross18Total;
                 this.flightPlayers[findex]['grossTotal'] =
-                    this.flightPlayers[findex][0].grossTotal;
+                    this.flightPlayers[findex][0]?.grossTotal;
                 console.log(this.flightPlayers);
 
                 findex++;
