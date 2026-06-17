@@ -71,8 +71,12 @@ export class MatchplayComponent implements OnInit, OnChanges {
     showRound2: boolean = false;
     showRound3: boolean = false;
     showRound4: boolean = false;
+    showHoles: boolean = true;
     selectedIndex: any = 0;
     noOfRounds: any = 0;
+    activeView: 'player' | 'flight' = 'player';
+    allPlayers: any[] = [];
+
     constructor(
         private router: Router,
         private location: Router,
@@ -91,7 +95,9 @@ export class MatchplayComponent implements OnInit, OnChanges {
             this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
             this.logger.log('Admin comes to Tournament Score Page', "info");
             this.logger.log('Getting Tournament Score Data', "info", this.tournamentID);
-
+            if (this.loggedInuser && this.loggedInuser.adminClubId == '-L5D7VIovp6LD8Ij7Q3r') {
+                this.showHoles = false;
+            }
             this.filters = this._formBuilder.group({
                 name: [null, Validators.compose([Validators.required])],
             });
@@ -275,6 +281,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
         //this.scoreHeader = [];
 
         this.flightPlayers = [];
+        this.allPlayers = [];
         //this.currentRoundFlights = [];
 
         this.parseSubscriptionResponse();
@@ -288,25 +295,35 @@ export class MatchplayComponent implements OnInit, OnChanges {
         //this.scoreHeader = [];
 
         this.flightPlayers = [];
+        this.allPlayers = [];
         //this.currentRoundFlights = [];
 
         this.parseSubscriptionResponse();
     }
 
     filterPlayerFlight(query) {
-        if (query.length > 3) {
-            this.filterPlayer = query;
-        } else {
+        if (query) {
+            this.filterPlayer = this.filters.get('name').value;
+        }
+        else {
             this.filterPlayer = '';
             this.filters.reset();
         }
+        // if (query.length > 3) {
+        //     this.filterPlayer = query;
+        // } else {
+        //     this.filterPlayer = '';
+        //     this.filters.reset();
+        // }
 
         this.selectedTeamName = true;
         this.roundFlights = [];
         //this.scoreHeader = [];
 
         this.flightPlayers = [];
-        this.parseSubscriptionResponse();
+        this.allPlayers = [];
+
+        this.parseSubscriptionResponse(true);
     }
 
     async changeRound(item) {
@@ -365,6 +382,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
         //this.scoreHeader = [];
 
         this.flightPlayers = [];
+        this.allPlayers = [];
         //this.currentRoundFlights = [];
 
         await this.parseSubscriptionResponse();
@@ -446,7 +464,6 @@ export class MatchplayComponent implements OnInit, OnChanges {
 
         Object.keys(playerScores).forEach((category, index) => {
             const players = Object.values(playerScores[category]);
-
             if (index > 0) {
                 doc.addPage(); // Add a new page for each new category
                 startY = 38; // Reset start position for new page
@@ -637,12 +654,22 @@ export class MatchplayComponent implements OnInit, OnChanges {
     }
 
 
-    private parseSubscriptionResponse(): boolean {
+    private async parseSubscriptionResponse(flag: boolean = false) {
         try {
             if (this.matchPlayData == null) {
                 return false;
             }
-            let tournamentData: any = this.matchPlayData;
+            let tournamentData: any;
+            if (flag) {
+                let dataLeaderboard =
+                    await this.facadeService.MatchPlayDataQueryShort(
+                        '-L6WPki8tSDZ1IAAoRXZ',
+                        this.tournamentID
+                    );
+                tournamentData = dataLeaderboard.TournamentQL;
+            } else {
+                tournamentData = this.matchPlayData;
+            }
 
             if (tournamentData.noOfRounds > 0) {
                 if (this.ddSelectedFlight != '0') {
@@ -685,35 +712,39 @@ export class MatchplayComponent implements OnInit, OnChanges {
                 ////console.log(this.roundFlights);
                 //console.log(this.filterPlayer);
                 if (!this.showTaxes && this.filterPlayer != '') {
+                    const searchTerm = this.filterPlayer.toLowerCase().trim();
+
                     var filteredArray: any = this.roundFlights
                         .filter((element) =>
-                            element.MembersQL.some(
-                                (MembersQL) =>
-                                    MembersQL.PlayerQL.firstName
-                                        .toLowerCase()
-                                        .includes(
-                                            this.filterPlayer.toLowerCase()
-                                        ) ||
-                                    MembersQL.PlayerQL.lastName
-                                        .toLowerCase()
-                                        .includes(this.filterPlayer.toLowerCase())
-                            )
+                            element.MembersQL.some((MembersQL) => {
+                                const firstName = MembersQL.PlayerQL.firstName.toLowerCase();
+                                const lastName = MembersQL.PlayerQL.lastName.toLowerCase();
+                                const fullName = `${firstName} ${lastName}`;
+                                const fullNameReversed = `${lastName} ${firstName}`;
+
+                                return (
+                                    firstName.includes(searchTerm) ||
+                                    lastName.includes(searchTerm) ||
+                                    fullName.includes(searchTerm) ||          // "ali akel"
+                                    fullNameReversed.includes(searchTerm)     // "akel ali"
+                                );
+                            })
                         )
                         .map((element) => {
                             let n = Object.assign({}, element, {
-                                MembersQL: element.MembersQL.filter(
-                                    (subElement) =>
-                                        subElement.PlayerQL.firstName
-                                            .toLowerCase()
-                                            .includes(
-                                                this.filterPlayer.toLowerCase()
-                                            ) ||
-                                        subElement.PlayerQL.lastName
-                                            .toLowerCase()
-                                            .includes(
-                                                this.filterPlayer.toLowerCase()
-                                            )
-                                ),
+                                MembersQL: element.MembersQL.filter((subElement) => {
+                                    const firstName = subElement.PlayerQL.firstName.toLowerCase();
+                                    const lastName = subElement.PlayerQL.lastName.toLowerCase();
+                                    const fullName = `${firstName} ${lastName}`;
+                                    const fullNameReversed = `${lastName} ${firstName}`;
+
+                                    return (
+                                        firstName.includes(searchTerm) ||
+                                        lastName.includes(searchTerm) ||
+                                        fullName.includes(searchTerm) ||
+                                        fullNameReversed.includes(searchTerm)
+                                    );
+                                }),
                             });
                             return n;
                         });
@@ -796,12 +827,12 @@ export class MatchplayComponent implements OnInit, OnChanges {
             const memberToPair = new Map();
 
             if (this.matchPlayData?.pairs?.length) {
-                for (const p of this.matchPlayData.pairs) {
+                for (const p of this.matchPlayData?.pairs) {
                     pairLookup.set(p.id, p);
                 }
             }
 
-            for (const p of this.matchPlayData.pairs) {
+            for (const p of this.matchPlayData?.pairs) {
                 memberToPair.set(p.member1Id, p);
                 memberToPair.set(p.member2Id, p);
             }
@@ -879,21 +910,17 @@ export class MatchplayComponent implements OnInit, OnChanges {
                             if (flightHeader.courseHoles18.length > 0) {
                                 let courseHole = flightHeader.courseHoles18.filter(
                                     (el) => {
-                                        return el.holeNo == i + 9 + 1;
+                                        return el.holeNo == i + 10
                                     }
                                 );
 
-                                // //console.log(i + 9 + 1);
+                                // //console.log(i + 10);
                                 // //console.log(courseHole);
 
                                 let hole = playerScore.find((a) => {
-                                    // //console.log(a.holeId + "<---->" + courseHole[0].id);
-                                    // //console.log(courseHole.length > 0 ? courseHole[0].id : "");
                                     return (
                                         a.holeId ==
-                                        (courseHole.length > 0
-                                            ? courseHole[0].id
-                                            : '')
+                                        (courseHole.length > 0 ? courseHole[0].id : '')
                                     );
                                 });
 
@@ -1008,25 +1035,16 @@ export class MatchplayComponent implements OnInit, OnChanges {
                         for (let i = 0; i < 9; i++) {
                             let courseHole = flightHeader.courseHoles18.filter(
                                 (el) => {
-                                    return el.holeNo == i + 9 + 1;
+                                    return el.holeNo == i + 10
                                 }
                             );
 
-                            // //console.log(i + 9 + 1);
-                            // //console.log(courseHole);
-
                             let hole = playerScore.find((a) => {
-                                // //console.log(a.holeId + '<---->' + courseHole[0].id);
-                                // //console.log(
-                                //     courseHole.length > 0 ? courseHole[0].id : ''
-                                // );
                                 return (
                                     a.holeId ==
                                     (courseHole.length > 0 ? courseHole[0].id : '')
                                 );
                             });
-
-                            ////console.log(hole);
 
                             if (hole) {
                                 playerHole18Score[i] = hole.grossScore;
@@ -1040,8 +1058,8 @@ export class MatchplayComponent implements OnInit, OnChanges {
                             }
                         }
 
-                        let grossTotal: number = gross9Total + gross18Total;
-                        let netTotal: number = net9Total + net18Total;
+                        let grossTotal = gross9Total + gross18Total;
+                        let netTotal = net9Total + net18Total;
 
                         ////console.log(playerHole9Score);
                         ////console.log(playerHole18Score);
@@ -1061,6 +1079,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
                         let LeaderGross: any = {
                             teamName: flightData['FlightName'].name,
                             flightId: flightData.id,
+                            pairId: flightData.id,
                             courseId: flightData.courseId,
                             playerId: player.id,
                             name: player.firstName + ' ' + player.lastName,
@@ -1231,7 +1250,24 @@ export class MatchplayComponent implements OnInit, OnChanges {
 
                 findex++;
             }
+            
+            // Populate allPlayers for Player View - flatten flightPlayers into individual player records
+            this.allPlayers = [];
+            this.flightPlayers.forEach(flight => {
+                // flight is an array of player objects
+                flight.forEach(player => {
+                    if (player && typeof player === 'object' && player.playerId) {
+                        this.allPlayers.push({
+                            ...player,
+                            flightId: flight.flightId,
+                            header: flight.header
+                        });
+                    }
+                });
+            });
+            
             console.log(this.flightPlayers);
+            console.log("All Players Populated:", this.allPlayers);
             this.logger.log('Getting Tournament Score Data Successfully.', "info",);
             this.active = true;
             if (this.highlightedFlightId) {
@@ -1491,10 +1527,18 @@ export class MatchplayComponent implements OnInit, OnChanges {
         });
     }
 
-    async saveFlightScore(flightId: string) {
+    async saveFlightScore(flightId?: string) {
         //var startingHole1 = parseFloat((<HTMLInputElement>document.getElementById("hole_1_-L613n4gp3nF0QiXiCt1")).value);
         ////console.log(flightId);
         try {
+            // If no flightId provided, save all flights
+            if (!flightId) {
+                for (let flight of this.flightPlayers) {
+                    await this.saveFlightScore(flight.flightId);
+                }
+                return;
+            }
+
             this.logger.log('Tournament Group Score Save btn Clicked', "info", flightId);
 
             const memberToPair = new Map();
@@ -1507,7 +1551,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
                 return a.flightId == flightId;
             });
 
-            //console.log(selectedFlight);
+            console.log(selectedFlight);
 
             let today: Date = new Date();
             var dd = String(today.getDate()).padStart(2, '0');
@@ -1808,10 +1852,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
                                         todayDate.toDateString()
                                     ),
                                     updaterId: this.loggedInuser.id,
-                                    updaterName:
-                                        this.loggedInuser.firstName +
-                                        ' ' +
-                                        this.loggedInuser.lastName,
+                                    updaterName: `${this.loggedInuser.firstName} ${this.loggedInuser.lastName}`,
                                     detailId: null,
                                 };
                                 //console.log(playerScore);
@@ -2075,10 +2116,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
                                         todayDate.toDateString()
                                     ),
                                     updaterId: this.loggedInuser.id,
-                                    updaterName:
-                                        this.loggedInuser.firstName +
-                                        ' ' +
-                                        this.loggedInuser.lastName,
+                                    updaterName: `${this.loggedInuser.firstName} ${this.loggedInuser.lastName}`,
                                     detailId: null,
                                 };
                                 playerScores.push(playerScore);
@@ -2544,5 +2582,9 @@ export class MatchplayComponent implements OnInit, OnChanges {
         return (
             courseHoleSets > 0 && (courseHoleSets & Constants.Holes28to36) != 0
         );
+    }
+
+    changeView(view: 'player' | 'flight') {
+        this.activeView = view;
     }
 }

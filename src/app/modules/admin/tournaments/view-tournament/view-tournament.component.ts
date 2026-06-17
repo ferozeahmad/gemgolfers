@@ -3761,9 +3761,9 @@ export class ViewTournamentComponent implements OnInit {
         return n + (s[(v - 20) % 10] || s[v] || s[0]);
     }
 
-    buildResultSheetData() {
+    buildResultSheetData(nineHole: boolean = false) {
         const tournament = this.fullTournament;
-        if (!tournament) return { categories: [], completedRounds: [], pars: Array(18).fill(0) };
+        if (!tournament) return { categories: [], completedRounds: [], pars: Array(18).fill(0), nineHole: false };
 
         const allFlights: any[] = tournament.FlightsQL || [];
 
@@ -3795,6 +3795,29 @@ export class ViewTournamentComponent implements OnInit {
             }
         }
 
+        // For a 9-hole event work out which 9 holes were actually played
+        // (front nine 1-9 or back nine 10-18) so the sheet shows the real holes.
+        let displayHoleNos: number[] = [];
+        if (nineHole) {
+            const playedHoles = new Set<number>();
+            for (const flight of allFlights) {
+                for (const member of (flight.MembersQL || [])) {
+                    for (const score of (member.ScoresQL || [])) {
+                        const h = score.hole?.holeNo;
+                        if (h >= 1 && h <= 18) playedHoles.add(h);
+                    }
+                }
+            }
+            const minHole = playedHoles.size ? Math.min(...playedHoles) : 1;
+            const start = minHole >= 10 ? 10 : 1;            // back nine vs front nine
+            displayHoleNos = Array.from({ length: 9 }, (_, i) => start + i);
+        }
+
+        // Pars laid out for the displayed holes (slot 0-8 used by the PDF/Excel)
+        const displayPars: number[] = nineHole
+            ? [...displayHoleNos.map(h => pars[h - 1] || 0), ...Array(9).fill(0)]
+            : pars;
+
         // Build player map: playerId → aggregated data
         const playerMap = new Map<string, any>();
 
@@ -3811,21 +3834,28 @@ export class ViewTournamentComponent implements OnInit {
 
                     const sortedScores = [...scores].sort((a, b) => (a.hole?.holeNo || 0) - (b.hole?.holeNo || 0));
 
-                    const front9: number[] = Array(9).fill(0);
-                    const back9: number[] = Array(9).fill(0);
+                    const scoreByHole: { [h: number]: number } = {};
                     let playerHandicap = 0;
-
                     for (const score of sortedScores) {
                         const holeNo = score.hole?.holeNo;
                         if (score.playerHandicap != null) playerHandicap = score.playerHandicap;
-                        if (holeNo >= 1 && holeNo <= 9) front9[holeNo - 1] = score.grossScore || 0;
-                        else if (holeNo >= 10 && holeNo <= 18) back9[holeNo - 10] = score.grossScore || 0;
+                        if (holeNo >= 1 && holeNo <= 18) scoreByHole[holeNo] = score.grossScore || 0;
                     }
+
+                    // front9 = the holes shown in the first 9 columns; back9 = next 9 (18-hole only)
+                    const front9: number[] = nineHole
+                        ? displayHoleNos.map(h => scoreByHole[h] || 0)
+                        : Array.from({ length: 9 }, (_, i) => scoreByHole[i + 1] || 0);
+                    const back9: number[] = nineHole
+                        ? Array(9).fill(0)
+                        : Array.from({ length: 9 }, (_, i) => scoreByHole[i + 10] || 0);
 
                     const out = front9.reduce((a, b) => a + b, 0);
                     const inn = back9.reduce((a, b) => a + b, 0);
                     const dayGross = out + inn;
-                    const dayNet = dayGross > 0 ? Math.max(0, dayGross - playerHandicap) : 0;
+                    // For 9-hole events the handicap is halved (rounded to nearest whole)
+                    const effHandicap = nineHole ? Math.round(playerHandicap / 2) : playerHandicap;
+                    const dayNet = dayGross > 0 ? Math.max(0, dayGross - effHandicap) : 0;
 
                     if (!playerMap.has(playerId)) {
                         playerMap.set(playerId, {
@@ -3871,14 +3901,35 @@ export class ViewTournamentComponent implements OnInit {
             categories.push({ name: catName, players: catPlayers });
         }
 
-        return { categories, completedRounds, pars };
+        return { categories, completedRounds, pars: displayPars, nineHole };
+    }
+
+    // 9-hole detection — same condition the Scores tab uses: the tournament's selected
+    // course_hole_sets entry (matched by holeSets + inverted) has noOfHoles === 9.
+    private async isNineHoleEvent(): Promise<boolean> {
+        try {
+            const t = this.fullTournament;
+            const courseId = t?.courseId;
+            if (!courseId) return false;
+            const data = await this.facadeService.getCourseHoleSetsForCourse(courseId);
+            const sets: any[] = data?.course_hole_sets || [];
+            if (sets.length === 0) return false;
+            const selected = sets.find(
+                (s: any) => s.holeSets == t.courseHoleSets && !!s.inverted === !!t.courseHoleSetsInverted
+            );
+            const noOfHoles = (selected ?? sets[0])?.noOfHoles;
+            return noOfHoles === 9;
+        } catch {
+            return false;
+        }
     }
 
     async generateResultSheetPDF() {
         this.isGeneratingResultSheet = true;
         this.showResultSheetMenu = false;
         try {
-            const { categories, completedRounds, pars } = this.buildResultSheetData();
+            const nineHole = await this.isNineHoleEvent();
+            const { categories, completedRounds, pars } = this.buildResultSheetData(nineHole);
             if (completedRounds.length === 0) {
                 this.snackBar.open('No completed rounds with scores found.', 'Close', { duration: 3000 });
                 return;
@@ -3886,9 +3937,12 @@ export class ViewTournamentComponent implements OnInit {
 
             const tournamentTitle = (this.fullTournament.title || 'Tournament').toString();
             const numRounds = completedRounds.length;
+            // Columns per round: 9-hole = H1-H9 + OUT + DAY GROSS + DAY NET (12); 18-hole adds H10-H18 + IN (22)
+            const colsPerRound = nineHole ? 12 : 22;
 
             // Dynamically size the page width so all round columns fit
-            const pageWidth = Math.max(297, 90 + 159 * numRounds + 26);
+            const perRoundWidth = nineHole ? 92 : 159;
+            const pageWidth = Math.max(nineHole ? 210 : 297, 90 + perRoundWidth * numRounds + 26);
             const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [210, pageWidth] });
             const usableWidth = pageWidth - 28;
 
@@ -3920,11 +3974,17 @@ export class ViewTournamentComponent implements OnInit {
                 const parRow: (string | number)[] = ['PAR', '', '', ''];
 
                 for (const r of completedRounds) {
-                    header1.push(`ROUND ${r}`, ...Array(21).fill(''));
-                    header2.push('H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'OUT',
-                        'H10', 'H11', 'H12', 'H13', 'H14', 'H15', 'H16', 'H17', 'H18', 'IN',
-                        `DAY ${r} GROSS`, `DAY ${r} NET`);
-                    parRow.push(...pars.slice(0, 9), parOut, ...pars.slice(9, 18), parIn, '', '');
+                    header1.push(`ROUND ${r}`, ...Array(colsPerRound - 1).fill(''));
+                    if (nineHole) {
+                        header2.push('H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'OUT',
+                            `DAY ${r} GROSS`, `DAY ${r} NET`);
+                        parRow.push(...pars.slice(0, 9), parOut, '', '');
+                    } else {
+                        header2.push('H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'OUT',
+                            'H10', 'H11', 'H12', 'H13', 'H14', 'H15', 'H16', 'H17', 'H18', 'IN',
+                            `DAY ${r} GROSS`, `DAY ${r} NET`);
+                        parRow.push(...pars.slice(0, 9), parOut, ...pars.slice(9, 18), parIn, '', '');
+                    }
                 }
                 header2.push('TOTAL GROSS', 'TOTAL NET');
                 parRow.push('', '');
@@ -3935,11 +3995,16 @@ export class ViewTournamentComponent implements OnInit {
                     for (const r of completedRounds) {
                         const rd = p.rounds[r];
                         if (rd) {
-                            row.push(...rd.front9.map(s => s || ''), rd.out || '',
-                                ...rd.back9.map(s => s || ''), rd.in || '',
-                                rd.dayGross || '', rd.dayNet || '');
+                            if (nineHole) {
+                                row.push(...rd.front9.map(s => s || ''), rd.out || '',
+                                    rd.dayGross || '', rd.dayNet || '');
+                            } else {
+                                row.push(...rd.front9.map(s => s || ''), rd.out || '',
+                                    ...rd.back9.map(s => s || ''), rd.in || '',
+                                    rd.dayGross || '', rd.dayNet || '');
+                            }
                         } else {
-                            row.push(...Array(22).fill(''));
+                            row.push(...Array(colsPerRound).fill(''));
                         }
                     }
                     row.push(p.totalGross || '', p.totalNet || '');
@@ -3953,11 +4018,13 @@ export class ViewTournamentComponent implements OnInit {
                 let ci2 = 4;
                 for (const _r of completedRounds) {
                     for (let h = 0; h < 9; h++) colStyles[ci2++] = { cellWidth: 6.5 };
-                    colStyles[ci2++] = { cellWidth: 8 };
-                    for (let h = 0; h < 9; h++) colStyles[ci2++] = { cellWidth: 6.5 };
-                    colStyles[ci2++] = { cellWidth: 8 };
-                    colStyles[ci2++] = { cellWidth: 12 };
-                    colStyles[ci2++] = { cellWidth: 12 };
+                    colStyles[ci2++] = { cellWidth: 8 };          // OUT
+                    if (!nineHole) {
+                        for (let h = 0; h < 9; h++) colStyles[ci2++] = { cellWidth: 6.5 };
+                        colStyles[ci2++] = { cellWidth: 8 };      // IN
+                    }
+                    colStyles[ci2++] = { cellWidth: 12 };         // DAY GROSS
+                    colStyles[ci2++] = { cellWidth: 12 };         // DAY NET
                 }
                 colStyles[ci2++] = { cellWidth: 13 };
                 colStyles[ci2++] = { cellWidth: 13 };
@@ -4009,11 +4076,15 @@ export class ViewTournamentComponent implements OnInit {
         this.isGeneratingResultSheet = true;
         this.showResultSheetMenu = false;
         try {
-            const { categories, completedRounds, pars } = this.buildResultSheetData();
+            const nineHole = await this.isNineHoleEvent();
+            const { categories, completedRounds, pars } = this.buildResultSheetData(nineHole);
             if (completedRounds.length === 0) {
                 this.snackBar.open('No completed rounds with scores found.', 'Close', { duration: 3000 });
                 return;
             }
+
+            // Columns per round: 9-hole = H1-H9 + OUT + DAY GROSS + DAY NET (12); 18-hole adds H10-H18 + IN (22)
+            const colsPerRound = nineHole ? 12 : 22;
 
             const ExcelJS = (await import('exceljs')).default;
             const tournamentTitle = (this.fullTournament.title || 'Tournament').toString();
@@ -4035,18 +4106,20 @@ export class ViewTournamentComponent implements OnInit {
                 const sheetName = cat.name.length > 31 ? cat.name.substring(0, 28) + '...' : cat.name;
                 const ws = wb.addWorksheet(sheetName);
 
-                const numRoundCols = completedRounds.length * 22;
+                const numRoundCols = completedRounds.length * colsPerRound;
                 const totalCols = 4 + numRoundCols + 2;
 
                 // Column widths
                 const cols: any[] = [{ width: 5 }, { width: 28 }, { width: 7 }, { width: 18 }];
                 for (let r = 0; r < completedRounds.length; r++) {
                     for (let h = 0; h < 9; h++) cols.push({ width: 5.5 });
-                    cols.push({ width: 7 });
-                    for (let h = 0; h < 9; h++) cols.push({ width: 5.5 });
-                    cols.push({ width: 7 });
-                    cols.push({ width: 13 });
-                    cols.push({ width: 13 });
+                    cols.push({ width: 7 });                 // OUT
+                    if (!nineHole) {
+                        for (let h = 0; h < 9; h++) cols.push({ width: 5.5 });
+                        cols.push({ width: 7 });             // IN
+                    }
+                    cols.push({ width: 13 });                // DAY GROSS
+                    cols.push({ width: 13 });                // DAY NET
                 }
                 cols.push({ width: 14 }, { width: 14 });
                 ws.columns = cols;
@@ -4073,27 +4146,32 @@ export class ViewTournamentComponent implements OnInit {
                 const rGroupVals: any[] = ['', '', '', ''];
                 for (const r of completedRounds) {
                     rGroupVals.push(`ROUND ${r}`);
-                    for (let i = 0; i < 21; i++) rGroupVals.push('');
+                    for (let i = 0; i < colsPerRound - 1; i++) rGroupVals.push('');
                 }
                 rGroupVals.push('', '');
                 const rGroupRow = ws.addRow(rGroupVals);
                 rGroupRow.height = 18;
                 let rStart = 5;
                 for (const r of completedRounds) {
-                    ws.mergeCells(3, rStart, 3, rStart + 21);
+                    ws.mergeCells(3, rStart, 3, rStart + colsPerRound - 1);
                     const rc = rGroupRow.getCell(rStart);
                     rc.font = font({ bold: true, size: 10, color: { argb: 'FFFFFFFF' } });
                     rc.fill = fill('FF5DADE2');
                     rc.alignment = { horizontal: 'center', vertical: 'middle' };
-                    rStart += 22;
+                    rStart += colsPerRound;
                 }
 
                 // ── Row 4: Column headers ────────────────────────────────────
                 const colHdrVals: any[] = ['S#', 'NAME', 'HCP', 'CLUB'];
                 for (const r of completedRounds) {
-                    colHdrVals.push('H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'OUT',
-                        'H10', 'H11', 'H12', 'H13', 'H14', 'H15', 'H16', 'H17', 'H18', 'IN',
-                        `DAY ${r}\nGROSS`, `DAY ${r}\nNET`);
+                    if (nineHole) {
+                        colHdrVals.push('H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'OUT',
+                            `DAY ${r}\nGROSS`, `DAY ${r}\nNET`);
+                    } else {
+                        colHdrVals.push('H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'OUT',
+                            'H10', 'H11', 'H12', 'H13', 'H14', 'H15', 'H16', 'H17', 'H18', 'IN',
+                            `DAY ${r}\nGROSS`, `DAY ${r}\nNET`);
+                    }
                 }
                 colHdrVals.push('TOTAL\nGROSS', 'TOTAL\nNET');
                 const colHdrRow = ws.addRow(colHdrVals);
@@ -4112,7 +4190,11 @@ export class ViewTournamentComponent implements OnInit {
                 // ── Row 5: PAR row ───────────────────────────────────────────
                 const parVals: any[] = ['PAR', '', '', ''];
                 for (const _r of completedRounds) {
-                    parVals.push(...pars.slice(0, 9), parOut, ...pars.slice(9, 18), parIn, '', '');
+                    if (nineHole) {
+                        parVals.push(...pars.slice(0, 9), parOut, '', '');
+                    } else {
+                        parVals.push(...pars.slice(0, 9), parOut, ...pars.slice(9, 18), parIn, '', '');
+                    }
                 }
                 parVals.push('', '');
                 const parRowObj = ws.addRow(parVals);
@@ -4135,13 +4217,20 @@ export class ViewTournamentComponent implements OnInit {
                     for (const r of completedRounds) {
                         const rd = p.rounds[r];
                         if (rd) {
-                            rowVals.push(
-                                ...rd.front9.map((s: number) => s || ''), rd.out || '',
-                                ...rd.back9.map((s: number) => s || ''), rd.in || '',
-                                rd.dayGross || '', rd.dayNet || ''
-                            );
+                            if (nineHole) {
+                                rowVals.push(
+                                    ...rd.front9.map((s: number) => s || ''), rd.out || '',
+                                    rd.dayGross || '', rd.dayNet || ''
+                                );
+                            } else {
+                                rowVals.push(
+                                    ...rd.front9.map((s: number) => s || ''), rd.out || '',
+                                    ...rd.back9.map((s: number) => s || ''), rd.in || '',
+                                    rd.dayGross || '', rd.dayNet || ''
+                                );
+                            }
                         } else {
-                            rowVals.push(...Array(22).fill(''));
+                            rowVals.push(...Array(colsPerRound).fill(''));
                         }
                     }
                     rowVals.push(p.totalGross || '', p.totalNet || '');
@@ -4168,16 +4257,17 @@ export class ViewTournamentComponent implements OnInit {
                         // OUT
                         const outC = playerRow.getCell(colIdx + 9);
                         outC.fill = fill('FFD6EAF8'); outC.font = font({ bold: true, size: 9 });
-                        // IN
-                        const inC = playerRow.getCell(colIdx + 19);
-                        inC.fill = fill('FFD6EAF8'); inC.font = font({ bold: true, size: 9 });
-                        // DAY GROSS
-                        const dgC = playerRow.getCell(colIdx + 20);
+                        if (!nineHole) {
+                            // IN
+                            const inC = playerRow.getCell(colIdx + 19);
+                            inC.fill = fill('FFD6EAF8'); inC.font = font({ bold: true, size: 9 });
+                        }
+                        // DAY GROSS / DAY NET (last two cols of the round block)
+                        const dgC = playerRow.getCell(colIdx + colsPerRound - 2);
                         dgC.fill = fill('FFD5E8D4'); dgC.font = font({ bold: true, size: 9 });
-                        // DAY NET
-                        const dnC = playerRow.getCell(colIdx + 21);
+                        const dnC = playerRow.getCell(colIdx + colsPerRound - 1);
                         dnC.fill = fill('FFD5E8D4'); dnC.font = font({ bold: true, size: 9 });
-                        colIdx += 22;
+                        colIdx += colsPerRound;
                     }
 
                     // TOTAL GROSS / TOTAL NET – dark green with white text

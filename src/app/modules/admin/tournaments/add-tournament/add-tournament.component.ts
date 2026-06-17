@@ -941,12 +941,35 @@ export class AddTournamentComponent implements OnInit {
         if (!this.tournamentID) {
             this.maxDate = new Date(currentYear + 1, 11, 31);
             this.minDate = todayDate;
+
+            // Pre-select course for club admins
+            if (this._localStorage.isClubAdmin() && this.loggedInuser?.adminClubId) {
+                // Find a course associated with the club admin's club
+                const clubAdminCourse = this.Courses.find(
+                    (course) => course.clubId === this.loggedInuser.adminClubId
+                );
+
+                if (clubAdminCourse) {
+                    // Set the course as default
+                    this.formArray
+                        .get([0])
+                        .get('courseInfo')!
+                        .get([0])
+                        .get('courseName')
+                        .setValue({
+                            name: clubAdminCourse.name,
+                            id: clubAdminCourse.id,
+                        });
+                    console.log('Pre-selected course for club admin:', clubAdminCourse.name);
+                    this.getSelectedCourses(clubAdminCourse);
+                }
+            }
         }
 
         if (this._localStorage.isClubAdmin()) {
             this.formArray.get([0]).get('clubsFormCtrl').clearValidators();
             this.formArray
-                .get([0])
+                .get([0]) 
                 .get('clubsFormCtrl')
                 .updateValueAndValidity();
         }
@@ -1605,7 +1628,6 @@ export class AddTournamentComponent implements OnInit {
 
             if (sets.length > 0) {
                 this.courseHoleSetNames = sets;
-
                 // 🔹 Find the one with noOfHoles === 18
                 const defaultHoleSet = sets.find((set) => set.noOfHoles === 18);
 
@@ -1616,6 +1638,7 @@ export class AddTournamentComponent implements OnInit {
                 this.formArray.get([0]).get('courseHoleSet').setValue(
                     selectedSet.holeSets + '_' + selectedSet.inverted
                 );
+                this.showCourseHole = true;
             } else {
                 this.showCourseHole = false;
                 this.formArray.get([0]).patchValue({ courseHoleSet: [], });
@@ -4243,7 +4266,7 @@ export class AddTournamentComponent implements OnInit {
             });
             return;
         }
-        
+
         // ✅ Ensure no duplicates in team.members
         const existingIds = new Set(this.selectedPairs.flatMap(t => t.members.map(m => m.id)));
         const uniqueNewMembers = selectedPlayers.filter(p => !existingIds.has(p.id));

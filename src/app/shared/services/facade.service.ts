@@ -902,6 +902,9 @@ export class FacadeService {
   MatchPlayDataQuery(playerId: string, flightId: string) {
     return this.matchplayService.MatchPlayDataQuery(playerId, flightId);
   }
+  MatchPlayDataQueryShort(playerId: string, flightId: string) {
+    return this.matchplayService.MatchPlayDataQueryShort(playerId, flightId);
+  }
 
   SaveScoresMutation(scores: Score[]) {
     return this.matchplayService.SaveScoresMutation(scores);

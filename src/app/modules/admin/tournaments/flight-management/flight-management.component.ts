@@ -76,6 +76,7 @@ import { isObject } from 'lodash';
     styleUrls: ['./flight-management.component.scss'],
 })
 export class FlightManagementComponent implements OnInit, OnChanges {
+
     @Input() tournamentID: string;
     @Input() activeRound: number;
     @ViewChild('matDrawer', { static: true }) matDrawer: MatDrawer;
@@ -2044,6 +2045,70 @@ export class FlightManagementComponent implements OnInit, OnChanges {
             this.selectedMembers.splice(num, 1);
         }
     }
+
+    swapFlight(flightIndex: number) {
+        // Get list of available flights to swap with (exclude current flight)
+        const availableFlights = this.selectedMembers
+            .map((flight, idx) => ({
+                flightNo: flight['flightNo'],
+                flightIndex: idx,
+                playerCount: flight.length
+            }))
+            .filter(f => f.flightIndex !== flightIndex);
+
+        if (availableFlights.length === 0) {
+            this.snackBar.open('No other flights available to swap with.', 'x', {
+                duration: 3000,
+            });
+            return;
+        }
+
+        // Build message showing available flights
+        let flightOptions = availableFlights
+            .map(f => `Flight ${f['flightNo']} (${f.playerCount} players)`)
+            .join('\n');
+
+        // Create selection dialog
+        const dialogRef = this.dialog.open(DialogMoveFlightComponent, {
+            width: '500px',
+            data: {
+                flights: this.selectedMembers.length,
+                name: `Select a flight to swap with Flight ${this.selectedMembers[flightIndex]['flightNo']}:`,
+            },
+        });
+
+        dialogRef.afterClosed().subscribe((selectedFlightNo) => {
+            if (selectedFlightNo) {
+                // Find the index of the selected flight
+                const targetFlightIndex = availableFlights.find(
+                    f => f.flightNo == selectedFlightNo
+                )?.flightIndex;
+
+                if (targetFlightIndex !== undefined) {
+                    // Swap the entire flight arrays
+                    const temp = this.selectedMembers[flightIndex];
+                    this.selectedMembers[flightIndex] = this.selectedMembers[targetFlightIndex];
+                    this.selectedMembers[targetFlightIndex] = temp;
+
+                    // Update flight numbers to reflect swap
+                    const tempFlightNo = this.selectedMembers[flightIndex]['flightNo'];
+                    this.selectedMembers[flightIndex]['flightNo'] = this.selectedMembers[targetFlightIndex]['flightNo'];
+                    this.selectedMembers[targetFlightIndex]['flightNo'] = tempFlightNo;
+
+                    this.snackBar.open(
+                        `Flight ${this.selectedMembers[targetFlightIndex]['flightNo']} and Flight ${this.selectedMembers[flightIndex]['flightNo']} have been swapped successfully.`,
+                        'x',
+                        { duration: 5000 }
+                    );
+                } else {
+                    this.snackBar.open('Flight not found. Please enter a valid flight number.', 'x', {
+                        duration: 3000,
+                    });
+                }
+            }
+        });
+    }
+
     editFlight(id, index) {
         //console.log(index);
         try {

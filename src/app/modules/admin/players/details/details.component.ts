@@ -98,38 +98,38 @@ export class ContactsDetailsComponent implements OnInit {
     filteredCountries: Observable<string[]>;
 
     readonly allCountries: string[] = [
-        'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda',
-        'Argentina','Armenia','Australia','Austria','Azerbaijan','Bahamas','Bahrain',
-        'Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan',
-        'Bolivia','Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria',
-        'Burkina Faso','Burundi','Cabo Verde','Cambodia','Cameroon','Canada',
-        'Central African Republic','Chad','Chile','China','Colombia','Comoros',
-        'Congo (Congo-Brazzaville)','Costa Rica','Croatia','Cuba','Cyprus',
-        'Czechia','Denmark','Djibouti','Dominica','Dominican Republic','Ecuador',
-        'Egypt','El Salvador','Equatorial Guinea','Eritrea','Estonia','Eswatini',
-        'Ethiopia','Fiji','Finland','France','Gabon','Gambia','Georgia','Germany',
-        'Ghana','Greece','Grenada','Guatemala','Guinea','Guinea-Bissau','Guyana',
-        'Haiti','Honduras','Hungary','Iceland','India','Indonesia','Iran','Iraq',
-        'Ireland','Israel','Italy','Jamaica','Japan','Jordan','Kazakhstan','Kenya',
-        'Kiribati','Kuwait','Kyrgyzstan','Laos','Latvia','Lebanon','Lesotho',
-        'Liberia','Libya','Liechtenstein','Lithuania','Luxembourg','Madagascar',
-        'Malawi','Malaysia','Maldives','Mali','Malta','Marshall Islands',
-        'Mauritania','Mauritius','Mexico','Micronesia','Moldova','Monaco',
-        'Mongolia','Montenegro','Morocco','Mozambique','Myanmar','Namibia','Nauru',
-        'Nepal','Netherlands','New Zealand','Nicaragua','Niger','Nigeria',
-        'North Korea','North Macedonia','Norway','Oman','Pakistan','Palau',
-        'Palestine','Panama','Papua New Guinea','Paraguay','Peru','Philippines',
-        'Poland','Portugal','Qatar','Romania','Russia','Rwanda',
-        'Saint Kitts and Nevis','Saint Lucia','Saint Vincent and the Grenadines',
-        'Samoa','San Marino','Sao Tome and Principe','Saudi Arabia','Senegal',
-        'Serbia','Seychelles','Sierra Leone','Singapore','Slovakia','Slovenia',
-        'Solomon Islands','Somalia','South Africa','South Korea','South Sudan',
-        'Spain','Sri Lanka','Sudan','Suriname','Sweden','Switzerland','Syria',
-        'Taiwan','Tajikistan','Tanzania','Thailand','Timor-Leste','Togo','Tonga',
-        'Trinidad and Tobago','Tunisia','Turkey','Turkmenistan','Tuvalu','Uganda',
-        'Ukraine','United Arab Emirates','United Kingdom','United States',
-        'Uruguay','Uzbekistan','Vanuatu','Vatican City','Venezuela','Vietnam',
-        'Yemen','Zambia','Zimbabwe',
+        'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda',
+        'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain',
+        'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan',
+        'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria',
+        'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon', 'Canada',
+        'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros',
+        'Congo (Congo-Brazzaville)', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus',
+        'Czechia', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador',
+        'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini',
+        'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany',
+        'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana',
+        'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq',
+        'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya',
+        'Kiribati', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho',
+        'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar',
+        'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands',
+        'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco',
+        'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru',
+        'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria',
+        'North Korea', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau',
+        'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines',
+        'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia', 'Rwanda',
+        'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines',
+        'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal',
+        'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
+        'Solomon Islands', 'Somalia', 'South Africa', 'South Korea', 'South Sudan',
+        'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria',
+        'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tonga',
+        'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda',
+        'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States',
+        'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam',
+        'Yemen', 'Zambia', 'Zimbabwe',
     ];
     /**
      * Constructor
@@ -347,101 +347,142 @@ export class ContactsDetailsComponent implements OnInit {
             // Get the contact object
 
             const contact = this.contactForm.getRawValue();
-            // if (this.contactForm.valid) {
-            //     if (contact.email)
-            //         checkEmail = <Player>(
-            //             await this._facadeService.getPlayerByEmail(contact.email)
-            //         );
+            if (this.contactForm.valid) {
+                if (contact.email)
+                    checkEmail = <Player>(
+                        await this._facadeService.getPlayerByEmail(contact.email.toLowerCase())
+                    );
 
-            //     if (contact.phoneNumbers)
-            //         checkPhone = <Player>(
-            //             await this._facadeService.getPlayerByPhone(
-            //                 contact.phoneNumbers
-            //             )
-            //         );
+                // if (contact.phoneNumbers)
+                //     checkPhone = <Player>(
+                //         await this._facadeService.getPlayerByPhone(
+                //             contact.phoneNumbers
+                //         )
+                //     );
 
-            //     console.log(checkEmail);
-            //     if (checkEmail.length > 0) emailPlayerId = checkEmail[0].id;
+                console.log(checkEmail);
+                if (checkEmail && checkEmail.length > 0) {
+                    const alreadyInClub = checkEmail[0].membership?.some(
+                        (m) => m.clubId === this.loggedInuser.adminClubId
+                    );
 
-            //     if (checkPhone.length > 0) phonePlayerId = checkPhone[0].id;
+                    if (alreadyInClub) {
+                        const confirmation = this._fuseConfirmationService.open({
+                            title: 'Duplicate Email',
+                            message: 'Player already exists in this club.',
+                            actions: {
+                                confirm: {
+                                    label: 'Close',
+                                },
+                            },
+                        })
+                        // e.g. this.toastService.show('Player already exists in this club');
+                        return; // or continue / break depending on your loop context
+                    }
+                }
+                if (contact.membershipNo) {
+                    checkEmail = [];
+                    checkEmail = <Player>(
+                        await this._facadeService.getPlayerByMembershipNumber(contact.membershipNo)
+                    );
+                    if (checkEmail && checkEmail.length > 0) {
+                        const confirmation = this._fuseConfirmationService.open({
+                            title: 'Duplicate Membership Number',
+                            message: 'Player already exists in this club.',
+                            actions: {
+                                confirm: {
+                                    label: 'Close',
+                                },
+                            },
+                        })
+                        // e.g. this.toastService.show('Player already exists in this club');
+                        return; // or continue / break depending on your loop context
 
-            //     if (
-            //         checkEmail.length > 0 &&
-            //         emailPlayerId !== '' &&
-            //         emailPlayerId !== this.playerID
-            //     ) {
-            //         const confirmation = this._fuseConfirmationService.open({
-            //             title: 'Duplicate Email',
-            //             message: 'Player already exist!. Do you want to add this player to your club?',
-            //             actions: {
-            //                 confirm: {
-            //                     label: 'Yes',
-            //                 },
-            //             },
-            //         }).afterClosed().subscribe(async (result) => {
-            //             if (result === 'confirmed') {
-            //                 let clubMember: any[] = [];
-            //                 clubMember.push({
-            //                     clubId: this.loggedInuser.adminClubId,
-            //                     suspended: false,
-            //                     playerId: checkEmail[0].id
-            //                 })
-            //                 let response = await this._facadeService.insertClubMember(clubMember);
-            //                 if (response) {
-            //                     this.save = true;
-            //                     this.snackBar.open('Player has been added.', 'x', {
-            //                         duration: 1000,
-            //                     });
-            //                     this.reset();
-            //                     this._router.navigate(['/players']);
-            //                 }
-            //             }
-            //         });
+                    }
+
+                }
+
+                // if (checkEmail.length > 0) emailPlayerId = checkEmail[0].id;
+
+                // if (checkPhone.length > 0) phonePlayerId = checkPhone[0].id;
+
+                // if (
+                //     checkEmail.length > 0 &&
+                //     emailPlayerId !== '' &&
+                //     emailPlayerId !== this.playerID
+                // ) {
+                //     const confirmation = this._fuseConfirmationService.open({
+                //         title: 'Duplicate Email',
+                //         message: 'Player already exist!. Do you want to add this player to your club?',
+                //         actions: {
+                //             confirm: {
+                //                 label: 'Yes',
+                //             },
+                //         },
+                //     }).afterClosed().subscribe(async (result) => {
+                //         if (result === 'confirmed') {
+                //             let clubMember: any[] = [];
+                //             clubMember.push({
+                //                 clubId: this.loggedInuser.adminClubId,
+                //                 suspended: false,
+                //                 playerId: checkEmail[0].id
+                //             })
+                //             let response = await this._facadeService.insertClubMember(clubMember);
+                //             if (response) {
+                //                 this.save = true;
+                //                 this.snackBar.open('Player has been added.', 'x', {
+                //                     duration: 1000,
+                //                 });
+                //                 this.reset();
+                //                 this._router.navigate(['/players']);
+                //             }
+                //         }
+                //     });
 
 
-            //         return;
-            //     } else if (
-            //         checkPhone.length > 0 &&
-            //         phonePlayerId !== '' &&
-            //         phonePlayerId !== this.playerID
-            //     ) {
-            //         const confirmation = this._fuseConfirmationService.open({
-            //             title: 'Duplicate Number',
-            //             message: 'Player already exist!. Do you want to add this player to your club?',
-            //             actions: {
-            //                 confirm: {
-            //                     label: 'Yes',
-            //                 },
-            //             },
-            //         }).afterClosed().subscribe(async (result) => {
-            //             if (result === 'confirmed') {
-            //                 let clubMember: any[] = [];
-            //                 clubMember.push({
-            //                     clubId: this.loggedInuser.adminClubId,
-            //                     suspended: false,
-            //                     playerId: checkEmail[0].id
-            //                 })
-            //                 let response = await this._facadeService.insertClubMember(clubMember);
-            //                 if (response) {
-            //                     this.save = true;
-            //                     this.snackBar.open('Player has been added.', 'x', {
-            //                         duration: 1000,
-            //                     });
-            //                     this.reset();
-            //                     this._router.navigate(['/players']);
-            //                 }
-            //             }
-            //         });
+                //     return;
+                // } else if (
+                //     checkPhone.length > 0 &&
+                //     phonePlayerId !== '' &&
+                //     phonePlayerId !== this.playerID
+                // ) {
+                //     const confirmation = this._fuseConfirmationService.open({
+                //         title: 'Duplicate Number',
+                //         message: 'Player already exist!. Do you want to add this player to your club?',
+                //         actions: {
+                //             confirm: {
+                //                 label: 'Yes',
+                //             },
+                //         },
+                //     }).afterClosed().subscribe(async (result) => {
+                //         if (result === 'confirmed') {
+                //             let clubMember: any[] = [];
+                //             clubMember.push({
+                //                 clubId: this.loggedInuser.adminClubId,
+                //                 suspended: false,
+                //                 playerId: checkEmail[0].id
+                //             })
+                //             let response = await this._facadeService.insertClubMember(clubMember);
+                //             if (response) {
+                //                 this.save = true;
+                //                 this.snackBar.open('Player has been added.', 'x', {
+                //                     duration: 1000,
+                //                 });
+                //                 this.reset();
+                //                 this._router.navigate(['/players']);
+                //             }
+                //         }
+                //     });
 
-            //         return;
-            //     } else if (
-            //         (checkEmail.length > 0 && this.playerID) ||
-            //         (checkPhone.length > 0 && this.playerID)
-            //     ) {
-            //         newFlag = false;
-            //     } else {
-            //     }
-            // }
+                //     return;
+                // } else if (
+                //     (checkEmail.length > 0 && this.playerID) ||
+                //     (checkPhone.length > 0 && this.playerID)
+                // ) {
+                //     newFlag = false;
+                // } else {
+                // }
+            }
             let clubMember: ClubMembership[] = [];
             let UniqueId: string = '';
             let GEMId: string = '';

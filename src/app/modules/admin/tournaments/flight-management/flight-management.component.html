@@ -59,6 +59,8 @@
                                                             i
                                                         )
                                                     ">delete_forever</mat-icon>
+                        <mat-icon aria-hidden="false" class="cursor-pointer"
+                            (click)="swapFlight(j)">swap_horiz</mat-icon>
                     </span>
                 </div>
                 <div class=" divide-y divide-gray-200">
@@ -69,8 +71,7 @@
                         class="flex justify-between  items-center text-sm p-4 rounded-md bg-white">
 
                         <span class="flex gap-x-2 items-center">
-                            <span class="w-2 h-2 rounded-full"
-                                [style.background-color]="getTeamColor(item.id)"></span>
+                            <span class="w-2 h-2 rounded-full" [style.background-color]="getTeamColor(item.id)"></span>
                             <span class="font-medium text-gray-700 text-md">
                                 {{ item.firstName }} {{ item.lastName }}
                             </span>
@@ -81,7 +82,7 @@
                             <mat-icon aria-hidden="false" class="cursor-pointer"
                                 (click)="removePlayer(i,j)">delete_forever</mat-icon>
                             <mat-icon aria-hidden="false" class="cursor-pointer"
-                                (click)="movePlayer(i, j)">edit</mat-icon>
+                                (click)="movePlayer(i, j)">swap_horiz</mat-icon>
                         </span>
                     </div>
 

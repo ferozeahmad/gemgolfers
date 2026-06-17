@@ -885,8 +885,13 @@ export const GetPlayerByFilter = gql`
             lastName
             phone
             handicap
+            email
             playerCategory
             membershipNumber
+            membership {
+            playerId
+            clubId
+            }
         }
     }
 `;

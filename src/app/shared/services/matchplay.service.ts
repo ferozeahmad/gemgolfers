@@ -30,6 +30,24 @@ export class MatchplayService {
     });
   }
 
+  public MatchPlayDataQueryShort(playerId: string, flightId:string): Promise<any> {
+    return new Promise( resolve => {
+        this.apollo.subscribe({
+        query: Query.MatchPlayDataQueryShort,
+        variables: {
+          'flightId': flightId
+      }
+        })
+        .subscribe(({ data }) => {
+          if (!data) {
+              resolve(null);
+            } else {
+              resolve(data);
+            }
+        });
+    });
+  }
+
   public getPlayerTournamentScore(tournamentId: string, playerId:string): Promise<any> {
     return new Promise( resolve => {
         this.apollo.subscribe({
