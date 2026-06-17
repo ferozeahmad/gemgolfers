@@ -94,6 +94,8 @@ export class ContactsDetailsComponent implements OnInit {
     public handicapsWhs: any[] = [];
     loggedInuser: UserSessionModel;
     handicapIndex: number = 0;
+    email: string = '';
+    membershipNo: string = '';
     filteredClubOptions: Observable<Club[]>;
     filteredCountries: Observable<string[]>;
 
@@ -347,20 +349,16 @@ export class ContactsDetailsComponent implements OnInit {
             // Get the contact object
 
             const contact = this.contactForm.getRawValue();
+
             if (this.contactForm.valid) {
-                if (contact.email)
+                if (!this.editMode && contact.email)
                     checkEmail = <Player>(
                         await this._facadeService.getPlayerByEmail(contact.email.toLowerCase())
                     );
-
-                // if (contact.phoneNumbers)
-                //     checkPhone = <Player>(
-                //         await this._facadeService.getPlayerByPhone(
-                //             contact.phoneNumbers
-                //         )
-                //     );
-
-                console.log(checkEmail);
+                if (this.editMode && (contact.email != this.email))
+                    checkEmail = <Player>(
+                        await this._facadeService.getPlayerByEmail(contact.email.toLowerCase())
+                    );
                 if (checkEmail && checkEmail.length > 0) {
                     const alreadyInClub = checkEmail[0].membership?.some(
                         (m) => m.clubId === this.loggedInuser.adminClubId
@@ -380,7 +378,7 @@ export class ContactsDetailsComponent implements OnInit {
                         return; // or continue / break depending on your loop context
                     }
                 }
-                if (contact.membershipNo) {
+                if (!this.editMode && contact.membershipNo) {
                     checkEmail = [];
                     checkEmail = <Player>(
                         await this._facadeService.getPlayerByMembershipNumber(contact.membershipNo)
@@ -859,6 +857,8 @@ export class ContactsDetailsComponent implements OnInit {
         if (this.currentPlayer?.player?.length > 0) {
             const player = this.currentPlayer.player[0];
             this.handicapsWhs = player.handicapWhsIndex;
+            this.email = player.email;
+            this.membershipNo = player.membershipNumber;
             this.editMode = true;
             this.tournamentId =
                 player.handicap_history && player.handicap_history.length > 0

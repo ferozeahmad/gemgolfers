@@ -27,6 +27,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatchplayRoutingModule } from './matchplay-routing.module';
 import { MatchplayComponent } from './matchplay.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
   declarations: [MatchplayComponent],
@@ -46,6 +47,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     MatSelectModule,
     MatNativeDateModule,
     MatDatepickerModule,
+    MatTooltipModule,
     MatRadioModule,
     MatExpansionModule,
     MatToolbarModule,
