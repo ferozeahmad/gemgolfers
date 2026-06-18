@@ -53,6 +53,8 @@ export class GolfReportComponent implements OnInit {
     tournamentID: string;
     filterPlayer: string = '';
     filterCategory: string;
+    selectedClub: string = '';
+    clubs: string[] = [];
     HandicapIndex: any[] = [];
     showResult: boolean = false;
     showtable: boolean = true;
@@ -178,6 +180,7 @@ export class GolfReportComponent implements OnInit {
             this.dailyStats.push(newobj);
         }
         this.dailyStats.sort(this.Comparator);
+        this.extractClubs();
         this.dataSource = new MatTableDataSource(this.dailyStats);
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
@@ -213,7 +216,6 @@ export class GolfReportComponent implements OnInit {
     };
 
     applyFilter(filterValue: string) {
-
         //console.log(this.dataSource.data);
         filterValue = filterValue.trim(); // Remove whitespace
         filterValue = filterValue.toLowerCase(); // Datasource defaults to lowercase matches
@@ -222,6 +224,31 @@ export class GolfReportComponent implements OnInit {
         if (this.dataSource.paginator) {
             this.dataSource.paginator.firstPage();
         }
+    }
+
+    extractClubs() {
+        const clubSet = new Set<string>();
+        this.dailyStats.forEach((player) => {
+            if (player.clubName && player.clubName !== '-') {
+                clubSet.add(player.clubName);
+            }
+        });
+        this.clubs = Array.from(clubSet).sort();
+    }
+
+    onClubFilterChange(selectedClub: string) {
+        this.selectedClub = selectedClub;
+        if (selectedClub === '' || selectedClub === 'All') {
+            // Show all players
+            this.dataSource.data = this.dailyStats;
+        } else {
+            // Filter players by selected club
+            this.dataSource.data = this.dailyStats.filter(
+                (player) => player.clubName === selectedClub
+            );
+        }
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
     }
     setDataSource(dataSource) {
         this.dataSource = new MatTableDataSource(dataSource);

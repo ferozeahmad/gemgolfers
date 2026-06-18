@@ -2043,6 +2043,11 @@ export const getDailyTeeTimeReportAdmin = gql`
         ) {
             id
             teeDate
+            clubId
+            club{
+            id 
+            name
+            }
             slots {
                 id
                 FlightsQL: flight {

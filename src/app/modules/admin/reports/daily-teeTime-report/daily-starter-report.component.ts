@@ -45,6 +45,9 @@ export class DailyStarterReportComponent implements OnInit {
     currentDate: string;
     customValue: boolean;
     dailyStats: any[] = [];
+    selectedClub: string = '';
+    clubs: string[] = [];
+    originalData: any[] = [];
 
     dataSource: MatTableDataSource<any>;
     displayedColumns = [
@@ -53,6 +56,7 @@ export class DailyStarterReportComponent implements OnInit {
         'roundsPlayed',
         'membersPlayed',
         'submittedCards',
+        'clubName',
         // 'nonSubmittedCards',
         'details',
     ];
@@ -126,6 +130,30 @@ export class DailyStarterReportComponent implements OnInit {
         }
     }
 
+    extractClubs(data: any[]) {
+        const clubSet = new Set<string>();
+        data.forEach((row) => {
+            if (row.clubName && row.clubName !== '-') {
+                clubSet.add(row.clubName);
+            }
+        });
+        this.clubs = Array.from(clubSet).sort();
+    }
+
+    onClubFilterChange(selectedClub: string) {
+        this.selectedClub = selectedClub;
+        
+        if (selectedClub === '' || selectedClub === 'All') {
+            // Show all data
+            this.dataSource.data = this.originalData;
+        } else {
+            // Filter by selected club
+            this.dataSource.data = this.originalData.filter(row => row.clubName === selectedClub);
+        }
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+    }
+
     async getDailyRounds(fromDate: Date, toDate: Date) {
         let dailyRoundsData: any[] = [];
 
@@ -194,6 +222,7 @@ export class DailyStarterReportComponent implements OnInit {
                                 })
                                 : [],
                         flights: obj.slots[i]?.FlightsQL ? obj.slots[i].FlightsQL : {},
+                        clubName: obj.club ? obj.club.name : '-',
                     };
                     this.dailyStats.push(dailyStat);
                 }
@@ -296,6 +325,7 @@ export class DailyStarterReportComponent implements OnInit {
                         nonSubmittedCardsList: nonSubmittedCardsList,
                         submitPer: submitPer,
                         nonSubmitPer: nonSubmitPer,
+                        clubName: stats.clubName,
                         flights: [Object.keys(stats.flights).length > 0 ? stats.flights : {}],
                     };
                     count++;
@@ -308,11 +338,13 @@ export class DailyStarterReportComponent implements OnInit {
             this.isLoading = false;
             this.showtable = true;
             this.dataSource = null;
+            this.originalData = myData;
             this.dataSource = new MatTableDataSource(myData);
             //console.log(this.dataSource);
 
             this.dataSource.paginator = this.paginator;
             this.dataSource.sort = this.sort;
+            this.extractClubs(myData);
 
 
         }
@@ -393,7 +425,6 @@ export class DailyStarterReportComponent implements OnInit {
         doc.save(`Golf_Draws_${data.date}.pdf`);
     }
 
-    // **Reusable Function to Draw Flight Block**
     private drawFlightBlock(doc, flight, startX, startY) {
         if (!flight) return;
 

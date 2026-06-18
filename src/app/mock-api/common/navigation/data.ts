@@ -253,7 +253,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
             },
             {
                 id: 'reports.signUpPlayers',
-                title: 'SignUp-Players',
+                title: 'New Players',
                 type: 'basic',
                 icon: 'heroicons_outline:beaker',
                 link: '/reports/signUpPlayers',

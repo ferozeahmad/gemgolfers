@@ -66,8 +66,17 @@
 
     <div *ngIf="showtable"
         class="sm:col-span-6 flex flex-col flex-auto p-6 m-8 bg-card shadow rounded-2xl overflow-hidden">
-        <div class="flex-auto">
-            <mat-form-field class="fuse-mat-dense max-w-40 fuse-mat-no-subscript fuse-mat-rounded w-full min-w-50">
+        <div class="flex flex-col sm:flex-row gap-4 flex-auto mb-4">
+            <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript fuse-mat-rounded flex-1 min-w-50">
+                <mat-label>Filter by Club</mat-label>
+                <mat-select [(value)]="selectedClub" (selectionChange)="onClubFilterChange($event.value)">
+                    <mat-option value="">All Clubs</mat-option>
+                    <mat-option *ngFor="let club of clubs" [value]="club">
+                        {{ club }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field class="fuse-mat-dense max-w-40 fuse-mat-no-subscript fuse-mat-rounded flex-1 min-w-50">
                 <mat-icon class="icon-size-5" matPrefix [svgIcon]="'heroicons_solid:search'"></mat-icon>
                 <input matInput (keyup)="applyFilter($event.target.value)" [autocomplete]="'off'"
                     [placeholder]="'Search player'" />
