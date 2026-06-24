@@ -12,6 +12,7 @@ import { Constants, UniqueIdGenerator } from 'app/shared/classes/general';
 import { UserSessionModel } from 'app/shared/models/player.model';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     selector: 'app-player-registration-form',
@@ -39,15 +40,17 @@ export class PlayerRegistrationFormComponent implements OnInit {
         public dialogRef: MatDialogRef<PlayerRegistrationFormComponent>,
         @Inject(MAT_DIALOG_DATA) @Optional() public data: any,
         private _facadeService: FacadeService,
-        private _localStorage: LocalStorageService
+        private _localStorage: LocalStorageService,
+        private _logger: LogsService
     ) {
 
     }
 
     async ngOnInit() {
-
+        this._logger.log('PlayerRegistrationFormComponent initialized', "info");
         this.loggedInUser = this._localStorage.get(Constants.LOGGED_IN_USER);
         this.isEditMode = !!this.data?.entry;
+        this._logger.log(`Form in edit mode: ${this.isEditMode}`, "info", this.data?.entry);
         this.minDate = new Date(2000, 0, 1);
         this.maxDate = new Date();
         const today = new Date();
@@ -65,6 +68,7 @@ export class PlayerRegistrationFormComponent implements OnInit {
         let clubs = await this._facadeService.getClubList();
         this.clubs = clubs.club;
         this.clubs.unshift({ id: 'Guest', name: 'Guest' }); // Add Guest option at the beginning
+        this._logger.log(`Clubs fetched: ${this.clubs.length} including Guest option.`, "info");
 
         // Listen for clubId changes
         this.form.get('clubId')?.valueChanges.subscribe((value) => {
@@ -72,6 +76,7 @@ export class PlayerRegistrationFormComponent implements OnInit {
             const emailControl = this.form.get('email');
             if (this.showEmailField) {
                 emailControl?.setValidators([Validators.required, Validators.email]);
+                this._logger.log('Email field validators set (required, email).', "info");
             } else {
                 emailControl?.clearValidators();
                 emailControl?.setValue('');
@@ -80,8 +85,10 @@ export class PlayerRegistrationFormComponent implements OnInit {
                 this.playerExistsInClub = false;
                 this.foundPlayerId = null;
                 this.foundPlayerDetails = null;
+                this._logger.log('Email field validators cleared and state reset.', "info");
             }
             emailControl?.updateValueAndValidity();
+            this._logger.log(`Club ID changed to: ${value}. Show email field: ${this.showEmailField}`, "info");
         });
 
         // Listen for email changes
@@ -91,6 +98,7 @@ export class PlayerRegistrationFormComponent implements OnInit {
                 distinctUntilChanged(),
                 switchMap(async (email) => {
                     if (email && this.showEmailField && this.form.get('email')?.valid) {
+                        this._logger.log(`Email input changed to: ${email}. Checking player...`, "info");
                         await this.checkPlayerByEmail(email);
                     } else {
                         this.playerFoundByEmail = false;
@@ -98,6 +106,7 @@ export class PlayerRegistrationFormComponent implements OnInit {
                         this.playerExistsInClub = false;
                         this.foundPlayerId = null;
                         this.foundPlayerDetails = null;
+                        this._logger.log('Email input invalid or field not shown. Resetting player search state.', "info");
                     }
                     return of(null);
                 })
@@ -128,6 +137,7 @@ export class PlayerRegistrationFormComponent implements OnInit {
             this.form.get('email')?.setValidators([Validators.required, Validators.email]);
             this.form.get('email')?.updateValueAndValidity();
         }
+        this._logger.log('Form populated with entry data.', "info", entry);
     }
 
     /**
@@ -139,12 +149,14 @@ export class PlayerRegistrationFormComponent implements OnInit {
         this.playerExistsInClub = false;
         this.foundPlayerId = null;
         this.foundPlayerDetails = null;
+        this._logger.log(`Initiating player check for email: ${email}`, "info");
 
         try {
             const result = await this._facadeService.getPlayerByEmail(email);
             const selectedClubId = this.form.get('clubId')?.value;
 
             if (result && result.length > 0) {
+                this._logger.log(`Player(s) found by email: ${email}`, "info", result);
                 this.playerFoundByEmail = true;
                 const matchingPlayerInClub = result.find((player: any) =>
                     player.membership?.some((m: any) => m.clubId === selectedClubId)
@@ -157,8 +169,9 @@ export class PlayerRegistrationFormComponent implements OnInit {
                         this.playerExistsInClub = true;
                         this.form.get('email')?.setErrors(null);
                         this.playerNotFound = false;
+                        this._logger.log(`Player found and is a member of club ${selectedClubId}`, "info", matchingPlayerInClub);
                     } else {
-                        // Player found by email, but not in the selected club's membership
+                        this._logger.log(`Player found by email (${email}), but not in selected club's (${selectedClubId}) membership.`, "warn");
                         this.playerExistsInClub = false;
                         this.playerNotFound = true;
                         this.form.get('email')?.setErrors({ notFound: true });
@@ -173,9 +186,11 @@ export class PlayerRegistrationFormComponent implements OnInit {
                     this.playerExistsInClub = false;
                     this.playerNotFound = false;
                     this.form.get('email')?.setErrors(null);
+                    this._logger.log(`Player found by email (${email}) while 'Guest' is selected. Storing first player's details.`, "info", result[0]);
                 }
             } else {
                 // No player found at all by email
+                this._logger.log(`No player found for email: ${email}`, "warn");
                 this.playerFoundByEmail = false;
                 this.playerNotFound = true;
                 this.form.get('email')?.setErrors({ notFound: true });
@@ -184,6 +199,7 @@ export class PlayerRegistrationFormComponent implements OnInit {
             }
         } catch (error) {
             console.error('Error checking player by email:', error);
+            this._logger.log(`Error checking player by email (${email}): ${error.message}`, "error", error);
             this.playerNotFound = true;
             this.form.get('email')?.setErrors({ notFound: true });
         }
@@ -194,13 +210,16 @@ export class PlayerRegistrationFormComponent implements OnInit {
      * Submit form
      */
     async onSubmit(): Promise<void> {
+        this._logger.log('Form submission initiated.', "info");
         if (this.form.invalid) {
             this.form.markAllAsTouched();
+            this._logger.log('Form is invalid. Marking all as touched and returning.', "warn", this.form.errors);
             return Promise.resolve();
         }
 
         this.isLoading = true;
         const formValue = this.form.value;
+        this._logger.log('Form is valid. Preparing payload.', "info", formValue);
 
         const commonPayload = {
             firstName: formValue.firstName,
@@ -212,6 +231,7 @@ export class PlayerRegistrationFormComponent implements OnInit {
         };
 
         if (this.isEditMode) {
+            this._logger.log(`Updating existing guest entry with ID: ${this.data.entry.id}`, "info", commonPayload);
             // Update existing entry
             const payload = {
                 ...commonPayload,
@@ -223,15 +243,18 @@ export class PlayerRegistrationFormComponent implements OnInit {
                     next: (result) => {
                         this.isLoading = false;
                         this.dialogRef.close(result);
+                        this._logger.log('Guest entry updated successfully.', "info", result);
                     },
                     error: (error) => {
                         console.error('Error updating entry:', error);
                         this.isLoading = false;
+                        this._logger.log(`Error updating guest entry: ${error.message}`, "error", error);
                     },
                 });
         } else {
             // Create new entry
             if (formValue.clubId === 'Guest') {
+                this._logger.log('Creating new guest entry (Guest club selected).', "info", commonPayload);
                 let uniqueId = UniqueIdGenerator.generate()
                 // Create new player and then guest entry
                 const playerPayload = {
@@ -257,23 +280,29 @@ export class PlayerRegistrationFormComponent implements OnInit {
                     membership: null,
                     membershipNumber: '',
                 };
+                this._logger.log('Player payload for new guest:', "debug", playerPayload);
 
                 try {
                     const playerResult = await this._facadeService.AddPlayer(playerPayload);
+                    this._logger.log('New player created successfully.', "info", playerResult);
                     const guestPayload = {
                         ...commonPayload,
                         playerClubId: 'Guest',
                         id: uniqueId, // Use the new player's ID
                         email: formValue.email || '',
                     };
+                    this._logger.log('Guest entry payload:', "debug", guestPayload);
                     const guestResult = await this._playerRegistrationService.createGuestEntry(guestPayload).toPromise();
                     this.isLoading = false;
                     this.dialogRef.close(guestResult);
+                    this._logger.log('Guest entry created successfully after new player creation.', "info", guestResult);
                 } catch (error) {
                     console.error('Error creating player or guest entry:', error);
                     this.isLoading = false;
+                    this._logger.log(`Error creating player or guest entry: ${error.message}`, "error", error);
                 }
             } else {
+                this._logger.log(`Creating new guest entry (Club ${formValue.clubId} selected).`, "info", commonPayload);
                 // Club selected, check if player found by email
                 if (this.playerFoundByEmail && this.foundPlayerId) {
                     const guestPayload = {
@@ -284,19 +313,23 @@ export class PlayerRegistrationFormComponent implements OnInit {
                         lastName: this.foundPlayerDetails.lastName,
                         email: this.foundPlayerDetails.email,
                     };
+                    this._logger.log('Guest entry payload for existing player:', "debug", guestPayload);
                     this._playerRegistrationService.createGuestEntry(guestPayload).subscribe({
                         next: (result) => {
                             this.isLoading = false;
                             this.dialogRef.close(result);
+                            this._logger.log('Guest entry created successfully for existing player.', "info", result);
                         },
                         error: (error) => {
                             console.error('Error creating guest entry:', error);
                             this.isLoading = false;
+                            this._logger.log(`Error creating guest entry for existing player: ${error.message}`, "error", error);
                         },
                     });
                 } else {
                     console.error('Player not found or no player ID available.');
                     this.isLoading = false;
+                    this._logger.log('Player not found by email or no player ID available for guest entry in selected club.', "error");
                     // Optionally, show an error message to the user
                     this.form.get('email')?.setErrors({ notFound: true });
                 }
@@ -309,6 +342,7 @@ export class PlayerRegistrationFormComponent implements OnInit {
      */
     onCancel(): void {
         this.dialogRef.close();
+        this._logger.log('Dialog cancelled.', "info");
     }
 
     /**
