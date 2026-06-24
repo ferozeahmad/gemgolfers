@@ -1,6 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
-import { Observable, catchError, forkJoin, from, map, of, pipe, switchMap } from 'rxjs';
+import {
+    Observable,
+    catchError,
+    forkJoin,
+    from,
+    map,
+    of,
+    pipe,
+    switchMap,
+} from 'rxjs';
 import {
     Player,
     PlayerCategory,
@@ -21,9 +30,17 @@ import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
     providedIn: 'root',
 })
 export class PlayersService {
-    constructor(private apollo: Apollo, private storage: AngularFireStorage, private afAuth: AngularFireAuth) { }
+    constructor(
+        private apollo: Apollo,
+        private storage: AngularFireStorage,
+        private afAuth: AngularFireAuth,
+    ) {}
 
-    public getPlayersPaginated(where: any, limit: number, offset: number): Promise<any> {
+    public getPlayersPaginated(
+        where: any,
+        limit: number,
+        offset: number,
+    ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
                 .watchQuery<any>({
@@ -56,32 +73,35 @@ export class PlayersService {
             .subscribe({
                 query: Query.getPlayersListReport,
             })
-            .pipe(map((item) => item.data))
-
+            .pipe(map((item) => item.data));
     }
-    public getPlayersListReportDateWise(fromDate?: any, toDate?: any): Observable<any> {
+    public getPlayersListReportDateWise(
+        fromDate?: any,
+        toDate?: any,
+    ): Observable<any> {
         return this.apollo
             .subscribe({
                 query: Query.getPlayersListReportDateWise,
                 variables: {
                     fromDate: fromDate,
                     toDate: toDate,
-                }
+                },
             })
-            .pipe(map((item) => item.data))
-
+            .pipe(map((item) => item.data));
     }
-    public getPlayersActivityReport(fromDate?: any, toDate?: any): Observable<any> {
+    public getPlayersActivityReport(
+        fromDate?: any,
+        toDate?: any,
+    ): Observable<any> {
         return this.apollo
             .subscribe({
                 query: Query.getPlayersActivityReportDateWise,
                 variables: {
                     fromDate: fromDate,
                     toDate: toDate,
-                }
+                },
             })
-            .pipe(map((item) => item.data))
-
+            .pipe(map((item) => item.data));
     }
     public getPlayersListByAdminCONGU(): Promise<any> {
         return new Promise((resolve) => {
@@ -129,7 +149,6 @@ export class PlayersService {
                                 },
                             },
                         },
-
                     },
                 })
                 .subscribe(({ data }) => {
@@ -174,7 +193,7 @@ export class PlayersService {
                         where: {
                             tourId: {
                                 _eq: id,
-                            }
+                            },
                         },
                     },
                 })
@@ -196,7 +215,7 @@ export class PlayersService {
                         where: {
                             leagueId: {
                                 _eq: id,
-                            }
+                            },
                         },
                     },
                 })
@@ -269,7 +288,13 @@ export class PlayersService {
                                     _eq: id,
                                 },
                             },
-                            playerCategory: { _nin: ["Professionals", "Caddie", "Senior Professionals"] }
+                            playerCategory: {
+                                _nin: [
+                                    'Professionals',
+                                    'Caddie',
+                                    'Senior Professionals',
+                                ],
+                            },
                         },
                     },
                 })
@@ -339,7 +364,7 @@ export class PlayersService {
     public getTotalFlightPlayed(
         id: string,
         fromDate: string,
-        toDate: any
+        toDate: any,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
@@ -349,8 +374,18 @@ export class PlayersService {
                         where: {
                             _and: [
                                 {
-                                    membership: { club: { id: { _eq: id } } },
+                                    _or: [
+                                        {
+                                            membership: {
+                                                club: { id: { _eq: id } },
+                                            },
+                                        },
+                                        {
+                                            guest: { adminClubId: { _eq: id } },
+                                        },
+                                    ],
                                 },
+
                                 {
                                     flights_played: {
                                         flight: { date: { _gte: toDate } },
@@ -378,7 +413,7 @@ export class PlayersService {
     }
     public getTotalFlightPlayedAdmin(
         fromDate: string,
-        toDate: any
+        toDate: any,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
@@ -412,18 +447,15 @@ export class PlayersService {
                 });
         });
     }
-    public getFlightPlayedAdmin(
-        courseId: string, date: string
-    ): Promise<any> {
+    public getFlightPlayedAdmin(courseId: string, date: string): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
                 .subscribe({
                     query: Query.getFlightPlayedAdmin,
                     variables: {
                         courseId: courseId,
-                        date: date
-                    }
-
+                        date: date,
+                    },
                 })
                 .subscribe(({ data }) => {
                     if (!data) {
@@ -437,7 +469,7 @@ export class PlayersService {
 
     public getPlayersListByClubAndCategory(
         id: string,
-        category: string
+        category: string,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
@@ -494,7 +526,7 @@ export class PlayersService {
     public playerUpdatedHandicapReport(
         clubId: string,
         fromDate: string,
-        toDate: string
+        toDate: string,
     ): Promise<any> {
         //console.log(clubId);
 
@@ -519,14 +551,13 @@ export class PlayersService {
     }
     public playerUpdatedHandicapReportAdmin(
         fromDate: string,
-        toDate: string
+        toDate: string,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
                 .subscribe({
                     query: Query.playerUpdatedHandicapReportAdmin,
                     variables: {
-
                         fromDate: fromDate,
                         toDate: toDate,
                     },
@@ -543,7 +574,7 @@ export class PlayersService {
     public playerUpdatedHandicapWHSReport(
         clubId: string,
         fromDate: string,
-        toDate: string
+        toDate: string,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
@@ -566,7 +597,7 @@ export class PlayersService {
     }
     public playerUpdatedHandicapWHSReportAdmin(
         fromDate: string,
-        toDate: string
+        toDate: string,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
@@ -588,7 +619,7 @@ export class PlayersService {
     }
     public mergeProfiles(
         oldPlayerId: string,
-        newPlayerId: string
+        newPlayerId: string,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
@@ -612,7 +643,7 @@ export class PlayersService {
     public getPlayerHandicapListByPlayerId(
         playerId: string,
         fromDate: any,
-        toDate: any
+        toDate: any,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
@@ -667,7 +698,10 @@ export class PlayersService {
         // so the main app's AngularFireAuth session (the admin) is never disturbed.
         return new Observable<boolean>((observer) => {
             const secondaryAppName = `secondary-${Date.now()}`;
-            const secondaryApp: FirebaseApp = initializeApp(environment.firebase, secondaryAppName);
+            const secondaryApp: FirebaseApp = initializeApp(
+                environment.firebase,
+                secondaryAppName,
+            );
             const secondaryAuth = getAuth(secondaryApp);
 
             createUserWithEmailAndPassword(secondaryAuth, email, password)
@@ -691,7 +725,11 @@ export class PlayersService {
         });
     }
 
-    sendTransactionalEmail(email: string, name: string, password: string): Observable<any> {
+    sendTransactionalEmail(
+        email: string,
+        name: string,
+        password: string,
+    ): Observable<any> {
         return this.apollo
             .subscribe<boolean>({
                 query: Query.emailAction,
@@ -699,8 +737,8 @@ export class PlayersService {
                     request: {
                         email: email,
                         name: name,
-                        password: password
-                    }
+                        password: password,
+                    },
                 },
             })
             .pipe(map((item) => item.data));
@@ -791,7 +829,7 @@ export class PlayersService {
 
     getPlayerByMembershipNumberForSearch(
         clubID: string,
-        membershipNumber: string
+        membershipNumber: string,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
@@ -873,11 +911,8 @@ export class PlayersService {
                         },
                     },
                 },
-            }).pipe(
-                map((item) =>
-                    item.data['player']
-                )
-            );
+            })
+            .pipe(map((item) => item.data['player']));
     }
 
     getPlayerByFirstName(firstName: string): Promise<any> {
@@ -949,7 +984,7 @@ export class PlayersService {
         lastName: string,
         playerCategory: string,
         handicapLower: number,
-        handicapUpper: number
+        handicapUpper: number,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
@@ -976,7 +1011,7 @@ export class PlayersService {
     public searchPlayerForTournament(
         fullName: string,
         handicapLower: number,
-        handicapUpper: number
+        handicapUpper: number,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
@@ -1032,8 +1067,8 @@ export class PlayersService {
                                     data: player?.membership ?? [],
                                 },
                                 roles: {
-                                    data: [{ roleId: player.userRole }]
-                                }
+                                    data: [{ roleId: player.userRole }],
+                                },
                             },
                         ],
                     },
@@ -1045,7 +1080,7 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log('Could not add due to ' + error);
-                    }
+                    },
                 );
         });
     }
@@ -1088,11 +1123,14 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log('Could not add due to ' + error);
-                    }
+                    },
                 );
         });
     }
-    public AddLeaguePlayer(player: Player, leagueMember: any): Promise<boolean> {
+    public AddLeaguePlayer(
+        player: Player,
+        leagueMember: any,
+    ): Promise<boolean> {
         return new Promise((resolve) => {
             this.apollo
                 .mutate<any>({
@@ -1131,13 +1169,13 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log('Could not add due to ' + error);
-                    }
+                    },
                 );
         });
     }
 
     public AddHandicapRemarks(
-        handicap_change_log: handicap_change_log
+        handicap_change_log: handicap_change_log,
     ): Promise<boolean> {
         return new Promise((resolve) => {
             this.apollo
@@ -1166,14 +1204,14 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log('Could not add due to ' + error);
-                    }
+                    },
                 );
         });
     }
 
     public importPlayerList(
         players: any[],
-        clubMembers: any[]
+        clubMembers: any[],
     ): Promise<boolean> {
         return new Promise((resolve) => {
             this.apollo
@@ -1191,14 +1229,12 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log("Could not add due to " + error);
-                    }
+                    },
                 );
         });
     }
 
-    public insertClubMember(
-        clubMembers: any[]
-    ): Promise<boolean> {
+    public insertClubMember(clubMembers: any[]): Promise<boolean> {
         return new Promise((resolve) => {
             this.apollo
                 .mutate<any>({
@@ -1214,7 +1250,7 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log("Could not add due to " + error);
-                    }
+                    },
                 );
         });
     }
@@ -1264,7 +1300,7 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log('Could update add due to ' + error);
-                    }
+                    },
                 );
         });
     }
@@ -1320,9 +1356,9 @@ export class PlayersService {
                             map((response: any) => {
                                 // Return the download URL
                                 return downloadUrl;
-                            })
+                            }),
                         );
-                })
+                }),
             );
         } else {
             return this.apollo
@@ -1361,9 +1397,8 @@ export class PlayersService {
                     map((response: any) => {
                         // Return the download URL
                         return response;
-                    })
+                    }),
                 );
-
         }
     }
 
@@ -1375,7 +1410,7 @@ export class PlayersService {
                     variables: {
                         id: id,
                         handicap: newHandicap,
-                        tournamentId: tournamentId
+                        tournamentId: tournamentId,
                     },
                 })
                 .subscribe(
@@ -1386,12 +1421,16 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log('Could update add due to ' + error);
-                    }
+                    },
                 );
         });
     }
 
-    freezePlayerHandicap(playerId: string, startDate: string, endDate: string): Promise<boolean> {
+    freezePlayerHandicap(
+        playerId: string,
+        startDate: string,
+        endDate: string,
+    ): Promise<boolean> {
         return new Promise((resolve) => {
             this.apollo
                 .mutate<any>({
@@ -1399,7 +1438,7 @@ export class PlayersService {
                     variables: {
                         playerId: playerId,
                         startDate: startDate,
-                        endDate: endDate
+                        endDate: endDate,
                     },
                 })
                 .subscribe(
@@ -1410,18 +1449,21 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log('Could update add due to ' + error);
-                    }
+                    },
                 );
         });
     }
 
-    unFreezePlayerHandicap(playerId: string, startDate: string): Promise<boolean> {
+    unFreezePlayerHandicap(
+        playerId: string,
+        startDate: string,
+    ): Promise<boolean> {
         return new Promise((resolve) => {
             this.apollo
                 .mutate<any>({
                     mutation: Query.unFreezePlayerHandicapMutation,
                     variables: {
-                        playerId: playerId
+                        playerId: playerId,
                     },
                 })
                 .subscribe(
@@ -1432,11 +1474,10 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log('Could update add due to ' + error);
-                    }
+                    },
                 );
         });
     }
-
 
     changePlayerTee(id, tournamentId, tee, teeId): Promise<boolean> {
         return new Promise((resolve) => {
@@ -1458,7 +1499,7 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log('Could update add due to ' + error);
-                    }
+                    },
                 );
         });
     }
@@ -1490,7 +1531,7 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         //console.log('Could delete add due to ' + error);
-                    }
+                    },
                 );
         });
     }
@@ -1554,7 +1595,7 @@ export class PlayersService {
     getPlayerlistbyNameClubWise(
         clubId: string,
         FirstName: string,
-        LastName: string
+        LastName: string,
     ): Promise<any> {
         return new Promise((resolve) => {
             this.apollo
@@ -1637,7 +1678,7 @@ export class PlayersService {
                     (error) => {
                         resolve(false);
                         ////console.log('Could not add due to ' + error);
-                    }
+                    },
                 );
         });
     }
@@ -1730,7 +1771,7 @@ export class PlayersService {
             //     { id: 20, name: 'Junior Girl(16-21)' },
             //     { id: 21, name: 'Junior Gril(12-16)' },
             // ];
-        ]
+        ];
 
         return CLUB_CATEGORIES;
     }
@@ -1741,43 +1782,46 @@ export class PlayersService {
             { id: 3, name: 'Junior' },
             { id: 7, name: 'Veterans' },
             { id: 9, name: 'Ladies' },
-        ]
+        ];
         return CLUB_CATEGORIES;
     }
 
     public verifyUserEmails(userEmails: string[]) {
         return new Promise((resolve) => {
-            this.apollo.mutate({
-                mutation: Query.verifyUserEmailQL,
-                variables: {
-                    request: {
-                        emails: userEmails
-                    }
-                }
-            }).subscribe(
-                ({ data }) => {
-                    resolve(true);
-                },
-                (error) => {
-                    //console.log('Could not delete due to: ' + error);
-                    //console.log(error);
-                    resolve(false);
-                }
-            );
+            this.apollo
+                .mutate({
+                    mutation: Query.verifyUserEmailQL,
+                    variables: {
+                        request: {
+                            emails: userEmails,
+                        },
+                    },
+                })
+                .subscribe(
+                    ({ data }) => {
+                        resolve(true);
+                    },
+                    (error) => {
+                        //console.log('Could not delete due to: ' + error);
+                        //console.log(error);
+                        resolve(false);
+                    },
+                );
         });
     }
 
     public executeSendResetEmailInBulk(userEmails: any[]) {
+        const resetObservables = userEmails.map((account) =>
+            this.sendUserResetEmail(account.Email),
+        );
 
-        const resetObservables = userEmails.map(account => this.sendUserResetEmail(account.Email));
- 
         return forkJoin(resetObservables);
     }
 
     sendUserResetEmail(email: string): Observable<boolean> {
         return from(this.afAuth.sendPasswordResetEmail(email)).pipe(
             map(() => true),
-            catchError(() => of(false))
+            catchError(() => of(false)),
         );
     }
 

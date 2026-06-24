@@ -66,9 +66,28 @@ export class PlayerRegistrationFormComponent implements OnInit {
 
         // Fetch clubs
         let clubs = await this._facadeService.getClubList();
-        this.clubs = clubs.club;
-        this.clubs.unshift({ id: 'Guest', name: 'Guest' }); // Add Guest option at the beginning
-        this._logger.log(`Clubs fetched: ${this.clubs.length} including Guest option.`, "info");
+        const preferredClubIds = [
+            '-L5D7VIovp6LD8Ij7Q3r',
+            '-KpFBx3dRDXWh7ZoK9vG',
+            '-MKEpxbykp2jD5B7_8Sn',
+            '-LUFS3FAg4OEhIiK0vgY',
+            '-LWulmRwqdloYKFGWRzF',
+            '-MKEr4mr0lsmj83mEM45',
+            '-MKEpxbykp2jD5B7_8Sn',
+            '-MKEphnnEkNB99-3Lso_',
+            '-KpFCKx1We7ublUoKDGW',
+        ];
+
+        // Separate preferred clubs and other clubs
+        const preferredClubs = clubs.club.filter((club: any) => preferredClubIds.includes(club.id));
+        const otherClubs = clubs.club.filter((club: any) => !preferredClubIds.includes(club.id));
+
+        // Sort preferred clubs by their order in preferredClubIds (optional, but ensures consistent ordering)
+        preferredClubs.sort((a: any, b: any) => preferredClubIds.indexOf(a.id) - preferredClubIds.indexOf(b.id));
+
+        // Combine: Guest, then preferred clubs, then other clubs
+        this.clubs = [{ id: 'Guest', name: 'Guest' }, ...preferredClubs, ...otherClubs];
+        this._logger.log(`Clubs fetched and reordered. Total clubs: ${this.clubs.length}`, "info");
 
         // Listen for clubId changes
         this.form.get('clubId')?.valueChanges.subscribe((value) => {
