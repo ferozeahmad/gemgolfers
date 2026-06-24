@@ -316,6 +316,14 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 moduleId: '68ddd97f-5e50-4dd3-99d6-26a7952a0130',
             },
             {
+                id: 'reports.playerRegistration',
+                title: 'Player Registration',
+                type: 'basic',
+                icon: 'heroicons_outline:user-add',
+                link: '/reports/playerRegistration',
+                moduleId: '1ee2a58d-bfaf-4cfb-9a99-b3e998728c49',
+            },
+            {
                 id: 'reports.mergreProfiles',
                 title: 'Merge-Profile',
                 type: 'basic',

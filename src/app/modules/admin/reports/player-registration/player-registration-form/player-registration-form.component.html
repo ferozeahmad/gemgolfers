@@ -1,0 +1,119 @@
+<div class="p-6">
+    <h2 mat-dialog-title class="text-2xl font-bold mb-6">
+        {{ isEditMode ? 'Edit Guest Entry' : 'Add New Guest Entry' }}
+    </h2>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-dialog-content class="flex flex-col gap-4 mb-6">
+
+            <!-- Date Picker -->
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Date</mat-label>
+                <input matInput [matDatepicker]="datePicker" formControlName="date" [min]="minDate" [max]="maxDate" />
+                <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
+                <mat-datepicker #datePicker></mat-datepicker>
+                <mat-error *ngIf="form.get('date')?.hasError('required')">
+                    Date is required
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Club Dropdown -->
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Club</mat-label>
+                <mat-select formControlName="clubId">
+                    <mat-option *ngFor="let club of clubs" [value]="club.id">
+                        {{ club.name }}
+                    </mat-option>
+                </mat-select>
+                <mat-error *ngIf="form.get('clubId')?.hasError('required')">
+                    Club is required
+                </mat-error>
+            </mat-form-field>
+            <!-- First Name -->
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" placeholder="Enter first name" />
+                <mat-error *ngIf="form.get('firstName')?.hasError('required')">
+                    First name is required
+                </mat-error>
+                <mat-error *ngIf="form.get('firstName')?.hasError('minLength')">
+                    First name must be at least 2 characters
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Last Name -->
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" placeholder="Enter last name" />
+                <mat-error *ngIf="form.get('lastName')?.hasError('required')">
+                    Last name is required
+                </mat-error>
+                <mat-error *ngIf="form.get('lastName')?.hasError('minlength')">
+                    Last name must be at least 2 characters
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Email -->
+            <mat-form-field *ngIf="showEmailField" appearance="outline" class="w-full">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" type="email" placeholder="Enter player email" />
+                <mat-error *ngIf="form.get('email')?.hasError('required')">
+                    Email is required
+                </mat-error>
+                <mat-error *ngIf="form.get('email')?.hasError('email')">
+                    Invalid email format
+                </mat-error>
+                <mat-error *ngIf="form.get('email')?.hasError('notFound') && !form.get('email')?.hasError('required')">
+                    No player found with this email
+                </mat-error>
+                <mat-error *ngIf="form.get('email')?.hasError('playerExistsInClub') && !form.get('email')?.hasError('required')">
+                    Player is already a member of this club
+                </mat-error>
+                <mat-hint *ngIf="playerFoundByEmail && !playerExistsInClub && form.get('email')?.valid && form.get('clubId')?.value !== 'Guest'" class="text-green-600">
+                    Player found: {{ foundPlayerDetails?.firstName }} {{ foundPlayerDetails?.lastName }} (Handicap: {{ foundPlayerDetails?.handicap }})
+                </mat-hint>
+            </mat-form-field>
+
+            <!-- Handicap -->
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Handicap</mat-label>
+                <input matInput type="number" formControlName="handicap" placeholder="Enter handicap" min="0"
+                    max="54" />
+                <mat-error *ngIf="form.get('handicap')?.hasError('required')">
+                    Handicap is required
+                </mat-error>
+                <mat-error *ngIf="form.get('handicap')?.hasError('min')">
+                    Handicap must be at least 0
+                </mat-error>
+                <mat-error *ngIf="form.get('handicap')?.hasError('max')">
+                    Handicap cannot exceed 54
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Amount -->
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Amount</mat-label>
+                <input matInput type="number" formControlName="amount" placeholder="Enter amount" min="0" />
+                <mat-error *ngIf="form.get('amount')?.hasError('required')">
+                    Amount is required
+                </mat-error>
+                <mat-error *ngIf="form.get('amount')?.hasError('min')">
+                    Amount cannot be negative
+                </mat-error>
+            </mat-form-field>
+        </mat-dialog-content>
+
+
+
+        <mat-dialog-actions align="end" class="flex justify-end gap-2 p-4 border-t border-gray-200">
+            <button mat-button (click)="onCancel()" [disabled]="isLoading">
+                Cancel
+            </button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading">
+                <mat-icon *ngIf="!isLoading" class="mr-2">save</mat-icon>
+                <mat-spinner *ngIf="isLoading" diameter="20" class="inline-block mr-2"></mat-spinner>
+                {{ isEditMode ? 'Update' : 'Save' }}
+            </button>
+        </mat-dialog-actions>
+    </form>
+</div>

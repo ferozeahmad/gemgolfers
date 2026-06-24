@@ -1,0 +1,158 @@
+<div class="flex-auto ">
+  <!-- Header Section -->
+  <div class="flex flex-col sm:flex-row md:flex-col flex-auto bg-card justify-between py-12 px-6 md:px-8 border-b">
+    <div class="flex flex-row items-center justify-between w-full">
+      <div class="text-6xl font-extrabold tracking-tight leading-none text-gray-800">
+        Player Registration
+      </div>
+      <!-- Today's Total Amount Box -->
+      <div class="flex items-center justify-center p-4 bg-primary text-white rounded-lg shadow-lg min-w-48 text-center">
+        <div class="text-2xl font-bold">
+          Total Today: {{ totalAmountToday | currency: 'PKR' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="flex flex-col sm:flex-row items-center justify-between p-6 bg-card rounded-2xl shadow mt-8 ">
+    <form [formGroup]="filterForm" class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 w-full">
+      <mat-form-field appearance="outline" class="fuse-mat-no-subscript w-full sm:w-auto">
+        <mat-label>Select Date</mat-label>
+        <input
+          matInput
+          [matDatepicker]="picker"
+          formControlName="selectedDate"
+          [min]="minDate"
+          [max]="maxDate"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="applyFilter()"
+        class="w-full sm:w-auto"
+      >
+        <mat-icon class="mr-2">search</mat-icon>
+        Search
+      </button>
+
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="resetFilter()"
+        class="w-full sm:w-auto"
+      >
+        <mat-icon class="mr-2">rotate_right</mat-icon>
+        Reset
+      </button>
+
+      <button
+        mat-raised-button
+        color="accent"
+        (click)="openFormDialog()"
+        class="w-full sm:w-auto sm:ml-auto"
+      >
+        <mat-icon class="mr-2">add</mat-icon>
+        Add New Entry
+      </button>
+    </form>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="flex flex-col items-center justify-center min-h-64 bg-card rounded-2xl shadow mt-8">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p class="mt-4 text-gray-500">Loading guest entries...</p>
+  </div>
+
+  <!-- Data Table Section -->
+  <div *ngIf="!isLoading" class="overflow-hidden bg-card rounded-2xl shadow mt-8">
+    <table
+      mat-table
+      [dataSource]="dataSource"
+      matSort
+      class="w-full"
+    >
+      <!-- First Name Column -->
+      <ng-container matColumnDef="firstName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-left font-semibold text-gray-700 py-3 px-4">First Name</th>
+        <td mat-cell *matCellDef="let element" class="py-2 px-4 border-b border-gray-200">{{ element.firstName }}</td>
+      </ng-container>
+
+      <!-- Last Name Column -->
+      <ng-container matColumnDef="lastName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-left font-semibold text-gray-700 py-3 px-4">Last Name</th>
+        <td mat-cell *matCellDef="let element" class="py-2 px-4 border-b border-gray-200">{{ element.lastName }}</td>
+      </ng-container>
+
+      <!-- Handicap Column -->
+      <ng-container matColumnDef="handicap">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-left font-semibold text-gray-700 py-3 px-4">Handicap</th>
+        <td mat-cell *matCellDef="let element" class="py-2 px-4 border-b border-gray-200">
+          {{ element.handicap || '-' }}
+        </td>
+      </ng-container>
+
+      <!-- Date Column -->
+      <ng-container matColumnDef="date">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-left font-semibold text-gray-700 py-3 px-4">Date</th>
+        <td mat-cell *matCellDef="let element" class="py-2 px-4 border-b border-gray-200">
+          {{ element.date | date: 'MMM dd, yyyy' }}
+        </td>
+      </ng-container>
+
+      <!-- Amount Column -->
+      <ng-container matColumnDef="amount">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-left font-semibold text-gray-700 py-3 px-4">Amount</th>
+        <td mat-cell *matCellDef="let element" class="py-2 px-4 border-b border-gray-200">
+          {{ element.amount || '-' }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="text-left font-semibold text-gray-700 py-3 px-4">Actions</th>
+        <td mat-cell *matCellDef="let element" class="py-2 px-4 border-b border-gray-200 flex space-x-2">
+          <button
+            mat-icon-button
+            matTooltip="Edit"
+            (click)="openFormDialog(element)"
+            class="text-blue-600 hover:text-blue-800"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            matTooltip="Delete"
+            (click)="deleteEntry(element)"
+            class="text-red-600 hover:text-red-800"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns" class="bg-gray-100"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="hover:bg-gray-50"></tr>
+    </table>
+
+    <!-- Paginator -->
+    <mat-paginator
+      [pageSizeOptions]="[5, 10, 25, 100]"
+      showFirstLastButtons
+      class="bg-white p-4"
+    ></mat-paginator>
+
+    <!-- Empty State -->
+    <div *ngIf="dataSource.data.length === 0" class="flex flex-col items-center justify-center p-12 text-gray-400">
+      <mat-icon class="icon-size-10">person_add</mat-icon>
+      <p class="mt-4 text-lg">No guest entries found for the selected date</p>
+      <button mat-raised-button color="primary" (click)="openFormDialog()" class="mt-6">
+        Add First Entry
+      </button>
+    </div>
+  </div>
+</div>
