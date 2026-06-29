@@ -450,6 +450,10 @@ export class FacadeService {
     return this.playerService.getFlightPlayedAdmin(courseId, Date);
   }
 
+  createClubMemberSubscription(subscription: any) {
+    return this.playerService.createClubMemberSubscription(subscription); 
+  }
+
   deletePlayer(clubId: string, playerId: string) {
     return this.playerService.deletePlayer(clubId, playerId);
   }

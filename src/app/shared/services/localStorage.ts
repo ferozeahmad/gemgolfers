@@ -51,6 +51,13 @@ export class LocalStorageService {
         }
         return false;
     }
+    isFrontDesk(): boolean {
+        let loggedInuser = this.get(Constants.LOGGED_IN_USER);
+        if (loggedInuser && loggedInuser.roles) {
+            return loggedInuser.roles.some((r: any) => r.name === 'Front Desk');
+        }
+        return false;
+    }
 
     isTourAdmin(): boolean {
         let loggedInuser = this.get(Constants.LOGGED_IN_USER);

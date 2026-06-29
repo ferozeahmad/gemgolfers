@@ -15,6 +15,7 @@ const GET_GUEST_ENTRIES = gql`
       id
       firstName
       lastName
+      transactionId
       handicap
       playerClubId
       date

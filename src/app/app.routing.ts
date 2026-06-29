@@ -369,6 +369,13 @@ export const appRoutes: Route[] = [
                         'app/modules/admin/reports/player-registration/player-registration.module'
                     ).then((m) => m.PlayerRegistrationModule),
             },
+            {
+                path: 'reports/subscription',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/reports/playersSubsription/players.module'
+                    ).then((m) => m.PlayersSubscriptionModule),
+            },
             //{path: 'matchplay', loadChildren: () => import('app/modules/admin/matchplay/matchplay.module').then(m => m.MatchplayModule)},
         ],
     },

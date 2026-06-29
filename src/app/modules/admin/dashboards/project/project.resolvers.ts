@@ -10,7 +10,7 @@ import { LogsService } from 'app/shared/services/logs.service';
 @Injectable({
     providedIn: 'root',
 })
-export class ProjectResolver  {
+export class ProjectResolver {
     loggedInuser: any;
     /**
      * Constructor
@@ -70,6 +70,10 @@ export class ProjectResolver  {
                 );
             } else if (this._localStorage.isClubSecretary()) {
                 this._router.navigateByUrl('/reports/dailyPlayer').catch((error) => {
+                    console.error('Navigation error:', error);
+                });
+            } else if (this._localStorage.isFrontDesk()) {
+                this._router.navigateByUrl('/reports/playerRegistration').catch((error) => {
                     console.error('Navigation error:', error);
                 });
             } else if (this._localStorage.isTourAdmin() || this._localStorage.isLeagueAdmin()) {

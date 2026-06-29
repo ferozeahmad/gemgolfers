@@ -385,7 +385,6 @@ export class PlayersService {
                                         },
                                     ],
                                 },
-
                                 {
                                     flights_played: {
                                         flight: { date: { _gte: toDate } },
@@ -1252,6 +1251,25 @@ export class PlayersService {
                         //console.log("Could not add due to " + error);
                     },
                 );
+        });
+    }
+
+    public createClubMemberSubscription(subscription: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.apollo.mutate<any>({
+                mutation: Query.CreateClubMemberSubscription,
+                variables: {
+                    object: subscription,
+                },
+            }).subscribe({
+                next: ({ data }) => {
+                    resolve(data.insert_club_member_subscription_one);
+                },
+                error: (error) => {
+                    console.error('Error creating club member subscription:', error);
+                    reject(error);
+                }
+            });
         });
     }
 

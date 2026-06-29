@@ -1,0 +1,336 @@
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- ── Header ──────────────────────────────────────────────────────────── -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 border-b bg-card shadow-sm flex-shrink-0">
+        <div>
+            <h1 class="text-4xl font-extrabold tracking-tight leading-none">Players Subscription Report</h1>
+            <p class="mt-1 text-secondary text-base">
+                {{ totalCount | number }} players total
+                <span *ngIf="hasActiveFilters" class="ml-2 text-sm font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                    Filtered
+                </span>
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+            <!-- Add button -->
+            <!-- <button mat-flat-button [color]="'primary'" [routerLink]="['/players/add']">
+                <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                <span class="ml-1">Add Player</span>
+            </button> -->
+
+            <!-- Actions menu -->
+            <button mat-stroked-button [matMenuTriggerFor]="actionsMenu">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:dots-vertical'"></mat-icon>
+                <span class="ml-1">Actions</span>
+            </button>
+            <mat-menu #actionsMenu="matMenu">
+                <button mat-menu-item (click)="exportToExcel()">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:document-report'"></mat-icon>
+                    <span>Export to Excel</span>
+                </button>
+                <button mat-menu-item (click)="downloadPDF()">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:document-download'"></mat-icon>
+                    <span>Export to PDF</span>
+                </button>
+                <mat-divider></mat-divider>
+                <!-- <button mat-menu-item (click)="verifyUserEmails()" [disabled]="selection.isEmpty()">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:check-circle'"></mat-icon>
+                    <span>Verify Selected ({{ selection.selected.length }})</span>
+                </button> -->
+                <!-- <button mat-menu-item (click)="sendResetPasswordEmail()" [disabled]="selection.isEmpty()">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:mail'"></mat-icon>
+                    <span>Reset Password ({{ selection.selected.length }})</span>
+                </button> -->
+                <mat-divider></mat-divider>
+                <label for="bulk-import" mat-menu-item>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:save'"></mat-icon>
+                    <span>Bulk Import Excel</span>
+                </label>
+            </mat-menu>
+
+            <!-- Hidden file input for bulk import -->
+            <input id="bulk-import" class="hidden" type="file" accept=".xls,.xlsx"
+                (change)="parseFlightsData($event)" #fileInput />
+        </div>
+    </div>
+
+    <!-- ── Filters bar ─────────────────────────────────────────────────────── -->
+    <div class="flex flex-wrap items-center gap-3 px-6 py-3 border-b bg-gray-50 flex-shrink-0">
+
+        <!-- Search -->
+        <div class="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm gap-2 flex-1 min-w-48 max-w-sm">
+
+            <mat-icon class="icon-size-4 text-gray-400 flex-shrink-0" [svgIcon]="'heroicons_solid:search'"></mat-icon>
+            <input [formControl]="searchInputControl"
+                placeholder="Search name, email or membership#..."
+                class="flex-1 bg-transparent text-base outline-none text-gray-700 placeholder-gray-400" />
+            <button *ngIf="searchInputControl.value" (click)="searchInputControl.setValue('')"
+                class="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                <mat-icon class="icon-size-4">close</mat-icon>
+            </button>
+        </div>
+
+        <!-- Category filter -->
+        <select [(ngModel)]="selectedCategory" (ngModelChange)="applyCategory($event)"
+            class="border border-gray-200 rounded-xl px-3 py-2 text-base text-gray-700 bg-white shadow-sm outline-none focus:ring-2 focus:ring-blue-200 transition-all min-w-40">
+            <option value="">All Categories</option>
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+        </select>
+
+        <!-- Club autocomplete filter -->
+        <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript fuse-mat-rounded min-w-44">
+            <mat-icon class="icon-size-4" matPrefix>business</mat-icon>
+            <input matInput [formControl]="clubFilterControl" [matAutocomplete]="clubAuto"
+                placeholder="Filter by club..." [autocomplete]="'off'" />
+            <button *ngIf="clubFilterControl.value" matSuffix mat-icon-button aria-label="Clear"
+                (click)="clubFilterControl.setValue(''); isEntityFiltered && clearFilters()">
+                <mat-icon class="icon-size-4">close</mat-icon>
+            </button>
+            <mat-autocomplete #clubAuto="matAutocomplete" [displayWith]="displayEntityName"
+                (optionSelected)="onClubSelected($event.option.value)">
+                <mat-option *ngFor="let club of filteredClubs$ | async" [value]="club">
+                    {{ club.name }}
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <!-- Tournament autocomplete filter -->
+        <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript fuse-mat-rounded min-w-44">
+            <mat-icon class="icon-size-4" matPrefix>emoji_events</mat-icon>
+            <input matInput [formControl]="tournamentFilterControl" [matAutocomplete]="tournamentAuto"
+                placeholder="Filter by tournament..." [autocomplete]="'off'" />
+            <button *ngIf="tournamentFilterControl.value" matSuffix mat-icon-button aria-label="Clear"
+                (click)="tournamentFilterControl.setValue(''); isEntityFiltered && clearFilters()">
+                <mat-icon class="icon-size-4">close</mat-icon>
+            </button>
+            <mat-autocomplete #tournamentAuto="matAutocomplete" [displayWith]="displayEntityName"
+                (optionSelected)="onTournamentSelected($event.option.value)">
+                <mat-option *ngFor="let t of filteredTournaments$ | async" [value]="t">
+                    {{ t.title }}
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <!-- League autocomplete filter -->
+        <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript fuse-mat-rounded min-w-44">
+            <mat-icon class="icon-size-4" matPrefix>group_work</mat-icon>
+            <input matInput [formControl]="leagueFilterControl" [matAutocomplete]="leagueAuto"
+                placeholder="Filter by league..." [autocomplete]="'off'" />
+            <button *ngIf="leagueFilterControl.value" matSuffix mat-icon-button aria-label="Clear"
+                (click)="leagueFilterControl.setValue(''); isEntityFiltered && clearFilters()">
+                <mat-icon class="icon-size-4">close</mat-icon>
+            </button>
+            <mat-autocomplete #leagueAuto="matAutocomplete" [displayWith]="displayEntityName"
+                (optionSelected)="onLeagueSelected($event.option.value)">
+                <mat-option *ngFor="let l of filteredLeagues$ | async" [value]="l">
+                    {{ l.name }}
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <!-- Tour autocomplete filter -->
+        <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript fuse-mat-rounded min-w-44">
+            <mat-icon class="icon-size-4" matPrefix>public</mat-icon>
+            <input matInput [formControl]="tourFilterControl" [matAutocomplete]="tourAuto"
+                placeholder="Filter by tour..." [autocomplete]="'off'" />
+            <button *ngIf="tourFilterControl.value" matSuffix mat-icon-button aria-label="Clear"
+                (click)="tourFilterControl.setValue(''); isEntityFiltered && clearFilters()">
+                <mat-icon class="icon-size-4">close</mat-icon>
+            </button>
+            <mat-autocomplete #tourAuto="matAutocomplete" [displayWith]="displayEntityName"
+                (optionSelected)="onTourSelected($event.option.value)">
+                <mat-option *ngFor="let r of filteredTours$ | async" [value]="r">
+                    {{ r.name }}
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <!-- Entity filter loading spinner -->
+        <mat-spinner *ngIf="entityFilterLoading" [diameter]="20"></mat-spinner>
+
+        <!-- Clear all filters -->
+        <button *ngIf="hasActiveFilters" (click)="clearFilters()"
+            class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-base font-medium text-red-600 bg-red-50 hover:bg-red-100 transition-colors border border-red-200">
+            <mat-icon class="icon-size-4">filter_list_off</mat-icon>
+            Clear Filters
+        </button>
+
+        <!-- Importing spinner -->
+        <div *ngIf="importingList" class="flex items-center gap-2 text-base text-blue-600 ml-auto">
+            <mat-spinner [diameter]="18"></mat-spinner>
+            <span>Importing...</span>
+        </div>
+    </div>
+
+    <!-- ── Rounds played filter ──────────────────────────────────────────── -->
+    <!-- <div class="flex flex-wrap items-center gap-2 px-6 py-2.5 border-b bg-white flex-shrink-0">
+        <span class="text-sm font-medium text-gray-500 mr-1">Rounds played:</span>
+        <button *ngFor="let opt of roundsOptions"
+            (click)="applyRoundsFilter(opt.value)"
+            [class]="selectedRoundsFilter === opt.value
+                ? 'px-3 py-1 rounded-full text-sm font-semibold border transition-colors bg-blue-600 text-white border-blue-600'
+                : 'px-3 py-1 rounded-full text-sm font-semibold border transition-colors bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600'">
+            {{ opt.label }}
+        </button>
+    </div> -->
+
+    <!-- ── Table area ──────────────────────────────────────────────────────── -->
+    <div class="flex-auto overflow-auto">
+
+        <!-- Loading overlay -->
+        <div *ngIf="isLoading" class="flex items-center justify-center py-20">
+            <mat-spinner [diameter]="40"></mat-spinner>
+        </div>
+
+        <div *ngIf="!isLoading" class="bg-card overflow-x-auto">
+            <table class="w-full bg-transparent" mat-table [dataSource]="players" #event>
+
+                <!-- Checkbox -->
+                <ng-container matColumnDef="id">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 w-12">
+                        <mat-checkbox (change)="$event ? masterToggle() : null"
+                            [checked]="selection.hasValue() && isAllSelected()"
+                            [indeterminate]="selection.hasValue() && !isAllSelected()"
+                            [aria-label]="checkboxLabel()">
+                        </mat-checkbox>
+                    </th>
+                    <td mat-cell *matCellDef="let row">
+                        <mat-checkbox (click)="$event.stopPropagation()"
+                            (change)="$event ? selection.toggle(row) : null"
+                            [checked]="selection.isSelected(row)"
+                            [aria-label]="checkboxLabel(row)">
+                        </mat-checkbox>
+                    </td>
+                </ng-container>
+
+                <!-- Name -->
+                <ng-container matColumnDef="Name">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+                    <td mat-cell *matCellDef="let row">
+                        <a [routerLink]="['/players/viewProfile/' + row.id]"
+                            class="font-semibold text-base text-gray-800 hover:text-blue-600 underline underline-offset-2 transition-colors whitespace-nowrap">
+                            {{ row.Name | uppercase }}
+                        </a>
+                    </td>
+                </ng-container>
+
+                <!-- Phone -->
+                <ng-container matColumnDef="Phone">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wider">Phone</th>
+                    <td mat-cell *matCellDef="let row" class="text-base text-gray-600 whitespace-nowrap">{{ row.Phone || '—' }}</td>
+                </ng-container>
+
+                <!-- Email -->
+                <ng-container matColumnDef="Email">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                    <td mat-cell *matCellDef="let row" class="text-base text-gray-600 whitespace-nowrap">{{ row.Email || '—' }}</td>
+                </ng-container>
+
+                <!-- Membership # -->
+                <ng-container matColumnDef="MembershipNo">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wider">Mem#</th>
+                    <td mat-cell *matCellDef="let row" class="text-base text-gray-600 font-mono whitespace-nowrap">{{ row.MembershipNo || '—' }}</td>
+                </ng-container>
+
+                <!-- Category -->
+                <ng-container matColumnDef="Category">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                    <td mat-cell *matCellDef="let row">
+                        <span *ngIf="row.Category"
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold bg-blue-50 text-blue-700 whitespace-nowrap">
+                            {{ row.Category }}
+                        </span>
+                        <span *ngIf="!row.Category" class="text-base text-gray-400">—</span>
+                    </td>
+                </ng-container>
+
+                <!-- Handicap -->
+                <ng-container matColumnDef="Handicap">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wider text-center">HC</th>
+                    <td mat-cell *matCellDef="let row" class="text-center">
+                        <span class="inline-flex items-center justify-center w-10 h-7 rounded-lg text-base font-bold bg-gray-100 text-gray-700">
+                            {{ row.Handicap ?? '—' }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <!-- Club -->
+                <ng-container matColumnDef="club">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wider">Club</th>
+                    <td mat-cell *matCellDef="let row" class="text-base text-gray-600 whitespace-nowrap">{{ row.club }}</td>
+                </ng-container>
+
+                <!-- Created At -->
+                <ng-container matColumnDef="createdAt">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wider">Joined</th>
+                    <td mat-cell *matCellDef="let row" class="text-base text-gray-500 whitespace-nowrap">
+                        {{ row.createdAt | date:'dd MMM yyyy' }}
+                    </td>
+                </ng-container>
+
+                <!-- View -->
+                <ng-container matColumnDef="view">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 w-10"></th>
+                    <td mat-cell *matCellDef="let row">
+                        <button mat-icon-button [matTooltip]="'View Subscription History'" (click)="openPlayerSubscriptionHistoryDialog(row)"
+                            class="text-gray-400 hover:text-blue-600 transition-colors">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:eye'"></mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <!-- Edit -->
+                <!-- <ng-container matColumnDef="Edit">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 w-10"></th>
+                    <td mat-cell *matCellDef="let row">
+                        <button mat-icon-button [matTooltip]="'Edit Player'" (click)="updatePlayer(row.id)"
+                            class="text-gray-400 hover:text-green-600 transition-colors">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                        </button>
+                    </td>
+                </ng-container> -->
+
+                <!-- Delete -->
+                <!-- <ng-container matColumnDef="Delete">
+                    <th mat-header-cell *matHeaderCellDef class="bg-gray-50 w-10"></th>
+                    <td mat-cell *matCellDef="let row">
+                        <button mat-icon-button [matTooltip]="'Delete Player'" (click)="deletePlayer(row)"
+                            class="text-gray-400 hover:text-red-600 transition-colors">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:delete'"></mat-icon>
+                        </button>
+                    </td>
+                </ng-container> -->
+
+                <tr mat-header-row *matHeaderRowDef="playersTableColumns; sticky: true"></tr>
+                <tr mat-row *matRowDef="let row; columns: playersTableColumns;"
+                    class="h-14 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"></tr>
+
+                <!-- Empty state -->
+                <tr class="mat-row" *matNoDataRow>
+                    <td [attr.colspan]="playersTableColumns.length"
+                        class="py-16 text-center text-gray-400">
+                        <mat-icon class="icon-size-12 opacity-30 mb-3 block mx-auto">person_off</mat-icon>
+                        <p class="text-base font-medium">No players found</p>
+                        <p *ngIf="hasActiveFilters" class="text-sm mt-1">
+                            Try adjusting your search or
+                            <button (click)="clearFilters()" class="text-blue-500 underline">clear filters</button>
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+
+            <!-- Paginator — server-side in normal mode, client-side slice in entity-filter mode -->
+            <mat-paginator
+                [length]="totalCount"
+                [pageSize]="pageSize"
+                [pageIndex]="pageIndex"
+                [pageSizeOptions]="[10, 25, 50, 100]"
+                (page)="onPageChange($event)"
+                showFirstLastButtons
+                class="border-t border-gray-100">
+            </mat-paginator>
+        </div>
+    </div>
+</div>

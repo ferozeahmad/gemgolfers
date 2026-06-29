@@ -23,6 +23,7 @@ export class PlayerRegistrationComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort: MatSort;
 
   displayedColumns: string[] = [
+    'transactionId',
     'firstName',
     'lastName',
     'handicap',
@@ -101,7 +102,7 @@ export class PlayerRegistrationComponent implements OnInit, AfterViewInit {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     this._logger.log('Paginator and sort initialized after view init', "info");
-  }
+  } 
 
   /**
    * Load guest entries based on selected date

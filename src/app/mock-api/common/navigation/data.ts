@@ -292,6 +292,14 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 moduleId: '8f8bb0d1-9b78-4003-80c5-21370f9ff5ef'
             },
             {
+                id: 'reports.subscription',
+                title: 'Subscription Report',
+                type: 'basic',
+                icon: 'heroicons_outline:credit-card',
+                link: '/reports/subscription',
+                moduleId: '7a11f26e-440d-4034-8b63-95c559815049'
+            },
+            {
                 id: 'reports.tour',
                 title: 'Tours',
                 type: 'basic',

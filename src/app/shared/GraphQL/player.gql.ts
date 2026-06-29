@@ -520,6 +520,21 @@ export const GetPlayersListByLeague = gql`
         }
     }
 `;
+
+
+export const CreateClubMemberSubscription = gql`
+    mutation CreateClubMemberSubscription($object: club_member_subscription_insert_input!) {
+        insert_club_member_subscription_one(object: $object) {
+            id
+            playerId
+            clubId
+            dueDate
+            createdAt
+            type
+            startDate
+        }
+    }
+`;
 export const getPlayersList = gql`
     query PostsGetQuery($where: player_bool_exp!) {
         player(where: $where, order_by: { firstName: asc }) {
