@@ -42,6 +42,10 @@
                     <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:mail'"></mat-icon>
                     <span>Reset Password ({{ selection.selected.length }})</span>
                 </button>
+                <button mat-menu-item (click)="openSetPasswordDialog()" [disabled]="selection.isEmpty()">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:key'"></mat-icon>
+                    <span>Set Password ({{ selection.selected.length }})</span>
+                </button>
                 <mat-divider></mat-divider>
                 <label for="bulk-import" mat-menu-item>
                     <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:save'"></mat-icon>

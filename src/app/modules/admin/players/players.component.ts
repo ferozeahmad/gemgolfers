@@ -28,6 +28,7 @@ import { HandicapService } from 'app/shared/services/handicap.service';
 import { DialogOverviewComponent } from '../dialogs/dialog-overview/dialog-overview.component';
 import { MatDialog } from '@angular/material/dialog';
 import { LocalStorageService } from 'app/shared/services/localStorage';
+import { SetPasswordDialogComponent } from './set-password-dialog/set-password-dialog.component';
 import { LogsService } from 'app/shared/services/logs.service';
 import { SelectionModel } from '@angular/cdk/collections';
 
@@ -130,6 +131,24 @@ export class PlayersComponent implements OnInit, OnDestroy {
         public _localStorage: LocalStorageService,
         private logger: LogsService,
     ) {}
+
+    openSetPasswordDialog(): void {
+        if (this.selection.selected.length === 0) {
+            this.snackBar.open('Please select at least one player to set password.', 'Close', { duration: 3000 });
+            return;
+        }
+
+        const dialogRef = this.dialog.open(SetPasswordDialogComponent, {
+            width: '1000px',
+            data: this.selection.selected.map(player => ({ id: player.id, Name: player.Name, Email: player.Email }))
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+            // Optionally, you might want to refresh the players list or show a summary of password changes
+            // this.loadPlayers(); // if passwords are tied to a display property
+            this.selection.clear(); // Clear selection after action
+        });
+    }
 
     ngOnInit(): void {
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);

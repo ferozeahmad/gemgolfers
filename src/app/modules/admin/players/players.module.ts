@@ -32,12 +32,14 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDialogModule } from '@angular/material/dialog';
 import { PlayerResolver } from './players.resolver';
+import { SetPasswordDialogComponent } from './set-password-dialog/set-password-dialog.component';
 
 @NgModule({
     declarations: [
         PlayersComponent,
         ContactsDetailsComponent,
         ViewPlayerComponent,
+        SetPasswordDialogComponent,
     ],
     imports: [
         RouterModule.forChild(playerRoutes),
