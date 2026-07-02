@@ -708,14 +708,43 @@ export class PlayersComponent implements OnInit, OnDestroy {
         try {
             const allPlayers = await this.fetchAllPlayersForExport();
             const doc = new jsPDF();
-            const col = ['Sr.', 'Name', 'Phone', 'Email', 'Mem/No', 'Category', 'Handicap'];
+            const col = ['Sr.', 'Name', 'Phone', 'Email', 'Mem No.', 'Category', 'H.C'];
             const rows = allPlayers.map((p, i) => [
                 i + 1, p.Name, p.Phone || '', p.Email || '',
                 p.MembershipNo || '', p.Category || '', p.Handicap ?? '',
             ]);
             doc.setFontSize(18);
             doc.text('Players List', 15, 15);
-            (doc as any).autoTable(col, rows, { startY: 25, theme: 'grid' });
+            (doc as any).autoTable({
+                head: [col],
+                body: rows,
+                startY: 25,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [23, 196, 178], // A shade of green/teal
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    halign: 'center', // Center align header text
+                },
+                columnStyles: {
+                    0: { cellWidth: 10, halign: 'center' }, // Sr.
+                    1: { cellWidth: 40 }, // Name
+                    2: { cellWidth: 28 }, // Phone
+                    3: { cellWidth: 40 }, // Email
+                    4: { cellWidth: 20 }, // Membership No.
+                    5: { cellWidth: 25 }, // Category
+                    6: { cellWidth: 15, halign: 'center' }, // Handicap
+                },
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 2,
+                    valign: 'middle',
+                    overflow: 'linebreak',
+                },
+                didParseCell: (data) => {
+                    // This can be used for further styling based on content if needed
+                }
+            });
             doc.save('Players.pdf');
             this.logger.log('Players list exported to PDF successfully', 'INFO');
         } catch (err) {
