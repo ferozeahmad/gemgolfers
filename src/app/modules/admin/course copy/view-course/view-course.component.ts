@@ -165,7 +165,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     async ngOnInit() {
-        this.logger.log('ViewCourseComponent initialized', 'INFO');
+        // this.logger.log('ViewCourseComponent initialized', 'INFO');
         // this.addNewTee()
         // this.setHoles(18);
         // this.googleMapsApiLoaded$ = this.googleMapsApiSerivce.loadApi().pipe(shareReplay());
@@ -248,7 +248,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
-        this.logger.log('ViewCourseComponent destroyed', 'INFO');
+        // this.logger.log('ViewCourseComponent destroyed', 'INFO');
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
     }
@@ -333,7 +333,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
 
     // }
     getLatLng(address: string) {
-        this.logger.log(`getLatLng called with address: ${address}`, 'DEBUG');
+        // this.logger.log(`getLatLng called with address: ${address}`, 'DEBUG');
         // this.googleMapsApiSerivce.getLatLng(address).subscribe(
         //     (response) => {
         //         // console.log(response);
@@ -349,7 +349,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
     ////*******************************************************************COURSE CREATE**************************************************************************************** */
     countrySelected(event) {
-        this.logger.log('countrySelected called', 'INFO', event);
+        // this.logger.log('countrySelected called', 'INFO', event);
         // let obj = Country.getCity(event);
 
         const city = new getCity().getCity(event?.name || event);
@@ -374,7 +374,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     onMapClick(event: any) {
-        this.logger.log('onMapClick called', 'DEBUG', event);
+        // this.logger.log('onMapClick called', 'DEBUG', event);
         //  console.log(event);
         if (event.latLng != null) {
             // this.center = event.latLng.toJSON();
@@ -429,7 +429,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     onGreenStartLat(holeNo: number, latLong): void {
-        this.logger.log(`onGreenStartLat called for holeNo: ${holeNo} with latLong: ${latLong}`, 'DEBUG');
+        // this.logger.log(`onGreenStartLat called for holeNo: ${holeNo} with latLong: ${latLong}`, 'DEBUG');
         this.currentHoleNo = holeNo;
         this.currentGreen = 1;
         this.currentLatLong = true;
@@ -442,7 +442,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
         // this.focusMap();
     }
     onGreenCenterLat(holeNo: number, latLong): void {
-        this.logger.log(`onGreenCenterLat called for holeNo: ${holeNo} with latLong: ${latLong}`, 'DEBUG');
+        // this.logger.log(`onGreenCenterLat called for holeNo: ${holeNo} with latLong: ${latLong}`, 'DEBUG');
         this.currentHoleNo = holeNo;
         this.currentGreen = 2;
         if (typeof (latLong) == 'string') {
@@ -454,7 +454,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
         // this.focusMap();
     }
     onGreenEndLat(holeNo: number, latLong): void {
-        this.logger.log(`onGreenEndLat called for holeNo: ${holeNo} with latLong: ${latLong}`, 'DEBUG');
+        // this.logger.log(`onGreenEndLat called for holeNo: ${holeNo} with latLong: ${latLong}`, 'DEBUG');
         this.currentHoleNo = holeNo;
         this.currentGreen = 3;
         if (typeof (latLong) == 'string') {
@@ -476,7 +476,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     //     }
     // }
     filterByHole(holeNo) {
-        this.logger.log(`filterByHole called with holeNo: ${holeNo}`, 'DEBUG');
+        // this.logger.log(`filterByHole called with holeNo: ${holeNo}`, 'DEBUG');
         this.currentHoleNo = holeNo;
         let greenStartLatLong;
         if (this.currentHoleNo < 10) {
@@ -498,7 +498,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
         // this.focusMap();
     }
     private _filter(value: string) {
-        this.logger.log(`_filter called with value: ${value}`, 'DEBUG');
+        // this.logger.log(`_filter called with value: ${value}`, 'DEBUG');
         if (value) {
             const filterValue = value.toLowerCase();
             return this.countries.filter(
@@ -509,7 +509,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     private _filterCity(value: string) {
-        this.logger.log(`_filterCity called with value: ${value}`, 'DEBUG');
+        // this.logger.log(`_filterCity called with value: ${value}`, 'DEBUG');
         if (value) {
             const filterValue = value.toLowerCase();
             return this.cities.filter(
@@ -520,16 +520,16 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     displayFn(country): string {
-        this.logger.log(`displayFn called with country: ${JSON.stringify(country)}`, 'DEBUG');
+        // this.logger.log(`displayFn called with country: ${JSON.stringify(country)}`, 'DEBUG');
         return typeof country === 'string' ? country : country ? country.name : '';
     }
     displayCity(city): string {
-        this.logger.log(`displayCity called with city: ${JSON.stringify(city)}`, 'DEBUG');
+        // this.logger.log(`displayCity called with city: ${JSON.stringify(city)}`, 'DEBUG');
         return typeof city === 'string' ? city : city ? city : '';
     }
 
     public createCourse = async () => {
-        this.logger.log('createCourse called', 'INFO');
+        // this.logger.log('createCourse called', 'INFO');
         let playerFormValue = this.courseForm.getRawValue();
         let course = {
             id: UniqueIdGenerator.generate(),
@@ -563,19 +563,19 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
             const isSuccess = <boolean>(
                 await this.facadeService.updateCourse(courses, []));
             if (isSuccess) {
-                this.logger.log('Course updated successfully', 'INFO', courses);
+                // this.logger.log('Course updated successfully', 'INFO', courses);
                 this.saveTees();
                 this.goToPanel('1');
             } else {
                 this.snackBar.open("Course Not Updated!", "x", {
                     duration: 5000,
                 });
-                this.logger.log('Course update failed', 'ERROR', courses);
+                // this.logger.log('Course update failed', 'ERROR', courses);
             }
         } else {
             const isSuccess = <boolean>await this.facadeService.AddCourse(course);
             if (isSuccess) {
-                this.logger.log('Course created successfully', 'INFO', course);
+                // this.logger.log('Course created successfully', 'INFO', course);
                 this.courseID = course.id;
                 this.saveTees();
                 this.NoOfHoles = Number(course.noOfHoles);
@@ -584,7 +584,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
                 this.snackBar.open("Error! Please try again later.", "x", {
                     duration: 5000,
                 });
-                this.logger.log('Course creation failed', 'ERROR', course);
+                // this.logger.log('Course creation failed', 'ERROR', course);
             }
         }
         // }
@@ -592,22 +592,22 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     ////*******************************************************************TEE COLOR SAVE**************************************************************************************** */
 
     get courseName() {
-        this.logger.log('Getting courseName', 'DEBUG');
+        // this.logger.log('Getting courseName', 'DEBUG');
         return this.courseForm.get("courseName");
     }
     get country() {
-        this.logger.log('Getting country', 'DEBUG');
+        // this.logger.log('Getting country', 'DEBUG');
         return this.courseForm.get("country");
     }
     get city() {
-        this.logger.log('Getting city', 'DEBUG');
+        // this.logger.log('Getting city', 'DEBUG');
         return this.courseForm.get("city");
     }
     /**
      * addIntialsTees
      */
     async addIntialsTees() {
-        this.logger.log('addIntialsTees called', 'INFO');
+        // this.logger.log('addIntialsTees called', 'INFO');
         let tee = await this.facadeService.getTeesOfCourse(this.courseID);
         console.log(tee);
         this.tees = [];
@@ -660,7 +660,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      * onTeeAddChange
      */
     addNewTee() {
-        this.logger.log('addNewTee called', 'INFO');
+        // this.logger.log('addNewTee called', 'INFO');
         let tee: any = General.getCourseTee(this.Tee.length);
         this.Tee[this.Tee.length] = [];
         this.Tee[this.Tee.length - 1]['id'] = UniqueIdGenerator.generate();
@@ -676,7 +676,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     updateTeeValue(id: string, value: any, field: string) {
-        this.logger.log(`updateTeeValue called for ID: ${id}, value: ${value}, field: ${field}`, 'DEBUG');
+        // this.logger.log(`updateTeeValue called for ID: ${id}, value: ${value}, field: ${field}`, 'DEBUG');
         const index = this.Tee.findIndex((t: any) => t.id === id);
 
         if (index === -1) {
@@ -699,7 +699,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      * onTeeColorChange
      */
     public onTeeColor(val, teeID) {
-        this.logger.log(`onTeeColor called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
+        // this.logger.log(`onTeeColor called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
         let index = 0;
         for (let obj of this.Tee) {
             if (obj.id == teeID) {
@@ -712,7 +712,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      * onTeeNameChange
      */
     public onTeeName(val, teeID) {
-        this.logger.log(`onTeeName called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
+        // this.logger.log(`onTeeName called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
         let index = 0;
         for (let obj of this.Tee) {
             if (obj.id == teeID) {
@@ -725,7 +725,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      * onTeeSelectionChange
      */
     public teeChange(event, teeID) {
-        this.logger.log(`teeChange called for teeID: ${teeID}, event: ${JSON.stringify(event)}`, 'DEBUG');
+        // this.logger.log(`teeChange called for teeID: ${teeID}, event: ${JSON.stringify(event)}`, 'DEBUG');
         let index = 0;
         for (let obj of this.Tee) {
             if (obj.id == teeID) {
@@ -738,7 +738,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      * deleteTee
      */
     public deleteTee(teeID) {
-        this.logger.log(`deleteTee called for teeID: ${teeID}`, 'INFO');
+        // this.logger.log(`deleteTee called for teeID: ${teeID}`, 'INFO');
         this.deleteTsee = this.Tee.filter((a) => a.id != teeID);
         let deletedTee = this.Tee.filter((a) => a.id == teeID);
         this.teeRemove.push(deletedTee[0]);
@@ -752,7 +752,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      * SaveAllTees
      */
     public saveTees = async () => {
-        this.logger.log('saveTees called', 'INFO');
+        // this.logger.log('saveTees called', 'INFO');
         let today: Date = new Date();
         let teeObj = [];
         let teeObjtoDelete = [];
@@ -804,20 +804,20 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
                         teeObjtoDelete
                     )
                 );
-                this.logger.log('Tee colors deleted successfully', 'INFO', teeObjtoDelete);
+                // this.logger.log('Tee colors deleted successfully', 'INFO', teeObjtoDelete);
             }
             if (saveTeeColor) {
-                this.logger.log('Tee colors saved successfully', 'INFO');
+                // this.logger.log('Tee colors saved successfully', 'INFO');
                 this.goToPanel('2');
                 this.saveHoles();
             } else {
                 this.snackBar.open('Tees Color has not Saved!', 'x', {
                     duration: 5000,
                 });
-                this.logger.log('Tee colors failed to save', 'ERROR');
+                // this.logger.log('Tee colors failed to save', 'ERROR');
             }
         } catch (error) {
-            this.logger.log('Error saving tees', 'ERROR', error);
+            // this.logger.log('Error saving tees', 'ERROR', error);
             this.snackBar.open('Error saving tees!', 'x', {
                 duration: 5000,
             });
@@ -828,7 +828,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
 
 
     holesChange(event: any) {
-        this.logger.log('holesChange called', 'INFO', event);
+        // this.logger.log('holesChange called', 'INFO', event);
         const noOfHoles = Number(event.value);
         this.NoOfHoles = noOfHoles;
         if (noOfHoles == 9) {
@@ -839,7 +839,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     async setHoles(Number: number) {
-        this.logger.log(`setHoles called with Number: ${Number}`, 'INFO');
+        // this.logger.log(`setHoles called with Number: ${Number}`, 'INFO');
         console.log(Number);
         let holes = await this.facadeService.getCourseHole(this.courseID);
         console.log(holes['HolesQL']);
@@ -1093,7 +1093,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      * onParInput
      */
     public onParInput(par: any, holeNo: any) {
-        this.logger.log(`onParInput called for holeNo: ${holeNo}, par: ${par}`, 'DEBUG');
+        // this.logger.log(`onParInput called for holeNo: ${holeNo}, par: ${par}`, 'DEBUG');
         //console.log(holeNo);
         par = par != '' ? par : 0;
         let index = 0;
@@ -1137,7 +1137,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     teeYardageFront9(tee: any): number {
-        this.logger.log(`teeYardageFront9 called with tee: ${JSON.stringify(tee)}`, 'DEBUG');
+        // this.logger.log(`teeYardageFront9 called with tee: ${JSON.stringify(tee)}`, 'DEBUG');
         if (!this.holeSetfor9?.length) {
             return 0;
         }
@@ -1151,7 +1151,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     teeYardageBack9(tee: any): number {
-        this.logger.log(`teeYardageBack9 called with tee: ${JSON.stringify(tee)}`, 'DEBUG');
+        // this.logger.log(`teeYardageBack9 called with tee: ${JSON.stringify(tee)}`, 'DEBUG');
         if (!this.holeSetfor18?.length) {
             return 0;
         }
@@ -1165,12 +1165,12 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     teeYardageTotal(tee: any): number {
-        this.logger.log(`teeYardageTotal called with tee: ${JSON.stringify(tee)}`, 'DEBUG');
+        // this.logger.log(`teeYardageTotal called with tee: ${JSON.stringify(tee)}`, 'DEBUG');
         return this.teeYardageFront9(tee) + this.teeYardageBack9(tee);
     }
 
     totalParFront9(): number {
-        this.logger.log('totalParFront9 called', 'DEBUG');
+        // this.logger.log('totalParFront9 called', 'DEBUG');
         if (!this.holeSetfor9?.length) {
             return 0;
         }
@@ -1181,7 +1181,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     totalParBack9(): number {
-        this.logger.log('totalParBack9 called', 'DEBUG');
+        // this.logger.log('totalParBack9 called', 'DEBUG');
         if (!this.holeSetfor18?.length) {
             return 0;
         }
@@ -1192,7 +1192,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     totalPar(): number {
-        this.logger.log('totalPar called', 'DEBUG');
+        // this.logger.log('totalPar called', 'DEBUG');
         return this.totalParFront9() + this.totalParBack9();
     }
 
@@ -1200,7 +1200,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      * onTeeInput
      */
     public onTeeInput(dist: any, tee_id: any, hole_id: any, holeSet: any) {
-        this.logger.log(`onTeeInput called with dist: ${dist}, tee_id: ${tee_id}, hole_id: ${JSON.stringify(hole_id)}, holeSet: ${holeSet}`, 'DEBUG');
+        // this.logger.log(`onTeeInput called with dist: ${dist}, tee_id: ${tee_id}, hole_id: ${JSON.stringify(hole_id)}, holeSet: ${holeSet}`, 'DEBUG');
 
         if (holeSet == 9) {
             let hole = this.holeSetfor9.filter((hole) => { return hole.id == hole_id.id });
@@ -1220,14 +1220,14 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      * onTeeInput
      */
     public onTeeLatLong(dist: any, tee_id: any, hole_id: any, holeSet: any) {
-        this.logger.log(`onTeeLatLong called with dist: ${dist}, tee_id: ${tee_id}, hole_id: ${JSON.stringify(hole_id)}, holeSet: ${holeSet}`, 'DEBUG');
+        // this.logger.log(`onTeeLatLong called with dist: ${dist}, tee_id: ${tee_id}, hole_id: ${JSON.stringify(hole_id)}, holeSet: ${holeSet}`, 'DEBUG');
         this.currentHoleNo = hole_id.holeNo;
         this.currentLatLong = false;
         this.currentTee = tee_id;
         // this.focusMap();
     }
     private isIndexUnique(val: any, holes): boolean {
-        this.logger.log(`isIndexUnique called with val: ${val}, holes: ${JSON.stringify(holes)}`, 'DEBUG');
+        // this.logger.log(`isIndexUnique called with val: ${val}, holes: ${JSON.stringify(holes)}`, 'DEBUG');
         // Extract index values from holeSetfor9
         const indexValues = holes.map(obj => obj['index']);
 
@@ -1235,7 +1235,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
         return indexValues.indexOf(Number(val)) === indexValues.lastIndexOf(val);
     }
     private areIndexesUnique(...holeSets: any[][]): boolean {
-        this.logger.log(`areIndexesUnique called with ${holeSets.length} hole sets`, 'DEBUG');
+        // this.logger.log(`areIndexesUnique called with ${holeSets.length} hole sets`, 'DEBUG');
         // Check uniqueness for each set of holes
         for (const holeSet of holeSets) {
             // Extract index values from the current holeSet
@@ -1252,7 +1252,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     }
 
     addHazards(holeSet: any, holeNo: any) {
-        this.logger.log(`addHazards called for holeNo: ${holeNo}`, 'INFO', holeSet);
+        // this.logger.log(`addHazards called for holeNo: ${holeNo}`, 'INFO', holeSet);
         console.log(holeSet);
         let holeHazards;
         if (holeNo < 10) {
@@ -1274,7 +1274,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
         }
     }
     getHoleHazards(hazards = []) {
-        this.logger.log('getHoleHazards called', 'DEBUG', hazards);
+        // this.logger.log('getHoleHazards called', 'DEBUG', hazards);
         let updatedHoles = [];
         for (let hzd of hazards) {
             let obj = {
@@ -1288,7 +1288,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
         return updatedHoles;
     }
     public onHazardsChange(val: any, hzrd: any) {
-        this.logger.log(`onHazardsChange called with val: ${val}, hzrd: ${JSON.stringify(hzrd)}`, 'DEBUG');
+        // this.logger.log(`onHazardsChange called with val: ${val}, hzrd: ${JSON.stringify(hzrd)}`, 'DEBUG');
         console.log(val);
         console.log(hzrd);
         this.currentHzd = hzrd;
@@ -1306,7 +1306,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      * onIndexInput
      */
     public onIndexInput(val: any, holeNo: any) {
-        this.logger.log(`onIndexInput called for holeNo: ${holeNo}, value: ${val}`, 'DEBUG');
+        // this.logger.log(`onIndexInput called for holeNo: ${holeNo}, value: ${val}`, 'DEBUG');
         //console.log(holeNo);
         let index = 0;
         if (holeNo <= 9) {
@@ -1386,7 +1386,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      * onIndexInputForWomen
      */
     public onIndexInputForWomen(val: any, holeNo: any) {
-        this.logger.log(`onIndexInputForWomen called for holeNo: ${holeNo}, value: ${val}`, 'DEBUG');
+        // this.logger.log(`onIndexInputForWomen called for holeNo: ${holeNo}, value: ${val}`, 'DEBUG');
         //console.log(holeNo);
 
         let index = 0;
@@ -1430,7 +1430,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
    * selectionChange
 event   */
     public addLadiesIndex() {
-        this.logger.log('addLadiesIndex called', 'INFO');
+        // this.logger.log('addLadiesIndex called', 'INFO');
         this.showholeindexforWomen = !this.showholeindexforWomen;
         if (this.showholeindexforWomen) {
             this.holeSetfor9.forEach(function (element) {
@@ -1463,7 +1463,7 @@ event   */
     }
 
     removeLadiesIndex() {
-        this.logger.log('removeLadiesIndex called', 'INFO');
+        // this.logger.log('removeLadiesIndex called', 'INFO');
         this.showholeindexforWomen = !this.showholeindexforWomen;
         this.holeSetfor9.forEach(function (element) {
             delete element['indexForW'];
@@ -1481,7 +1481,7 @@ event   */
 
     }
     selectionChangeDistance(event) {
-        this.logger.log('selectionChangeDistance called', 'DEBUG', event);
+        // this.logger.log('selectionChangeDistance called', 'DEBUG', event);
         //console.log(event);
 
     }
@@ -1489,7 +1489,7 @@ event   */
      * tableNameInput
      */
     public tableNameInput(val: any, tableindex: any) {
-        this.logger.log(`tableNameInput called with val: ${val}, tableindex: ${tableindex}`, 'DEBUG');
+        // this.logger.log(`tableNameInput called with val: ${val}, tableindex: ${tableindex}`, 'DEBUG');
         if (tableindex == 1) {
             this.setName9 = val;
         } else if (tableindex == 10) {
@@ -1504,7 +1504,7 @@ event   */
      * saveHoles
      */
     public saveHoles = async () => {
-        this.logger.log('saveHoles called', 'INFO');
+        // this.logger.log('saveHoles called', 'INFO');
         let holeObj = [];
         let holesToSave = [];
         let holesYardageToSave = [];
@@ -1660,17 +1660,17 @@ event   */
                     await this.facadeService.saveCourseHoles(holesToSave, holesSet, mergedArray, mergedHazards)
                 );
                 if (succees) {
-                    this.logger.log('Course holes saved successfully', 'INFO');
+                    // this.logger.log('Course holes saved successfully', 'INFO');
                     this.initializeHoleSet();
                     this.saveHoleSets();
                 } else {
                     this.snackBar.open('Course Holes has not Saved!', 'x', {
                         duration: 5000,
                     });
-                    this.logger.log('Course holes failed to save', 'ERROR');
+                    // this.logger.log('Course holes failed to save', 'ERROR');
                 }
             } catch (error) {
-                this.logger.log('Error saving course holes', 'ERROR', error);
+                // this.logger.log('Error saving course holes', 'ERROR', error);
                 this.snackBar.open('Error saving course holes!', 'x', {
                     duration: 5000,
                 });
@@ -1679,7 +1679,7 @@ event   */
             this.snackBar.open('Index duplicates!', 'x', {
                 duration: 5000,
             });
-            this.logger.log('Index duplicates detected, preventing save', 'WARN');
+            // this.logger.log('Index duplicates detected, preventing save', 'WARN');
         }
     };
     ///*******************************************************************TEE HOLES SAVE**************************************************************************************** */
@@ -1750,7 +1750,7 @@ event   */
         //console.log(this.Hole);
     }
     initializeHoleSet() {
-        this.logger.log('initializeHoleSet called', 'INFO');
+        // this.logger.log('initializeHoleSet called', 'INFO');
         this.Hole = [];
         this.Hole[this.Hole.length] = [];
         this.Hole[this.Hole.length - 1]['id'] = UniqueIdGenerator.generate();
@@ -1763,7 +1763,7 @@ event   */
      * onDisplayNameChange
      */
     public onDisplayNameChange(event, id) {
-        this.logger.log(`onDisplayNameChange called for id: ${id}, event: ${event}`, 'DEBUG');
+        // this.logger.log(`onDisplayNameChange called for id: ${id}, event: ${event}`, 'DEBUG');
         let index = 0;
         for (let obj of this.Hole) {
             if (obj.id == id) {
@@ -1776,7 +1776,7 @@ event   */
      * onfrontID
      */
     public onfrontID(event, id) {
-        this.logger.log(`onfrontID called for id: ${id}, event: ${JSON.stringify(event)}`, 'DEBUG');
+        // this.logger.log(`onfrontID called for id: ${id}, event: ${JSON.stringify(event)}`, 'DEBUG');
         let index = 0;
         for (let obj of this.Hole) {
             if (obj.id == id) {
@@ -1789,7 +1789,7 @@ event   */
      * onbackID
      */
     public onbackID(event, id) {
-        this.logger.log(`onbackID called for id: ${id}, event: ${JSON.stringify(event)}`, 'DEBUG');
+        // this.logger.log(`onbackID called for id: ${id}, event: ${JSON.stringify(event)}`, 'DEBUG');
         let index = 0;
         for (let obj of this.Hole) {
             if (obj.id == id) {
@@ -1800,7 +1800,7 @@ event   */
     }
     async saveHoleSets(
     ) {
-        this.logger.log('saveHoleSets called', 'INFO');
+        // this.logger.log('saveHoleSets called', 'INFO');
         //console.log(this.Hole);
         let HoleSetObj = [];
         for (let obj of this.Hole) {
@@ -1822,17 +1822,17 @@ event   */
                 await this.facadeService.saveCourseHolesSet(HoleSetObj)
             );
             if (saveTeeColor) {
-                this.logger.log('Course hole sets saved successfully', 'INFO', HoleSetObj);
+                // this.logger.log('Course hole sets saved successfully', 'INFO', HoleSetObj);
                 this.savecoureRating();
                 this.goToPanel('4');
             } else {
                 this.snackBar.open('Course HolesSet has not Saved!', 'x', {
                     duration: 5000,
                 });
-                this.logger.log('Course hole sets failed to save', 'ERROR', HoleSetObj);
+                // this.logger.log('Course hole sets failed to save', 'ERROR', HoleSetObj);
             }
         } catch (error) {
-            this.logger.log('Error saving course hole sets', 'ERROR', error);
+            // this.logger.log('Error saving course hole sets', 'ERROR', error);
             this.snackBar.open('Error saving course hole sets!', 'x', {
                 duration: 5000,
             });
@@ -1841,7 +1841,7 @@ event   */
     ///*******************************************************************TEE HOLES-SETS SAVE**************************************************************************************** */
     ///*******************************************************************TEE HOLES-META SAVE**************************************************************************************** */
     addNewTeeMeta() {
-        this.logger.log('addNewTeeMeta called', 'INFO');
+        // this.logger.log('addNewTeeMeta called', 'INFO');
         this.holeMeta[this.holeMeta.length] = [];
         this.holeMeta[this.holeMeta.length - 1]['id'] =
             UniqueIdGenerator.generate();
@@ -1853,7 +1853,7 @@ event   */
         //console.log(this.holeMeta);
     }
     async getTeeMeta() {
-        this.logger.log('getTeeMeta called', 'INFO');
+        // this.logger.log('getTeeMeta called', 'INFO');
         this.holes = this.tees['course'][0]['HolesQL'];
         try {
             let teesMeta = await this.facadeService.getCourseTeeMeta(this.courseID);
@@ -1875,14 +1875,14 @@ event   */
                     };
                     this.holeMeta.push(tee);
                 }
-                this.logger.log('Tee meta data loaded successfully', 'INFO', teesMeta['hole_tee_meta']);
+                // this.logger.log('Tee meta data loaded successfully', 'INFO', teesMeta['hole_tee_meta']);
             }
         } catch (error) {
-            this.logger.log('Error getting tee meta data', 'ERROR', error);
+            // this.logger.log('Error getting tee meta data', 'ERROR', error);
         }
     }
     HolechangeForMeta(val, teeID) {
-        this.logger.log(`HolechangeForMeta called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
+        // this.logger.log(`HolechangeForMeta called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
         let index = 0;
         for (let obj of this.holeMeta) {
             if (obj.id == teeID) {
@@ -1892,7 +1892,7 @@ event   */
         }
     }
     teechangeforMeta(val, teeID) {
-        this.logger.log(`teechangeforMeta called for teeID: ${teeID}, value: ${JSON.stringify(val)}`, 'DEBUG');
+        // this.logger.log(`teechangeforMeta called for teeID: ${teeID}, value: ${JSON.stringify(val)}`, 'DEBUG');
         let index = 0;
         for (let obj of this.holeMeta) {
             if (obj.id == teeID) {
@@ -1902,7 +1902,7 @@ event   */
         }
     }
     distanceChange(val, teeID) {
-        this.logger.log(`distanceChange called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
+        // this.logger.log(`distanceChange called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
         let index = 0;
         for (let obj of this.holeMeta) {
             if (obj.id == teeID) {
@@ -1912,7 +1912,7 @@ event   */
         }
     }
     LatChange(val, teeID) {
-        this.logger.log(`LatChange called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
+        // this.logger.log(`LatChange called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
         let index = 0;
         for (let obj of this.holeMeta) {
             if (obj.id == teeID) {
@@ -1922,7 +1922,7 @@ event   */
         }
     }
     LongChange(val, teeID) {
-        this.logger.log(`LongChange called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
+        // this.logger.log(`LongChange called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
         let index = 0;
         for (let obj of this.holeMeta) {
             if (obj.id == teeID) {
@@ -1933,7 +1933,7 @@ event   */
     }
 
     async saveTeeMeta() {
-        this.logger.log('saveTeeMeta called', 'INFO');
+        // this.logger.log('saveTeeMeta called', 'INFO');
         let today: Date = new Date();
         var dd = String(today.getDate()).padStart(2, '0');
         var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
@@ -1962,15 +1962,15 @@ event   */
                 this.snackBar.open('Hole Meta has been Saved!', 'x', {
                     duration: 5000,
                 });
-                this.logger.log('Hole meta saved successfully', 'INFO', teeObj);
+                // this.logger.log('Hole meta saved successfully', 'INFO', teeObj);
             } else {
                 this.snackBar.open('Hole Meta has not Saved!', 'x', {
                     duration: 5000,
                 });
-                this.logger.log('Hole meta failed to save', 'ERROR', teeObj);
+                // this.logger.log('Hole meta failed to save', 'ERROR', teeObj);
             }
         } catch (error) {
-            this.logger.log('Error saving hole meta', 'ERROR', error);
+            // this.logger.log('Error saving hole meta', 'ERROR', error);
             this.snackBar.open('Error saving hole meta!', 'x', {
                 duration: 5000,
             });
@@ -1981,7 +1981,7 @@ event   */
     ///*******************************************************************TEE HOLES-Rating SAVE**************************************************************************************** */
 
     syncCourseRatings() {
-        this.logger.log('syncCourseRatings called', 'INFO');
+        // this.logger.log('syncCourseRatings called', 'INFO');
         this.coursRating = []; // Reset
 
         this.Tee.forEach((tee: any) => {
@@ -2035,7 +2035,7 @@ event   */
     }
 
     addNewCourseRating() {
-        this.logger.log('addNewCourseRating called', 'INFO');
+        // this.logger.log('addNewCourseRating called', 'INFO');
         this.coursRating[this.coursRating.length] = [];
         this.coursRating[this.coursRating.length - 1]['id'] =
             UniqueIdGenerator.generate();
@@ -2050,12 +2050,12 @@ event   */
     }
 
     deleteRating(id) {
-        this.logger.log(`deleteRating called for ID: ${id}`, 'INFO');
+        // this.logger.log(`deleteRating called for ID: ${id}`, 'INFO');
         this.coursRating = this.coursRating.filter((rating) => rating.id !== id);
     }
 
     public slopeRating(val, teeID) {
-        this.logger.log(`slopeRating called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
+        // this.logger.log(`slopeRating called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
         let index = 0;
         for (let obj of this.coursRating) {
             if (obj.id == teeID) {
@@ -2065,7 +2065,7 @@ event   */
         }
     }
     public teechange(val, teeID) {
-        this.logger.log(`teechange called for teeID: ${teeID}, value: ${JSON.stringify(val)}`, 'DEBUG');
+        // this.logger.log(`teechange called for teeID: ${teeID}, value: ${JSON.stringify(val)}`, 'DEBUG');
         let index = 0;
         for (let obj of this.coursRating) {
             if (obj.id == teeID) {
@@ -2085,7 +2085,7 @@ event   */
      * onTeeNameChange
      */
     public courseRating(val, teeID) {
-        this.logger.log(`courseRating called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
+        // this.logger.log(`courseRating called for teeID: ${teeID}, value: ${val}`, 'DEBUG');
         let index = 0;
         for (let obj of this.coursRating) {
             if (obj.id == teeID) {
@@ -2098,7 +2098,7 @@ event   */
      * onTeeSelectionChange
      */
     public coursePar(event, teeID) {
-        this.logger.log(`coursePar called for teeID: ${teeID}, event: ${event}`, 'DEBUG');
+        // this.logger.log(`coursePar called for teeID: ${teeID}, event: ${event}`, 'DEBUG');
         let index = 0;
         for (let obj of this.coursRating) {
             if (obj.id == teeID) {
@@ -2111,7 +2111,7 @@ event   */
      * onTeeSelectionChange
      */
     public courseHoleSets(event, teeID) {
-        this.logger.log(`courseHoleSets called for teeID: ${teeID}, event: ${event}`, 'DEBUG');
+        // this.logger.log(`courseHoleSets called for teeID: ${teeID}, event: ${event}`, 'DEBUG');
         let index = 0;
         for (let obj of this.coursRating) {
             if (obj.id == teeID) {
@@ -2124,7 +2124,7 @@ event   */
      * onTeeSelectionChange
      */
     public gender_id(event, teeID) {
-        this.logger.log(`gender_id called for teeID: ${teeID}, event: ${JSON.stringify(event)}`, 'DEBUG');
+        // this.logger.log(`gender_id called for teeID: ${teeID}, event: ${JSON.stringify(event)}`, 'DEBUG');
         //console.log(event);
 
         let index = 0;
@@ -2136,7 +2136,7 @@ event   */
         }
     }
     async setCoursRating() {
-        this.logger.log('setCoursRating called', 'INFO');
+        // this.logger.log('setCoursRating called', 'INFO');
         this.tees = [];
         // this.tees = await this.facadeService.getCourseInformationForForm(
         //     this.courseID
@@ -2181,19 +2181,19 @@ event   */
                     };
                     this.coursRating.push(teeObj);
                 }
-                this.logger.log('Course ratings loaded successfully', 'INFO', rating['course_rating']);
+                // this.logger.log('Course ratings loaded successfully', 'INFO', rating['course_rating']);
             } else {
                 // this.coursRating = this.populateRatings(tee, HolesSet)
-                this.logger.log('No course ratings found, populating default', 'INFO');
+                // this.logger.log('No course ratings found, populating default', 'INFO');
             }
             //console.log(this.coursRating);
         } catch (error) {
-            this.logger.log('Error setting course ratings', 'ERROR', error);
+            // this.logger.log('Error setting course ratings', 'ERROR', error);
         }
     }
 
     async savecoureRating() {
-        this.logger.log('savecoureRating called', 'INFO');
+        // this.logger.log('savecoureRating called', 'INFO');
         let teeObj = [];
         //console.log(this.coursRating);
         for (let obj of this.coursRating) {
@@ -2215,7 +2215,7 @@ event   */
                 await this.facadeService.saveCourseRating(teeObj)
             );
             if (saveCourseRating) {
-                this.logger.log('Course ratings saved successfully', 'INFO', teeObj);
+                // this.logger.log('Course ratings saved successfully', 'INFO', teeObj);
                 // this.snackBar.open('Course-Rating has been Saved!', 'x', {
                 //     duration: 5000,
                 // });
@@ -2285,10 +2285,10 @@ event   */
                 this.snackBar.open('Course-Rating has not Saved!', 'x', {
                     duration: 5000,
                 });
-                this.logger.log('Course ratings failed to save', 'ERROR', teeObj);
+                // this.logger.log('Course ratings failed to save', 'ERROR', teeObj);
             }
         } catch (error) {
-            this.logger.log('Error saving course ratings', 'ERROR', error);
+            // this.logger.log('Error saving course ratings', 'ERROR', error);
             this.snackBar.open('Error saving course ratings!', 'x', {
                 duration: 5000,
             });
@@ -2296,7 +2296,7 @@ event   */
     }
 
     populateRatings(tees, holeSets) {
-        this.logger.log(`populateRatings called with tees: ${JSON.stringify(tees)}, holeSets: ${JSON.stringify(holeSets)}`, 'DEBUG');
+        // this.logger.log(`populateRatings called with tees: ${JSON.stringify(tees)}, holeSets: ${JSON.stringify(holeSets)}`, 'DEBUG');
         let finalArray = [];
         for (const tee of tees) {
             for (const holeSet of holeSets) {
@@ -2319,25 +2319,25 @@ event   */
 
     ///*******************************************************************TEE HOLES-Rating SAVE**************************************************************************************** */
     async getFormData(stepper: MatStepper, action: string) {
-        this.logger.log(`getFormData called with action: ${action}`, 'INFO');
+        // this.logger.log(`getFormData called with action: ${action}`, 'INFO');
         if (action === 'next') stepper.next();
         else if (action === 'back') stepper.previous();
         else {
-            this.logger.log('Invalid action provided to getFormData', 'WARN', action);
+            // this.logger.log('Invalid action provided to getFormData', 'WARN', action);
         }
     }
     tournamentSetup() {
-        this.logger.log('tournamentSetup called', 'INFO');
+        // this.logger.log('tournamentSetup called', 'INFO');
         this.stepTitle = 'Tournament Setup Form';
     }
     setState(control: FormControl, state: boolean) {
-        this.logger.log(`setState called with state: ${state}`, 'DEBUG', control);
+        // this.logger.log(`setState called with state: ${state}`, 'DEBUG', control);
         if (state) {
             control.setErrors({ required: true });
-            this.logger.log('Control set to required', 'DEBUG');
+            // this.logger.log('Control set to required', 'DEBUG');
         } else {
             control.reset();
-            this.logger.log('Control reset', 'DEBUG');
+            // this.logger.log('Control reset', 'DEBUG');
         }
     }
     /**
@@ -2459,7 +2459,7 @@ event   */
             });
 
             // this.logger.log(this.playersData);
-            console.log(this.cordinatesData);
+            // console.log(this.cordinatesData);
 
             this.importExcelData();
             //this.providerservice.importexcel(this.exceljsondata).subscribe(data=>{
