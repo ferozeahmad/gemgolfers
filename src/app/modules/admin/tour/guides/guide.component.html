@@ -1,86 +1,70 @@
 <div class="flex flex-col flex-auto min-w-0">
 
     <!-- Main -->
-    <div class="flex flex-col items-center p-6 sm:p-10">
-        <div class="flex w-full justify-start">
-            <a class="inline-flex items-center leading-6 text-primary hover:underline"
-                [routerLink]="['/tours', tourID]">
-                <span class="inline-flex items-center">
-                    <mat-icon class="icon-size-5 text-current" [svgIcon]="'heroicons_solid:arrow-sm-left'"></mat-icon>
-                    <span class="ml-1.5 font-medium leading-5">Back to Tour</span>
-                </span>
-            </a>
-        </div>
-        <div class="flex flex-col w-full max-w-4xl">
-            <div
-                class="flex justify-between items-center mt-2 text-4xl sm:text-7xl font-extrabold tracking-tight leading-tight">
-                <span>
+    <div class="flex flex-col flex-auto p-6 sm:p-10">
+        <div class="w-full max-w-4xl bg-card shadow rounded-lg p-6 mx-auto">
+            <div class="flex flex-col sm:flex-row items-center justify-between mb-8">
+                <div class="text-4xl font-extrabold tracking-tight leading-none">
                     Tour Itinerary
-                </span>
-                <button class="ml-2" mat-flat-button [color]="'primary'" (click)="addNewGuide()">
+                </div>
+                <button class="mt-4 sm:mt-0" mat-flat-button [color]="'primary'" (click)="addNewGuide()">
                     <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
-                    Add New itinerary
+                    <span class="ml-2">Add New Itinerary</span>
                 </button>
             </div>
-            <mat-accordion class="max-w-4xl mt-16">
+
+            <mat-accordion class="w-full mt-8">
                 <ng-container *ngFor="let faq of guides; trackBy: trackByFn;let i=index">
-                    <mat-expansion-panel #myPanel (opened)="onPanelOpened(faq.id)">
+                    <mat-expansion-panel class="rounded-2xl  bg-gray-200 shadow overflow-hidden" #myPanel (opened)="onPanelOpened(faq.id)">
                         <mat-expansion-panel-header [collapsedHeight]="'56px'">
-                            <mat-panel-title class="font-medium leading-tight">Itinerary {{i+1}}</mat-panel-title>
+                            <mat-panel-title class="text-lg font-semibold leading-tight">Itinerary {{i+1}}</mat-panel-title>
                         </mat-expansion-panel-header>
-                        <div class="flex flex-col">
-                            <div>
-                                <form class="flex flex-col flex-auto" [formGroup]="guideForm">
-                                    <div class="flex flex-row gap-4">
-                                        <mat-form-field class="mt-4 w-full">
-                                            <mat-label>Title</mat-label>
-                                            <input matInput [formControlName]="'title'">
-                                        </mat-form-field>
-                                        <mat-form-field class="mt-4 w-full">
-                                            <mat-label>Date</mat-label>
-                                            <input matInput [matDatepicker]="picker" (focus)="picker.open()"
-                                                formControlName="date" placeholder="start date" required />
-                                            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                                            <mat-datepicker #picker></mat-datepicker>
-                                        </mat-form-field>
-                                    </div>
-                                    <quill-editor class="mt-2 w-full" [formControlName]="'script'" [bounds]="'self'"
-                                        [modules]="quillModules"></quill-editor>
-                                    <!-- <mat-form-field class="mt-4 w-full">
-                                        <mat-label>Background Image</mat-label>
-                                        <input class="hidden" matInput [formControlName]="'bg_image'">
-                                    </mat-form-field> -->
-                                    <ng-container *ngIf="faq.bg_image">
-                                        <div class="relative w-full pt-2">
-                                            <div class="absolute right-0 bottom-0 p-4">
-                                                <button mat-icon-button (click)="removeImage(faq)">
-                                                    <mat-icon class="text-white"
-                                                        [svgIcon]="'heroicons_outline:trash'"></mat-icon>
-                                                </button>
-                                            </div>
-                                            <img class="w-full object-cover rounded-2xl " [src]="faq.bg_image">
+                        <div class="flex flex-col p-6">
+                            <form class="flex flex-col flex-auto" [formGroup]="guideForm">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript fuse-mat-rounded w-full">
+                                        <mat-label>Title</mat-label>
+                                        <input matInput [formControlName]="'title'">
+                                    </mat-form-field>
+                                    <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript fuse-mat-rounded w-full">
+                                        <mat-label>Date</mat-label>
+                                        <input matInput [matDatepicker]="picker" (focus)="picker.open()"
+                                            formControlName="date" placeholder="Select date" required />
+                                        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                        <mat-datepicker #picker></mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                                <quill-editor class="mt-6 w-full rounded-2xl overflow-hidden" [formControlName]="'script'" [bounds]="'self'"
+                                    [modules]="quillModules"></quill-editor>
+                                <ng-container *ngIf="faq.bg_image">
+                                    <div class="relative w-full mt-6 rounded-2xl overflow-hidden">
+                                        <div class="absolute top-4 right-4 z-10">
+                                            <button mat-icon-button color="warn" (click)="removeImage(faq)">
+                                                <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                            </button>
                                         </div>
-                                    </ng-container>
-                                </form>
-                            </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-end mt-4 sm:mt-6">
-                                <div class="absolute left-0 px-6">
+                                        <img class="w-full h-48 object-cover" [src]="faq.bg_image">
+                                    </div>
+                                </ng-container>
+                            </form>
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between mt-8">
+                                <div class="flex items-center">
                                     <input id="image-file-input-{{faq.id}}"
                                         class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file"
                                         [accept]="'image/jpeg, image/png'"
                                         (change)="uploadImage(faq.id, $event.target.files)" #imageFileInput>
                                     <label
-                                        class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer hover:bg-gray-400 hover:bg-opacity-20"
+                                        class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer hover:bg-gray-100 dark:hover:bg-hover"
                                         for="image-file-input-{{faq.id}}">
                                         <mat-icon [svgIcon]="'heroicons_outline:photograph'"></mat-icon>
                                     </label>
+                                    <span class="ml-2 text-secondary">Add Background Image</span>
                                 </div>
                                 <div class="flex items-center mt-4 sm:mt-0">
-                                    <button class="sm:mx-3" mat-stroked-button (click)="delete(faq.id)">
+                                    <button class="mr-3" mat-stroked-button (click)="delete(faq.id)">
                                         <span>Delete</span>
                                     </button>
-                                    <!-- Send -->
-                                    <button class="order-first sm:order-last" mat-flat-button [color]="'primary'"
+                                    <button mat-flat-button [color]="'primary'"
                                         (click)="save(faq.id)">
                                         Save
                                     </button>

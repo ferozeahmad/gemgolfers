@@ -620,6 +620,9 @@ export class FacadeService {
   getLeaguesByClub(id: string) {
     return this.tournamentService.getLeaguesByClub(id);
   }
+  getLeagueById(id: string) {
+    return this.tournamentService.getLeagueById(id);
+  }
   getLeaguesMembers(id: string) {
     return this.tournamentService.getLeaguesMembers(id);
   }
@@ -1105,13 +1108,22 @@ export class FacadeService {
     return this._teeTimeService;
   }
 
-  getClubTeeTimeBooking(clubId: string) {
+  getClubTeeTimeBooking(clubId: string, offset: number, limit: number) {
     if (clubId) {
-      return this.TeeTimeService.getClubTeeTimeBooking(clubId);
+      return this.TeeTimeService.getClubTeeTimeBooking(clubId, offset, limit);
     } else {
-      return this.TeeTimeService.getClubTeeTimeBookingForSuperAdmin();
+      return this.TeeTimeService.getClubTeeTimeBookingForSuperAdmin(offset, limit);
     }
   }
+
+  // getClubTeeTimeBookingAggregate(clubId: string) {
+  //   if (clubId) {
+  //     return this.TeeTimeService.getClubTeeTimeBooking(clubId);
+  //   } else {
+  //     // For super admin, we might need a separate aggregate query or handle it differently
+  //     return this.TeeTimeService.getClubTeeTimeBookingForSuperAdmin(); // This will not return aggregate data, needs to be handled
+  //   }
+  // }
 
   deleteTeeTime(teeId: string) {
     return this.TeeTimeService.deleteTeeTime(teeId);

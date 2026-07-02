@@ -133,7 +133,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
     ) {}
 
     openSetPasswordDialog(): void {
+        this.logger.log('openSetPasswordDialog called', 'INFO');
         if (this.selection.selected.length === 0) {
+            this.logger.log('No players selected for password reset', 'WARN');
             this.snackBar.open('Please select at least one player to set password.', 'Close', { duration: 3000 });
             return;
         }
@@ -147,10 +149,12 @@ export class PlayersComponent implements OnInit, OnDestroy {
             // Optionally, you might want to refresh the players list or show a summary of password changes
             // this.loadPlayers(); // if passwords are tied to a display property
             this.selection.clear(); // Clear selection after action
+            this.logger.log('Set password dialog closed, selection cleared', 'INFO');
         });
     }
 
     ngOnInit(): void {
+        this.logger.log('PlayersComponent initialized', 'INFO');
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
         this.isSuperAdmin = this._localStorage.isSuperAdmin();
         this.isClubAdmin = this._localStorage.isClubAdmin();
@@ -209,6 +213,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this.logger.log('PlayersComponent destroyed', 'INFO');
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
     }
@@ -216,6 +221,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     // ── Data loading ───────────────────────────────────────────────────────────
 
     async loadPlayers(): Promise<void> {
+        this.logger.log('loadPlayers called', 'INFO');
         this.isLoading = true;
         this._changeDetectorRef.markForCheck();
         try {
@@ -258,7 +264,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
 
             this.players = rawPlayers.map(p => this.mapPlayer(p));
             this.selection.clear();
+            this.logger.log('Players loaded successfully', 'INFO', { totalCount: this.totalCount });
         } catch (err) {
+            this.logger.log('Error loading players', 'ERROR', err);
             console.error(err);
         } finally {
             this.isLoading = false;
@@ -267,6 +275,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     private withNameFilter(baseWhere: any, named: boolean): any {
+        this.logger.log(`withNameFilter called, named: ${named}`, 'DEBUG', baseWhere);
         const cond = named
             ? { _or: [{ firstName: { _gt: '' } }, { lastName: { _gt: '' } }] }
             : {
@@ -281,6 +290,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     private mapPlayer(p: any): any {
+        this.logger.log('mapPlayer called', 'DEBUG', p);
         // When a club admin is logged in, prefer the membership record that belongs
         // to their club so the Club column always shows the current club's name even
         // for players that are also members of other clubs.
@@ -304,6 +314,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     private buildWhere(): any {
+        this.logger.log('buildWhere called', 'DEBUG');
         const conditions: any[] = [];
 
         // ClubAdmin is always restricted to their club
@@ -348,12 +359,14 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     applyRoundsFilter(value: string): void {
+        this.logger.log(`applyRoundsFilter called with value: ${value}`, 'INFO');
         this.selectedRoundsFilter = this.selectedRoundsFilter === value ? '' : value;
         this.pageIndex = 0;
         this.loadPlayers();
     }
 
     onPageChange(event: PageEvent): void {
+        this.logger.log('onPageChange called', 'INFO', event);
         this.pageIndex = event.pageIndex;
         this.pageSize = event.pageSize;
         if (this.isEntityFiltered) {
@@ -364,23 +377,27 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     private _sliceEntityPage(): void {
+        this.logger.log('_sliceEntityPage called', 'DEBUG', { pageIndex: this.pageIndex, pageSize: this.pageSize });
         const start = this.pageIndex * this.pageSize;
         this.players = this._allEntityPlayers.slice(start, start + this.pageSize);
         this._changeDetectorRef.markForCheck();
     }
 
     applyCategory(category: string): void {
+        this.logger.log(`applyCategory called with category: ${category}`, 'INFO');
         this.selectedCategory = category;
         this.pageIndex = 0;
         this.loadPlayers();
     }
 
     applyClubSearch(): void {
+        this.logger.log('applyClubSearch called', 'INFO');
         this.pageIndex = 0;
         this.loadPlayers();
     }
 
     clearFilters(): void {
+        this.logger.log('clearFilters called', 'INFO');
         this.searchInputControl.setValue('', { emitEvent: false });
         this.selectedCategory = '';
         this.selectedRoundsFilter = '';
@@ -392,8 +409,8 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     get hasActiveFilters(): boolean {
-        return !!(
-            (this.searchInputControl.value || '').trim() ||
+        this.logger.log('hasActiveFilters getter called', 'DEBUG');
+        return !!((this.searchInputControl.value || '').trim() ||
             this.selectedCategory ||
             this.selectedRoundsFilter ||
             this.isEntityFiltered
@@ -401,11 +418,13 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     displayEntityName(entity: any): string {
+        this.logger.log('displayEntityName called', 'DEBUG', entity);
         if (!entity) return '';
         return entity.name || entity.title || '';
     }
 
     private _clearEntityFilters(): void {
+        this.logger.log('_clearEntityFilters called', 'DEBUG');
         this.clubFilterControl.setValue('', { emitEvent: false });
         this.tournamentFilterControl.setValue('', { emitEvent: false });
         this.leagueFilterControl.setValue('', { emitEvent: false });
@@ -413,6 +432,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     private _clearOtherEntityFilters(active: string): void {
+        this.logger.log(`_clearOtherEntityFilters called with active: ${active}`, 'DEBUG');
         if (active !== 'club') this.clubFilterControl.setValue('', { emitEvent: false });
         if (active !== 'tournament') this.tournamentFilterControl.setValue('', { emitEvent: false });
         if (active !== 'league') this.leagueFilterControl.setValue('', { emitEvent: false });
@@ -420,6 +440,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     private _applyEntityPlayers(rawPlayers: any[]): void {
+        this.logger.log('_applyEntityPlayers called', 'DEBUG', rawPlayers);
         this._allEntityPlayers = rawPlayers.map(p => this.mapPlayer(p));
         this.totalCount = this._allEntityPlayers.length;
         this.pageIndex = 0;
@@ -430,6 +451,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async onClubSelected(club: any): Promise<void> {
+        this.logger.log('onClubSelected called', 'INFO', club);
         this._clearOtherEntityFilters('club');
         this.entityFilterLoading = true;
         this._changeDetectorRef.markForCheck();
@@ -437,6 +459,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
             const data = await this._facadeService.getPlayersListByClub(club.id);
             this._applyEntityPlayers(data?.player || []);
         } catch (err) {
+            this.logger.log('Error in onClubSelected', 'ERROR', err);
             console.error(err);
             this.entityFilterLoading = false;
             this._changeDetectorRef.markForCheck();
@@ -444,6 +467,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async onTournamentSelected(tournament: any): Promise<void> {
+        this.logger.log('onTournamentSelected called', 'INFO', tournament);
         this._clearOtherEntityFilters('tournament');
         this.entityFilterLoading = true;
         this._changeDetectorRef.markForCheck();
@@ -452,6 +476,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
             const players = (data?.tournament_member || []).map((m: any) => m.player).filter(Boolean);
             this._applyEntityPlayers(players);
         } catch (err) {
+            this.logger.log('Error in onTournamentSelected', 'ERROR', err);
             console.error(err);
             this.entityFilterLoading = false;
             this._changeDetectorRef.markForCheck();
@@ -459,6 +484,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async onLeagueSelected(league: any): Promise<void> {
+        this.logger.log('onLeagueSelected called', 'INFO', league);
         this._clearOtherEntityFilters('league');
         this.entityFilterLoading = true;
         this._changeDetectorRef.markForCheck();
@@ -467,6 +493,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
             const players = (data?.league_member || []).map((m: any) => m.player).filter(Boolean);
             this._applyEntityPlayers(players);
         } catch (err) {
+            this.logger.log('Error in onLeagueSelected', 'ERROR', err);
             console.error(err);
             this.entityFilterLoading = false;
             this._changeDetectorRef.markForCheck();
@@ -474,6 +501,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async onTourSelected(tour: any): Promise<void> {
+        this.logger.log('onTourSelected called', 'INFO', tour);
         this._clearOtherEntityFilters('tour');
         this.entityFilterLoading = true;
         this._changeDetectorRef.markForCheck();
@@ -482,6 +510,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
             const players = (data?.tour_member || []).map((m: any) => m.player).filter(Boolean);
             this._applyEntityPlayers(players);
         } catch (err) {
+            this.logger.log('Error in onTourSelected', 'ERROR', err);
             console.error(err);
             this.entityFilterLoading = false;
             this._changeDetectorRef.markForCheck();
@@ -491,6 +520,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     // ── Legacy path (TourAdmin / LeagueAdmin) ──────────────────────────────────
 
     async fetchLegacyData(): Promise<void> {
+        this.logger.log('fetchLegacyData called', 'INFO');
         this.isLoading = true;
         this._changeDetectorRef.markForCheck();
         let legacyPlayers: any[] = [];
@@ -512,6 +542,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
                 }));
                 this.totalCount = legacyPlayers.length;
             } else if (state === Constants.LEAGUE) {
+                this.logger.log('Fetching legacy data for LEAGUE', 'DEBUG', { leagueId: this.tourID });
                 this.tourID = this._localStorage.get(Constants.LEAGUE_ID);
                 const data = await this._facadeService.getPlayersListByLeague(this.tourID);
                 legacyPlayers = (data?.league_member || []).map((obj: any) => ({
@@ -528,6 +559,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
                 this.totalCount = legacyPlayers.length;
             }
         } catch (err) {
+            this.logger.log('Error fetching legacy data', 'ERROR', err);
             console.error(err);
         } finally {
             this.players = legacyPlayers.sort((a, b) => {
@@ -544,20 +576,24 @@ export class PlayersComponent implements OnInit, OnDestroy {
     // ── Table actions ──────────────────────────────────────────────────────────
 
     createPlayer(): void {
+        this.logger.log('createPlayer called, navigating to add player form', 'INFO');
         this._router.navigate(['./add'], { relativeTo: this._activatedRoute });
         this._changeDetectorRef.markForCheck();
     }
 
     updatePlayer(id: string): void {
+        this.logger.log(`updatePlayer called for ID: ${id}, navigating to view player form`, 'INFO');
         this._router.navigate(['./view/', id], { relativeTo: this._activatedRoute });
         this._changeDetectorRef.markForCheck();
     }
 
     viewProfile(id: string): void {
+        this.logger.log(`viewProfile called for ID: ${id}, navigating to player profile`, 'INFO');
         this._router.navigate(['/players/viewProfile/' + id]);
     }
 
     async deletePlayer(player: any): Promise<void> {
+        this.logger.log('deletePlayer called', 'INFO', player);
         const dialogRef = this.dialog.open(DialogOverviewComponent, {
             width: '350px',
             data: 'Do you want to delete the player?',
@@ -567,7 +603,10 @@ export class PlayersComponent implements OnInit, OnDestroy {
                 const response = await this._facadeService.deletePlayer(player.homeClubId, player.id);
                 if (response) {
                     this.snackBar.open('Player has been deleted.', 'x', { duration: 5000 });
+                    this.logger.log(`Player ${player.id} deleted successfully`, 'INFO');
                     this.loadPlayers();
+                } else {
+                    this.logger.log(`Failed to delete player ${player.id}`, 'ERROR');
                 }
             }
         });
@@ -576,19 +615,24 @@ export class PlayersComponent implements OnInit, OnDestroy {
     // ── Selection ──────────────────────────────────────────────────────────────
 
     isAllSelected(): boolean {
+        this.logger.log('isAllSelected called', 'DEBUG');
         return this.players.length > 0 &&
             this.selection.selected.length === this.players.length;
     }
 
     masterToggle(): void {
+        this.logger.log('masterToggle called', 'INFO');
         if (this.isAllSelected()) {
             this.selection.clear();
+            this.logger.log('All players deselected', 'INFO');
         } else {
             this.players.forEach(row => this.selection.select(row));
+            this.logger.log('All players selected', 'INFO');
         }
     }
 
     checkboxLabel(row?: any): string {
+        this.logger.log('checkboxLabel called', 'DEBUG', row);
         if (!row) return `${this.isAllSelected() ? 'deselect' : 'select'} all`;
         return `${this.selection.isSelected(row) ? 'deselect' : 'select'} player ${row.Name}`;
     }
@@ -596,7 +640,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
     // ── Bulk operations ────────────────────────────────────────────────────────
 
     private async fetchAllPlayersForExport(): Promise<any[]> {
+        this.logger.log('fetchAllPlayersForExport called', 'INFO');
         if (this.isEntityFiltered) {
+            this.logger.log('Returning all entity filtered players', 'DEBUG');
             return this._allEntityPlayers;
         }
         const baseWhere = this.buildWhere();
@@ -612,6 +658,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async exportToExcel(): Promise<void> {
+        this.logger.log('exportToExcel called', 'INFO');
         this.isLoading = true;
         this._changeDetectorRef.markForCheck();
         try {
@@ -621,7 +668,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
             const wb: XLSX.WorkBook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Players');
             XLSX.writeFile(wb, 'Players_report.xlsx');
+            this.logger.log('Players exported to Excel successfully', 'INFO');
         } catch (err) {
+            this.logger.log('Error exporting players to Excel', 'ERROR', err);
             console.error(err);
         } finally {
             this.isLoading = false;
@@ -630,24 +679,30 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async verifyUserEmails(): Promise<void> {
+        this.logger.log('verifyUserEmails called', 'INFO');
         const emails = this.selection.selected.map(item => item.Email);
         const res = await this._facadeService.verifyUserEmails(emails);
         if (res) {
             this.snackBar.open('Player emails have been verified.', 'x', { duration: 5000 });
             this.selection.clear();
+            this.logger.log('Player emails verified successfully', 'INFO', { emails });
         } else {
             this.snackBar.open('Error! Try Again later.', 'x', { duration: 5000 });
+            this.logger.log('Error verifying player emails', 'ERROR', { emails });
         }
     }
 
     sendResetPasswordEmail(): void {
+        this.logger.log('sendResetPasswordEmail called for selected players', 'INFO', this.selection.selected);
         this._facadeService.executeSendResetEmailInBulk(this.selection.selected).subscribe(() => {
             this.snackBar.open('Password reset email sent successfully.', 'close', { duration: 3000 });
             this.selection.clear();
+            this.logger.log('Password reset emails sent successfully', 'INFO');
         });
     }
 
     async downloadPDF(): Promise<void> {
+        this.logger.log('downloadPDF called', 'INFO');
         this.isLoading = true;
         this._changeDetectorRef.markForCheck();
         try {
@@ -662,7 +717,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
             doc.text('Players List', 15, 15);
             (doc as any).autoTable(col, rows, { startY: 25, theme: 'grid' });
             doc.save('Players.pdf');
+            this.logger.log('Players list exported to PDF successfully', 'INFO');
         } catch (err) {
+            this.logger.log('Error exporting players to PDF', 'ERROR', err);
             console.error(err);
         } finally {
             this.isLoading = false;
@@ -673,10 +730,12 @@ export class PlayersComponent implements OnInit, OnDestroy {
     // ── Excel import (unchanged logic) ─────────────────────────────────────────
 
     onFileChange(event: any): void {
+        this.logger.log('onFileChange called', 'DEBUG', event);
         if (event.target.files.length > 0) this.file = event.target.files[0];
     }
 
     parseFlightsData(event: any): void {
+        this.logger.log('parseFlightsData called', 'INFO', event);
         this.playersData = [];
         if (event.target.files.length > 0) this.file = event.target.files[0];
         const fileReader = new FileReader();
@@ -694,6 +753,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async importExcelData(): Promise<void> {
+        this.logger.log('importExcelData called', 'INFO');
         try {
             this.importingList = true;
             this.savePlayers = [];
@@ -727,16 +787,20 @@ export class PlayersComponent implements OnInit, OnDestroy {
                 this.fileInputVariable.nativeElement.value = '';
                 await this.delay(2000);
                 this.loadPlayers();
+                this.logger.log('Excel data imported successfully', 'INFO', { newProfiles, duplicates: this.duplicatePlayers.length });
             } else {
                 this.snackBar.open('Error while loading file', 'x', { duration: 3000 });
                 this.importingList = false;
+                this.logger.log('Error importing Excel data', 'ERROR');
             }
-        } catch {
+        } catch (error) {
+            this.logger.log('Exception in importExcelData', 'ERROR', error);
             this.importingList = false;
         }
     }
 
     delay(ms: number): Promise<void> {
+        this.logger.log(`Delaying for ${ms}ms`, 'DEBUG');
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 }

@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  debugging: true,
   encryptSecretKey: 'prod-gemgolfers',
   apiUrl: 'https://proddb.gemgolfers.com/v1/graphql',
   wsUrl: 'wss://proddb.gemgolfers.com/v1/graphql',

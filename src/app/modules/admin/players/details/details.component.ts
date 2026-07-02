@@ -67,7 +67,7 @@ import { LogsService } from 'app/shared/services/logs.service';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ContactsDetailsComponent implements OnInit {
+export class ContactsDetailsComponent implements OnInit, OnDestroy {
     drawerMode: 'over' | 'side' = 'side';
     @ViewChild('avatarFileInput') private _avatarFileInput: ElementRef;
     @ViewChild('tagsPanel') private _tagsPanel: TemplateRef<any>;
@@ -161,6 +161,7 @@ export class ContactsDetailsComponent implements OnInit {
      * On init
      */
     async ngOnInit() {
+        this.logger.log('ContactsDetailsComponent initialized', 'INFO');
         try {
 
 
@@ -250,7 +251,15 @@ export class ContactsDetailsComponent implements OnInit {
             this.logger.log('Getting Players Profile Edit Data Failed', "error", error.toString());
         }
     }
+
+    ngOnDestroy(): void {
+        this.logger.log('ContactsDetailsComponent destroyed', 'INFO');
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
+    }
+
     private _filter(value: string): Club[] {
+        this.logger.log(`_filter called with value: ${value}`, 'DEBUG');
         if (value) {
             const filterValue = value.toLowerCase();
 
@@ -263,6 +272,7 @@ export class ContactsDetailsComponent implements OnInit {
     }
 
     changeHandicap(item) {
+        this.logger.log(`changeHandicap called with item: ${item}`, 'DEBUG');
         if (
             item != null &&
             this.playerID &&
@@ -272,6 +282,7 @@ export class ContactsDetailsComponent implements OnInit {
             document.getElementById('comment').classList.remove('hidden');
             this.contactForm.get('notes').addValidators([Validators.required]);
             this.contactForm.get('notes').updateValueAndValidity();
+            this.logger.log('Handicap changed, notes validator added.', 'INFO');
         } else if (
             this.playerID &&
             this.currentPlayer.player[0].handicap ==
@@ -280,9 +291,11 @@ export class ContactsDetailsComponent implements OnInit {
             document.getElementById('comment').classList.add('hidden');
             this.contactForm.get('notes').clearValidators();
             this.contactForm.get('notes').updateValueAndValidity();
+            this.logger.log('Handicap not changed, notes validator cleared.', 'INFO');
         }
     }
     changeHandicapWHS(item) {
+        this.logger.log(`changeHandicapWHS called with item: ${item}`, 'DEBUG');
         if (
             item != null &&
             this.playerID &&
@@ -292,6 +305,7 @@ export class ContactsDetailsComponent implements OnInit {
             document.getElementById('comment').classList.remove('hidden');
             this.contactForm.get('notes').addValidators([Validators.required]);
             this.contactForm.get('notes').updateValueAndValidity();
+            this.logger.log('WHS Handicap changed, notes validator added.', 'INFO');
         } else if (
             this.playerID &&
             this.currentPlayer.player[0].handicapWhsIndex ==
@@ -300,9 +314,11 @@ export class ContactsDetailsComponent implements OnInit {
             document.getElementById('comment').classList.add('hidden');
             this.contactForm.get('notes').clearValidators();
             this.contactForm.get('notes').updateValueAndValidity();
+            this.logger.log('WHS Handicap not changed, notes validator cleared.', 'INFO');
         }
     }
     changeHandicapWHSDiff(item) {
+        this.logger.log(`changeHandicapWHSDiff called with item: ${item}`, 'DEBUG');
         if (
             item != null &&
             this.playerID &&
@@ -311,6 +327,7 @@ export class ContactsDetailsComponent implements OnInit {
             document.getElementById('comment').classList.remove('hidden');
             this.contactForm.get('notes').addValidators([Validators.required]);
             this.contactForm.get('notes').updateValueAndValidity();
+            this.logger.log('WHS Handicap difference changed, notes validator added.', 'INFO');
         } else if (
             this.playerID &&
             this.handicapIndex == this.contactForm.get('handicapWHS').value
@@ -318,21 +335,23 @@ export class ContactsDetailsComponent implements OnInit {
             document.getElementById('comment').classList.add('hidden');
             this.contactForm.get('notes').clearValidators();
             this.contactForm.get('notes').updateValueAndValidity();
+            this.logger.log('WHS Handicap difference not changed, notes validator cleared.', 'INFO');
         }
     }
 
     displayFn(club: Club): string {
+        this.logger.log(`displayFn called with club: ${JSON.stringify(club)}`, 'DEBUG');
         return typeof club === 'string' ? club : club ? club.name : '';
     }
     /**
      * Update the contact
      */
     async updateContact() {
-        // //console.log(this.handicapIndex);
-        // //console.log(this.contactForm.get('handicapWHS').value);
+        this.logger.log('updateContact called', 'INFO');
         try {
             if (this.handicapIndex != this.contactForm.get('handicapWHS').value) {
                 this.changeWHSHandicap();
+                this.logger.log('changeWHSHandicap called from updateContact', 'DEBUG');
             }
             let newFlag = true;
             let checkEmail: any = [];
@@ -349,7 +368,7 @@ export class ContactsDetailsComponent implements OnInit {
             // Get the contact object
 
             const contact = this.contactForm.getRawValue();
-
+            this.logger.log(`Contact form values: ${JSON.stringify(contact)}`, 'DEBUG');
             if (this.contactForm.valid) {
                 if (!this.editMode && contact.email)
                     checkEmail = <Player>(
@@ -784,6 +803,7 @@ export class ContactsDetailsComponent implements OnInit {
      * Delete the contact
      */
     deleteContact(): void {
+
         // Open the confirmation dialog
         const confirmation = this._fuseConfirmationService.open({
             title: 'Delete contact',

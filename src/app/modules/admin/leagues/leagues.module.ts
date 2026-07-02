@@ -37,8 +37,20 @@ import { LeaguesRoutingModule } from './leagues-routing.module';
 import { LeaguesComponent } from './leagues.component';
 import { DialogAddLeagueComponent } from '../dialogs/dialog-add-league/dialog-add-league.component';
 import { DetailLeagueComponent } from './detail/detail-league.component';
+import { LeagueMembersListComponent } from './detail/league-members-list/league-members-list.component';
+import { LeagueTournamentsListComponent } from './detail/league-tournaments-list/league-tournaments-list.component';
 @NgModule({
-    declarations: [LeaguesComponent,DialogAddLeagueComponent,DetailLeagueComponent],
+    declarations: [
+        LeaguesComponent,
+        DialogAddLeagueComponent,
+        DetailLeagueComponent,
+        LeagueMembersListComponent,
+        LeagueTournamentsListComponent
+    ],
+    exports: [
+        LeagueMembersListComponent,
+        LeagueTournamentsListComponent
+    ],
     imports: [
         CommonModule,
         NgApexchartsModule,

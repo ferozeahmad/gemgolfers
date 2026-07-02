@@ -1,75 +1,105 @@
-<div class="flex flex-col flex-auto min-w-0">
 
-    <!-- Header -->
-    <div class="relative pt-8 pb-28 px-4 sm:pt-20 sm:pb-48 sm:px-16 overflow-hidden bg-gray-800 dark:bg-gray-900 dark">
-        <!-- Background - @formatter:off -->
-        <!-- Rings -->
-        <svg class="absolute inset-0 pointer-events-none" viewBox="0 0 960 540" width="100%" height="100%"
-            preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-            <g class="text-gray-700 opacity-25" fill="none" stroke="currentColor" stroke-width="100">
-                <circle r="234" cx="196" cy="23"></circle>
-                <circle r="234" cx="790" cy="491"></circle>
-            </g>
-        </svg>
-        <!-- @formatter:on -->
-    </div>
 
-    <div class="flex flex-col items-center pb-6 px-6 sm:pb-10 sm:px-10">
-        <!-- Cards -->
+<main class="flex-1 flex flex-col h-screen bg-[#f3f4f6] text-gray-800 overflow-y-auto">
+    <div class="p-6 md:px-20  md:py-8 flex-1">
+
+        <!-- Top Header -->
         <div
-            class="grid grid-cols-1 md:grid-cols-2 gap-y-8 md:gap-y-0 md:gap-x-6 w-full max-w-sm md:max-w-4xl -mt-16 sm:-mt-24">
-            <!-- FAQs card -->
-            <!-- <div
-                class="relative flex flex-col rounded-2xl shadow hover:shadow-lg overflow-hidden bg-card transition-shadow ease-in-out duration-150">
-                <div class="flex flex-col flex-auto items-center p-8 text-center">
-                    <div class="text-2xl font-semibold">Itinerary</div>
-                    <div class="md:max-w-40 mt-1 text-secondary">Articles and resources to guide you.</div>
+            class="flex flex-col text-white bg-[#175f9d] p-4 rounded-lg sm:flex-row justify-between items-start sm:items-center mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-white"> {{ tour?.name }}
+
+                </h1>
+                <!-- <p class="text-sm text-white gap-1 flex items-center mt-1">
+                    <mat-icon class="icon-size-5 text-white" [svgIcon]="'heroicons_solid:bell'"></mat-icon>
+                    {{
+                    tour?.startDate
+                    |date
+                    }} - {{
+                    tour?.endDate |date
+                    }}
+                </p> -->
+            </div>
+
+        </div>
+
+
+
+        <!-- Stats Cards -->
+        <div class="flex flex-col sm:flex-row gap-6 mb-8">
+            <div class="bg-white p-4 rounded-lg w-full shadow-sm flex items-center space-x-4 border border-gray-200">
+
+                <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-teal-200">
+                    <mat-icon class="icon-size-5  text-teal-600" [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
                 </div>
-                <div
-                    class="flex items-center justify-center py-4 px-8 text-primary-500 cursor-pointer dark:text-primary-400 bg-gray-50 dark:bg-transparent dark:border-t">
-                    <div class="flex items-center" (click)="viewGuides()">
-                        <span class="absolute inset-0"></span>
-                        <span class="font-medium">Check Itinerary</span>
-                        <mat-icon class="ml-2 icon-size-5 text-current"
-                            [svgIcon]="'heroicons_solid:arrow-narrow-right'"></mat-icon>
-                    </div>
-                </div>
-            </div> -->
-            <div
-                class="relative flex flex-col rounded-2xl shadow hover:shadow-lg cursor-pointer overflow-hidden bg-card transition-shadow ease-in-out duration-150">
-                <div class="flex flex-col flex-auto items-center p-8 text-center">
-                    <div class="text-2xl font-semibold">Members</div>
-                    <div class="md:max-w-40 mt-1 text-secondary">Tour Members that are added</div>
-                </div>
-                <div
-                    class="flex items-center justify-center py-4 px-8 text-primary-500 dark:text-primary-400 bg-gray-50 dark:bg-transparent dark:border-t">
-                    <div class="flex items-center" (click)="viewMembers()">
-                        <span class="absolute inset-0"></span>
-                        <span class="font-medium">Go to members</span>
-                        <mat-icon class="ml-2 icon-size-5 text-current"
-                            [svgIcon]="'heroicons_solid:arrow-narrow-right'"></mat-icon>
-                    </div>
+
+                <div>
+                    <p class="text-sm font-medium text-gray-500"> Total Members</p>
+                    <p class="text-2xl font-bold text-gray-900"> {{ tour?.members?.length || 0 }}</p>
+                    <!-- @if (date()) {
+                    <p class="text-xs text-gray-400 mt-1">
+                        Date: {{ date() }}
+                    </p>
+                    } -->
                 </div>
             </div>
-            <!-- Guides card -->
+            <div class="bg-white w-full p-4 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200">
 
-            <!-- Support card -->
-            <div
-                class="relative flex flex-col rounded-2xl shadow hover:shadow-lg cursor-pointer overflow-hidden bg-card transition-shadow ease-in-out duration-150">
-                <div class="flex flex-col flex-auto items-center p-8 text-center">
-                    <div class="text-2xl font-semibold">Tournaments</div>
-                    <div class="md:max-w-40 mt-1 text-secondary">Tour Tournaments that are being played</div>
+                <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-blue-200">
+                    <mat-icon class="icon-size-5  text-blue-600" [svgIcon]="'heroicons_outline:user'"></mat-icon>
                 </div>
-                <div
-                    class="flex items-center justify-center py-4 px-8 text-primary-500 dark:text-primary-400 bg-gray-50 dark:bg-transparent dark:border-t">
-                    <div class="flex items-center" (click)="viewTournaments()">
-                        <span class="absolute inset-0"></span>
-                        <span class="font-medium">Go to tournaments</span>
-                        <mat-icon class="ml-2 icon-size-5 text-current"
-                            [svgIcon]="'heroicons_solid:arrow-narrow-right'"></mat-icon>
-                    </div>
+
+                <div>
+                    <p class="text-sm font-medium text-gray-500"> Total Tournaments</p>
+                    <p class="text-2xl font-bold text-gray-900"> {{ tour?.tournaments?.length || 0 }}</p>
+
+
+
+
+
                 </div>
+            </div>
+            <div class="bg-white w-full p-5 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200">
+
+                <div class="flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center bg-red-200">
+                    <mat-icon class="icon-size-5  text-red-600" [svgIcon]="'heroicons_outline:user'"></mat-icon>
+                </div>
+
+                <div>
+                    <p class="text-sm font-medium text-gray-500"> League Description</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ tour?.description || 'No description available.' }}
+                    </p>
+                </div>
+            </div>
+
+
+        </div>
+
+
+        <!-- Tabs -->
+        <div class="my-4">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+
+                    <button *ngFor="let tab of tabs" (click)="setPrimaryTab(tab)" [ngClass]="
+          activePrimaryTab === tab
+            ? 'border-emerald-500 text-emerald-600'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+        " class="whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-lg transition-colors focus:outline-none">
+                        {{ tab }}
+                    </button>
+
+                </nav>
             </div>
         </div>
+
+        <div *ngIf="activePrimaryTab === 'Members'">
+            <app-league-members-list [leagueId]="leagueId"></app-league-members-list>
+        </div>
+
+        <div *ngIf="activePrimaryTab === 'Tournaments'">
+            <app-league-tournaments-list [leagueId]="leagueId"></app-league-tournaments-list>
+        </div>
+
     </div>
-</div>
+</main>

@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
@@ -50,6 +50,9 @@ export class TeeTimesComponent implements OnInit {
     myPlayer: TeeTime;
     isLoading: Boolean = true;
     loggedInuser: Player;
+    pageIndex: number = 0;
+    pageSize: number = 20;
+    totalSize: number = 0;
 
     file: File;
     arrayBuffer: any;
@@ -72,7 +75,14 @@ export class TeeTimesComponent implements OnInit {
     ) { }
 
     ngAfterViewInit(): void {
-        //this.dataSource.sort = this.sort;
+        // this.dataSource.sort = this.sort;
+        // this.paginator.page.subscribe(() => {
+        //     console.log('Pagination ');
+
+        //     this.pageIndex = this.paginator.pageIndex;
+        //     this.pageSize = this.paginator.pageSize;
+        //     this.ngOnInit();
+        // });
     }
 
     async ngOnInit() {
@@ -80,19 +90,30 @@ export class TeeTimesComponent implements OnInit {
         this.teeTimes = [];
         let dataPlayers =
             await this.facadeService.getClubTeeTimeBooking(
-                this._localStorage.isClubAdmin() ? this.loggedInuser.adminClubId : null
+                this._localStorage.isClubAdmin() ? this.loggedInuser.adminClubId : null,
+                this.pageIndex * this.pageSize,
+                this.pageSize
             );
-        this.teeTimes = dataPlayers.tee_time_booking;
+        this.teeTimes = dataPlayers.paginatedData.data.tee_time_booking;
+        this.totalSize = dataPlayers.aggregateData.data.tee_time_booking_aggregate.aggregate.count;
         this.isLoading = false;
 
         console.log(this.teeTimes);
 
         this.dataSource = new MatTableDataSource(this.teeTimes);
-        this.dataSource.paginator = this.paginator;
+        // this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
 
 
         //this.facadeService.findOne("-LeGr4seWAKipHNVKh_2").subscribe(result => this.myPlayer = result);
+    }
+
+    onPageChange(event: PageEvent): void {
+        this.pageIndex = event.pageIndex;
+        this.pageSize = event.pageSize;
+
+        this.ngOnInit();
+
     }
 
     applyFilter(filterValue: string) {

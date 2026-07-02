@@ -824,6 +824,27 @@ export class TournamentsService {
                 });
         });
     }
+    public getLeagueById(id): Promise<any> {
+        return new Promise((resolve) => {
+            this.apollo
+                .subscribe<any>({
+                    query: Query.getLeagueById,
+                    variables: {
+                        id: id,
+                    },
+                })
+                .subscribe(({ data }) => {
+                    ////console.log(data.tournament_by_pk);
+                    ////console.log(data);
+                    if (!data) {
+                        resolve(null);
+                    } else {
+                        ////console.log(data);
+                        resolve(data?.league?.[0]);
+                    }
+                });
+        });
+    }
     public getLeaguesMembers(id): Promise<any> {
         return new Promise((resolve) => {
             this.apollo

@@ -1,8 +1,10 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { UntypedFormControl, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { FacadeService } from 'app/shared/services/facade.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LogsService } from 'app/shared/services/logs.service';
+import { Subject } from 'rxjs';
 
 export interface UserPasswordData {
     id: string;
@@ -19,18 +21,21 @@ export interface UserPasswordData {
     templateUrl: './set-password-dialog.component.html',
     styleUrls: ['./set-password-dialog.component.scss'],
 })
-export class SetPasswordDialogComponent implements OnInit {
+export class SetPasswordDialogComponent implements OnInit, OnDestroy {
     passwordForm: FormGroup;
     usersWithPasswords: UserPasswordData[] = [];
     isLoading = false;
     showPasswordField: string = 'password';
+
+    private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     constructor(
         public dialogRef: MatDialogRef<SetPasswordDialogComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any[],
         private _formBuilder: FormBuilder,
         private _facadeService: FacadeService,
-        private _snackBar: MatSnackBar
+        private _snackBar: MatSnackBar,
+        private _logsService: LogsService
     ) {
         this.passwordForm = this._formBuilder.group({});
         this.data.forEach(user => {
@@ -46,7 +51,9 @@ export class SetPasswordDialogComponent implements OnInit {
         });
     }
 
-    ngOnInit(): void { }
+    ngOnInit(): void {
+        this._logsService.log('SetPasswordDialogComponent initialized', 'INFO');
+    }
 
     async savePasswords(): Promise<void> {
         if (this.passwordForm.invalid) {
@@ -62,7 +69,8 @@ export class SetPasswordDialogComponent implements OnInit {
                     const password = user.passwordControl.value;
                     await this._facadeService.updateAccountInFirebase(user.Email, password).subscribe();
                     user.status = '';
-                    user.message = 'Password updated successfully.'; 
+                    this._facadeService.sendTransactionalEmail(user.Email, user.Name, password).subscribe();
+                    user.message = 'Password updated successfully.';
                 } catch (error) {
                     user.status = 'error';
                     user.message = `Failed to update password: ${error.message}`;
@@ -78,5 +86,11 @@ export class SetPasswordDialogComponent implements OnInit {
 
     onClose(): void {
         this.dialogRef.close();
+    }
+
+    ngOnDestroy(): void {
+        this._logsService.log('SetPasswordDialogComponent destroyed', 'INFO');
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
     }
 }

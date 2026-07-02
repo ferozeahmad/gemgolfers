@@ -9,7 +9,7 @@ import { Constants } from 'app/shared/classes/general';
 @Injectable({
     providedIn: 'root',
 })
-export class TourResolver  {
+export class TourResolver {
     loggedInuser: any;
     /**
      * Constructor
@@ -39,7 +39,11 @@ export class TourResolver  {
 
             this.logger.log('Getting LeaderBoard Data', "info");
             this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
-            return this.tourService.getTours(this.loggedInuser.id);
+            if (this._localStorage.isSuperAdmin()) {
+                return this.tourService.getTours();
+            } else {
+                return this.tourService.getTours(this.loggedInuser.id);
+            }
         } catch (error) {
             this.logger.log('Getting LeaderBoard Data Failed', "error", error.toString());
         }

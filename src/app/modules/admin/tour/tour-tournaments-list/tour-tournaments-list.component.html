@@ -1,0 +1,38 @@
+<div class="p-6 lg:p-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between">
+        <div class="text-2xl font-semibold leading-tight">Tour Tournaments</div>
+        <button mat-flat-button [color]="'primary'" class="mt-4 sm:mt-0" (click)="loadTourTournaments()">
+            <mat-icon [svgIcon]="'heroicons_outline:refresh'"></mat-icon>
+            <span class="ml-2">Refresh Tournaments</span>
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-6">
+        <ng-container *ngIf="!isLoading && tournaments.length > 0">
+            <div *ngFor="let tournament of tournaments; trackBy: trackByFn"
+                class="flex flex-col rounded-2xl shadow overflow-hidden bg-card transition-shadow ease-in-out duration-150">
+                <div class="flex flex-col flex-auto p-6 text-center">
+                    <div class="text-xl font-semibold">{{ tournament.title }}</div>
+                    <div class="mt-1 text-secondary">{{ tournament.startDate | date:'mediumDate' }} - {{
+                        tournament.endDate | date:'mediumDate' }}</div>
+                    <div class="mt-2 text-md">{{ tournament.matchFormat }}</div>
+                </div>
+                <div
+                    class="flex items-center justify-center py-4 px-8 text-primary-500 cursor-pointer dark:text-primary-400 bg-gray-50 dark:bg-transparent dark:border-t">
+                    <div class="flex items-center" (click)="viewTournamentDetails(tournament.id)">
+                        <span class="font-medium">View Details</span>
+                        <mat-icon class="ml-2 icon-size-5 text-current"
+                            [svgIcon]="'heroicons_solid:arrow-narrow-right'"></mat-icon>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+
+        <div *ngIf="isLoading" class="flex justify-center items-center h-32 col-span-full">
+            <mat-spinner [diameter]="40"></mat-spinner>
+        </div>
+        <div *ngIf="!isLoading && tournaments.length === 0" class="p-4 text-center text-secondary col-span-full">
+            No tournaments found for this tour.
+        </div>
+    </div>
+</div>

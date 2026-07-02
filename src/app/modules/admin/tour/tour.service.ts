@@ -20,7 +20,7 @@ export class TourService {
     constructor(
         private _httpClient: HttpClient,
         private apollo: Apollo,
-     
+
         private logger: LogsService
     ) { }
 
@@ -43,22 +43,49 @@ export class TourService {
     // @ Public methods
     // -----------------------------------------------------------------------------------------------------
 
-    getTours(id: String): Observable<any> {
-        return this.apollo
-            .subscribe<any>({
-                query: Query.getTours,
-                variables: {
-                    adminId: id,
-                },
-            })
-            .pipe(
-                tap((response: any) => {
-                    this.logger.log(
-                        'Getting Tour Dashboard Data Successfull',
-                        'info'
-                    );
-                    this._data.next(response['data']['tour']);
+    getTours(id?: String): Observable<any> {
+        if (id) {
+            return this.apollo
+                .subscribe<any>({
+                    query: Query.getTours,
+                    variables: {
+                        adminId: id,
+                    },
                 })
-            );
+                .pipe(
+                    tap((response: any) => {
+                        this.logger.log(
+                            'Getting Tour Dashboard Data Successfull',
+                            'info'
+                        );
+                        this._data.next(response['data']['tour']);
+                    })
+                );
+
+        } else {
+            return this.apollo
+                .subscribe<any>({
+                    query: Query.getAllTours,
+                })
+                .pipe(
+                    tap((response: any) => {
+                        this.logger.log(
+                            'Getting Tour Dashboard Data Successfull',
+                            'info'
+                        );
+                        this._data.next(response['data']['tour']);
+                    })
+                );
+
+        }
+    }
+
+    public getTourById(id: string): Promise<any> {
+        return new Promise(resolve => {
+            this.apollo.subscribe<any>({
+                query: Query.GetTourByIdQL,
+                variables: { id }
+            }).subscribe(({ data }) => resolve(data));
+        });
     }
 }

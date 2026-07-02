@@ -2,7 +2,7 @@
 
     <div class="text-5xl font-extrabold bg-card py-8 px-6 md:px-8">
         Leagues Reports
-     </div>
+    </div>
     <div class="flex items-center justify-center pb-12 bg-card">
         <div class="w-90">
             <form [formGroup]="scheduleForm">
@@ -306,20 +306,20 @@
                     </mat-form-field>
 
                     <button [disabled]="selection.selected.length === 0" class="hidden sm:inline-flex ml-3"
-                    mat-flat-button [color]="'primary'" [matMenuTriggerFor]="impressionsMenu">
-                    <span class="ml-2">Actions</span>
-                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:dots-vertical'"></mat-icon>
-                </button>
-                <mat-menu class="overflow-hidden max-w-52" #impressionsMenu="matMenu">
-                    <button (click)="exportToExcel()" class="hidden sm:inline-flex " mat-flat-button>
-                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:document-report'"></mat-icon>
-                        <span class="ml-2">Export Selected</span>
+                        mat-flat-button [color]="'primary'" [matMenuTriggerFor]="impressionsMenu">
+                        <span class="ml-2">Actions</span>
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:dots-vertical'"></mat-icon>
                     </button>
-                    <button class="hidden sm:inline-flex" (click)="deleteLeagues()" mat-flat-button>
-                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:delete'"></mat-icon>
-                        <span class="ml-2">Delete Selected</span>
-                    </button>
-                </mat-menu>
+                    <mat-menu class="overflow-hidden max-w-52" #impressionsMenu="matMenu">
+                        <button (click)="exportToExcel()" class="hidden sm:inline-flex " mat-flat-button>
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:document-report'"></mat-icon>
+                            <span class="ml-2">Export Selected</span>
+                        </button>
+                        <button class="hidden sm:inline-flex" (click)="deleteLeagues()" mat-flat-button>
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:delete'"></mat-icon>
+                            <span class="ml-2">Delete Selected</span>
+                        </button>
+                    </mat-menu>
                 </div>
                 <div class="flex flex-col flex-auto mt-6">
                     <table mat-table [dataSource]="dataSource" matSort multiTemplateDataRows>
@@ -386,9 +386,19 @@
                         <ng-container matColumnDef="members">
                             <th mat-header-cell *matHeaderCellDef>League Members</th>
                             <td mat-cell *matCellDef="let row; let i = index">
-                             
+
                                 <button class="min-w-10 min-h-7 h-7 px-2 leading-6" mat-stroked-button
-                                    (click)="toggleDetails(row.id)">   {{ row.members }}
+                                    (click)="toggleDetails(row.id)"> {{ row.members }}
+                                </button>
+                            </td>
+                        </ng-container>
+                        <ng-container matColumnDef="details">
+                            <th mat-header-cell *matHeaderCellDef>Details</th>
+                            <td mat-cell *matCellDef="let row; let i = index">
+
+                                <button 
+                                    [routerLink]="['/leagues/', row.id]">
+                                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye'"></mat-icon>
                                 </button>
                             </td>
                         </ng-container>
@@ -400,8 +410,10 @@
                                             ? 'expanded'
                                             : 'collapsed'
                                     ">
-                                    <button (click)="exportToExcelPlayers()" class="bg-accent w-40" mat-flat-button [color]="'accent'">
-                                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:document-report'"></mat-icon>
+                                    <button (click)="exportToExcelPlayers()" class="bg-accent w-40" mat-flat-button
+                                        [color]="'accent'">
+                                        <mat-icon class="icon-size-5"
+                                            [svgIcon]="'heroicons_solid:document-report'"></mat-icon>
                                         <span class="ml-2 ">Export</span>
                                     </button>
                                     <div
@@ -426,7 +438,7 @@
                                                     {{ row.email }}
                                                 </td>
                                             </ng-container>
-                                        
+
                                             <tr mat-header-row *matHeaderRowDef="displayedPlayersColumns"></tr>
                                             <tr mat-row *matRowDef="let row; columns: displayedPlayersColumns"></tr>
 

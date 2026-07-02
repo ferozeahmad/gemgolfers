@@ -66,20 +66,20 @@
                     <th mat-header-cell *matHeaderCellDef mat-sort-header>
                         Start Time
                     </th>
-                    <td mat-cell *matCellDef="let row">{{ convertToAMPMFormat(row.slots?.[0]?.slotTime) }}</td>
+                    <td mat-cell *matCellDef="let row">{{ convertToAMPMFormat(row?.slots?.[0]?.slotTime) }}</td>
                 </ng-container>
                 <ng-container matColumnDef="bookingTime">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header>
                         Booking Time
                     </th>
-                    <td mat-cell *matCellDef="let row">{{ convertToAMPMFormat(row.bookingTime) }}</td>
+                    <td mat-cell *matCellDef="let row">{{ convertToAMPMFormat(row?.bookingTime) }}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="endTime">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header>
                         End Time
                     </th>
-                    <td mat-cell *matCellDef="let row">{{ convertToAMPMFormat(row.slots?.[row.slots.length - 1]?.slotTime
+                    <td mat-cell *matCellDef="let row">{{ convertToAMPMFormat(row?.slots?.[row?.slots?.length - 1]?.slotTime
                         )}}</td>
                 </ng-container>
 
@@ -95,7 +95,7 @@
                         # of Slots
                     </th>
                     <td mat-cell *matCellDef="let row">
-                        {{ row.slots.length}}
+                        {{ row?.slots?.length}}
                     </td>
                 </ng-container>
 
@@ -118,6 +118,7 @@
                 <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
             </table>
         </div>
-        <mat-paginator [pageSize]="20" [pageSizeOptions]="[10, 20, 50, 100]"></mat-paginator>
+        <mat-paginator [pageSize]="pageSize"
+                [pageIndex]="pageIndex" [length]="totalSize" [pageSizeOptions]="[20, 50, 100]" (page)="onPageChange($event)"></mat-paginator>
     </div>
 </div>

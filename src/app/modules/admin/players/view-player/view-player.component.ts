@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DatePipe, formatDate, Location } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
@@ -35,6 +35,7 @@ import { DialogMergeComponent } from '../../dialogs/dialog-merge-profile/dialog-
 import { LocalStorageService } from 'app/shared/services/localStorage';
 import { environment } from 'environments/environment';
 import { LogsService } from 'app/shared/services/logs.service';
+import { Subject } from 'rxjs';
 
 @Component({
     standalone: false,
@@ -42,7 +43,7 @@ import { LogsService } from 'app/shared/services/logs.service';
     templateUrl: './view-player.component.html',
     styleUrls: ['./view-player.component.scss'],
 })
-export class ViewPlayerComponent implements OnInit {
+export class ViewPlayerComponent implements OnInit, OnDestroy {
     private playerID: string;
     loggedInuser: UserSessionModel;
     currentPlayer: Player;
@@ -155,6 +156,7 @@ export class ViewPlayerComponent implements OnInit {
     @ViewChild('dsort') dsort: MatSort;
 
     chartVisitors: ApexOptions;
+    private _unsubscribeAll: Subject<any> = new Subject<any>();
     constructor(
         private router: Router,
         private route: ActivatedRoute,
@@ -228,6 +230,7 @@ export class ViewPlayerComponent implements OnInit {
     // public lineChartType: string;
 
     async ngOnInit() {
+        this.logger.log('ViewPlayerComponent initialized', 'INFO');
         try {
             this.logger.log('Getting Players Profile Data', "info");
             ////console.log(this.route.snapshot.paramMap.get("id"));
@@ -948,6 +951,12 @@ export class ViewPlayerComponent implements OnInit {
                 }
             }
         });
+    }
+
+    ngOnDestroy(): void {
+        this.logger.log('ViewPlayerComponent destroyed', 'INFO');
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
     }
 
     public downloadAsPDFWHS() {

@@ -84,7 +84,7 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
     SecondLastMonth: number = 0;
     dataSource: MatTableDataSource<any>;
     dataSourcePlayer: MatTableDataSource<any>;
-    displayedColumns = ['id', 'name', 'date', 'tournaments', 'owner', 'members'];
+    displayedColumns = ['id', 'name', 'date', 'tournaments', 'members', 'owner','details'];
     displayedPlayersColumns = ['firstName', 'lastName', 'email'];
     monthName = [
         'January',

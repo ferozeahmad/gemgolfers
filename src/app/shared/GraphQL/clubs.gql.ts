@@ -277,8 +277,9 @@ export const AddScheduleMutation = gql`
 `;
 
 export const GetTeeTimeBookingQL = gql`
-    query GetTeeTimeBookingQL($where: tee_time_booking_bool_exp!) {
-        tee_time_booking(where: $where, order_by: { bookingDate: desc }) {
+    query GetTeeTimeBookingQL($where: tee_time_booking_bool_exp!,$offset: Int
+        $limit: Int) {
+        tee_time_booking(where: $where, order_by: { bookingDate: desc }, offset: $offset, limit: $limit) {
             id
             bookingDate
             startTime
@@ -302,9 +303,28 @@ export const GetTeeTimeBookingQL = gql`
         }
     }
 `;
+
+export const GetTeeTimeBookingAggregateQL = gql`
+    query GetTeeTimeBookingAggregateQL($where: tee_time_booking_bool_exp!) {
+        tee_time_booking_aggregate(where: $where) {
+            aggregate {
+                count
+            }
+        }
+    }
+`;
+export const GetTeeTimeBookingAggregateSuperAdminQL = gql`
+    query GetTeeTimeBookingAggregateSuperAdminQL {
+        tee_time_booking_aggregate {
+            aggregate {
+                count
+            }
+        }
+    }
+`;
 export const GetTeeTimeBookingSuperAdminQL = gql`
-    query GetTeeTimeBookingSuperAdminQL {
-        tee_time_booking(order_by: { bookingDate: desc }) {
+    query GetTeeTimeBookingSuperAdminQL($offset: Int, $limit: Int) {
+        tee_time_booking(order_by: { bookingDate: desc }, offset: $offset, limit: $limit) {
             id
             bookingDate
             startTime
@@ -321,11 +341,10 @@ export const GetTeeTimeBookingSuperAdminQL = gql`
                 id
                 name
             }
-            slots_aggregate {
-                aggregate {
-                    count
-                }
-            }
+            slots(order_by: { slotTime: asc }){
+                id
+                slotTime
+                flightId}
         }
     }
 `;

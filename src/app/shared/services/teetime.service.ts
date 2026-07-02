@@ -66,10 +66,23 @@ export class TeeTimeService {
     });
   }
 
-  public getClubTeeTimeBooking(clubId: string): Promise<any> {
-    return new Promise(resolve => {
-      this.apollo.subscribe<any>({
+  public getClubTeeTimeBooking(clubId: string, offset: number, limit: number): Promise<any> {
+    return new Promise(async resolve => {
+      const paginatedData = await this.apollo.subscribe<any>({
         query: Query.GetTeeTimeBookingQL,
+        variables: {
+          'where': {
+            'clubId': {
+              '_eq': clubId
+            }
+          },
+          offset,
+          limit
+        }
+      }).toPromise();
+
+      const aggregateData = await this.apollo.subscribe<any>({
+        query: Query.GetTeeTimeBookingAggregateQL,
         variables: {
           'where': {
             'clubId': {
@@ -77,9 +90,9 @@ export class TeeTimeService {
             }
           }
         }
-      }).subscribe(({ data }) => {
-        resolve(data);
-      });
+      }).toPromise();
+
+      resolve({ paginatedData: paginatedData, aggregateData: aggregateData });
     });
   }
 
@@ -103,13 +116,29 @@ export class TeeTimeService {
     });
   }
 
-  public getClubTeeTimeBookingForSuperAdmin(): Promise<any> {
-    return new Promise(resolve => {
-      this.apollo.subscribe<any>({
+  public getClubTeeTimeBookingForSuperAdmin(offset, limit): Promise<any> {
+    // return new Promise(resolve => {
+    //   this.apollo.subscribe<any>({
+    //     query: Query.GetTeeTimeBookingSuperAdminQL,
+
+    //   }).subscribe(({ data }) => {
+    //     resolve(data);
+    //   });
+    // });
+    return new Promise(async resolve => {
+      const paginatedData = await this.apollo.subscribe<any>({
         query: Query.GetTeeTimeBookingSuperAdminQL,
-      }).subscribe(({ data }) => {
-        resolve(data);
-      });
+        variables: {
+          offset,
+          limit
+        }
+      }).toPromise();
+
+      const aggregateData = await this.apollo.subscribe<any>({
+        query: Query.GetTeeTimeBookingAggregateSuperAdminQL,
+      }).toPromise();
+
+      resolve({ paginatedData: paginatedData, aggregateData: aggregateData });
     });
   }
 

@@ -480,6 +480,21 @@ export const getLeaguesByClub = gql`
         }
     }
 `;
+export const getLeagueById = gql`
+    query getLeagueById($id: String!) {
+        league(where: { id: { _eq: $id } }) {
+            id
+            name
+            dateCreated
+            members {
+                playerId
+            }
+            tournaments {
+                id
+            }
+        }
+    }
+`;
 export const getLeaguesMembers = gql`
     query getLeaguesMembers($adminId: String!) {
         league(where: { id: { _eq: $adminId } }) {
@@ -510,6 +525,29 @@ export const getTourMembers = gql`
                     firstName
                     lastName
                     email
+                }
+            }
+        }
+    }
+`;
+
+export const GetTourByIdQL = gql`
+    query GetTourByIdQL($id: String!) {
+        tour(where: { id: { _eq: $id } }) {
+            id
+            name
+            startDate
+            endDate
+            tournaments {
+                id
+                title
+            }
+            members {
+                playerId
+                player {
+                    id
+                    firstName
+                    lastName
                 }
             }
         }
@@ -2984,6 +3022,28 @@ export const getTours = gql`
     query getTourDashboard($adminId: String!) {
         tour(
             where: { adminId: { _eq: $adminId } }
+            order_by: [{ dateCreated: desc }]
+        ) {
+            id
+            name
+            logo
+            dateCreated
+            startDate
+            endDate
+            tournaments {
+                id
+                leagueId
+                title
+            }
+            members {
+                playerId
+            }
+        }
+    }
+`;
+export const getAllTours = gql`
+    query getTourDashboard {
+        tour(
             order_by: [{ dateCreated: desc }]
         ) {
             id
