@@ -146,6 +146,10 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     player: any[];
 
     selectPlayer: any;
+    selectedFlights: number[] = [];
+    selectedPlayers: { flightIndex: number, playerIndex: number }[] = [];
+    showSwapFlightsButton: boolean = false;
+    showSwapPlayersButton: boolean = false;
     constructor(
         private _localStorage: LocalStorageService,
         private logger: LogsService,
@@ -317,11 +321,11 @@ export class FlightManagementComponent implements OnInit, OnChanges {
                 for (let obj of flightSettings) {
                     let chngDate = obj.dates.replaceAll('-', '').toString();
                     let newDate =
-                        chngDate.substring(4, 8) +
+                        chngDate.substring(0, 4) +
                         '-' +
-                        chngDate.substring(2, 4) +
+                        chngDate.substring(4, 6) +
                         '-' +
-                        +chngDate.substring(0, 2);
+                        chngDate.substring(6, 8);
                     // //console.log(newDate);
 
                     let flightDate = new Date(newDate).getDate();
@@ -345,11 +349,11 @@ export class FlightManagementComponent implements OnInit, OnChanges {
                 for (let obj of flightSettings['playingDate']) {
                     let chngDate = obj.dates.replaceAll('-', '').toString();
                     let newDate =
-                        chngDate.substring(4, 8) +
+                        chngDate.substring(0, 4) +
                         '-' +
-                        chngDate.substring(2, 4) +
+                        chngDate.substring(4, 6) +
                         '-' +
-                        +chngDate.substring(0, 2);
+                        chngDate.substring(6, 8);
 
                     let flightDate = new Date(newDate).getDate();
                     //console.log(flightDate);
@@ -378,6 +382,8 @@ export class FlightManagementComponent implements OnInit, OnChanges {
         });
         dialogRef.afterClosed().subscribe(async (result) => {
             //console.log(result);
+            // console.log(allowCat);
+
             if (result && result.category) {
                 let teeBox: number;
 
@@ -396,7 +402,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
 
 
                     if (
-                        this.tournamentInfo[0].matchFormat != 'TEXAS_SCRAMBLE'
+                        this.tournamentInfo[0].matchFormat != 'TEXAS_SCRAMBLE' && allowCat
                     ) {
                         FilteredPL = this.tournamentMember.filter((a) => {
                             return a.player.playerCategory == obj.name;
@@ -1113,9 +1119,167 @@ export class FlightManagementComponent implements OnInit, OnChanges {
             }
         }
     }
-    public trackByFn(item: any) {
-        return item.id;
+    public trackByFn(item: any, index: number) {
+        return item.id || index;
     }
+
+    toggleFlightSelection(flightIndex: number) {
+        const indexInSelected = this.selectedFlights.indexOf(flightIndex);
+        if (indexInSelected > -1) {
+            this.selectedFlights.splice(indexInSelected, 1);
+            // Deselect all players in this flight
+            this.selectedPlayers = this.selectedPlayers.filter(p => p.flightIndex !== flightIndex);
+        } else {
+            this.selectedFlights.push(flightIndex);
+            // Select all players in this flight
+            this.selectedMembers[flightIndex].forEach((player, playerIndex) => {
+                if (typeof player === 'object' && player !== null) {
+                    this.selectedPlayers.push({ flightIndex, playerIndex });
+                }
+            });
+        }
+        this.updateSwapButtonVisibility();
+    }
+
+    isFlightSelected(flightIndex: number): boolean {
+        return this.selectedFlights.includes(flightIndex);
+    }
+
+    togglePlayerSelection(flightIndex: number, playerIndex: number) {
+        const playerIdentifier = { flightIndex, playerIndex };
+        const indexInSelected = this.selectedPlayers.findIndex(p =>
+            p.flightIndex === playerIdentifier.flightIndex && p.playerIndex === playerIdentifier.playerIndex
+        );
+
+        if (indexInSelected > -1) {
+            this.selectedPlayers.splice(indexInSelected, 1);
+        } else {
+            this.selectedPlayers.push(playerIdentifier);
+        }
+        this.updateSwapButtonVisibility();
+    }
+
+    isPlayerSelected(flightIndex: number, playerIndex: number): boolean {
+        return this.selectedPlayers.some(p => p.flightIndex === flightIndex && p.playerIndex === playerIndex);
+    }
+
+    updateSwapButtonVisibility() {
+        this.showSwapFlightsButton = this.selectedFlights.length === 2;
+        this.showSwapPlayersButton = this.selectedPlayers.length === 2 &&
+            this.selectedPlayers[0].flightIndex !== this.selectedPlayers[1].flightIndex;
+    }
+
+    swapSelectedFlights() {
+        if (this.selectedFlights.length === 2) {
+            const [idx1, idx2] = this.selectedFlights;
+            const tempFlight = this.selectedMembers[idx1];
+            this.selectedMembers[idx1] = this.selectedMembers[idx2];
+            this.selectedMembers[idx2] = tempFlight;
+
+            // Optionally swap flight numbers for display purposes if they are part of the object
+            const tempFlightNo = this.selectedMembers[idx1]['flightNo'];
+            this.selectedMembers[idx1]['flightNo'] = this.selectedMembers[idx2]['flightNo'];
+            this.selectedMembers[idx2]['flightNo'] = tempFlightNo;
+
+            this.snackBar.open(
+                `Flights ${this.selectedMembers[idx1]['flightNo']} and ${this.selectedMembers[idx2]['flightNo']} have been swapped successfully.`,
+                'x',
+                { duration: 5000 }
+            );
+
+            this.selectedFlights = [];
+            this.selectedPlayers = []; // Clear player selections as well
+            this.updateSwapButtonVisibility();
+        } else {
+            this.snackBar.open('Please select exactly two flights to swap.', 'x', { duration: 3000 });
+        }
+    }
+
+    swapSelectedPlayers() {
+        if (this.selectedPlayers.length === 2 &&
+            this.selectedPlayers[0].flightIndex !== this.selectedPlayers[1].flightIndex) {
+
+            const player1 = this.selectedMembers[this.selectedPlayers[0].flightIndex][this.selectedPlayers[0].playerIndex];
+            const player2 = this.selectedMembers[this.selectedPlayers[1].flightIndex][this.selectedPlayers[1].playerIndex];
+
+            // Perform the swap
+            this.selectedMembers[this.selectedPlayers[0].flightIndex][this.selectedPlayers[0].playerIndex] = player2;
+            this.selectedMembers[this.selectedPlayers[1].flightIndex][this.selectedPlayers[1].playerIndex] = player1;
+
+            this.snackBar.open(
+                `Players have been swapped successfully.`,
+                'x',
+                { duration: 5000 }
+            );
+
+            this.selectedFlights = []; // Clear flight selections as well
+            this.selectedPlayers = [];
+            this.updateSwapButtonVisibility();
+
+        } else {
+            this.snackBar.open('Please select exactly two players from different flights to swap.', 'x', { duration: 3000 });
+        }
+    }
+
+    async deleteSelectedFlights() {
+        if (this.selectedFlights.length === 0) {
+            this.snackBar.open('Please select at least one flight to delete.', 'x', { duration: 3000 });
+            return;
+        }
+
+        const dialogRef = this.dialog.open(DialogOverviewComponent, {
+            width: '350px',
+            data: 'Do you want to delete the selected flight(s)?',
+        });
+
+        dialogRef.afterClosed().subscribe(async (result) => {
+            if (result) {
+                const flightsToDeleteIds: string[] = [];
+                const membersFromFlightsToRemove: string[] = [];
+                const playersToRemove: string[] = [];
+
+                for (const flightIndex of this.selectedFlights) {
+                    const flight = this.selectedMembers[flightIndex];
+                    if (flight && flight['id']) {
+                        flightsToDeleteIds.push(flight['id']);
+
+                        // Also gather members within these flights to remove them
+                        for (const member of flight) {
+                            if (member && member['id']) {
+                                playersToRemove.push(member['id']);
+                                membersFromFlightsToRemove.push(flight['id']);
+                            }
+                        }
+                    }
+                }
+
+                try {
+                    const success = await this.facadeService.DeleteFlightsAndMembers(
+                        flightsToDeleteIds,
+                        membersFromFlightsToRemove,
+                        playersToRemove
+                    );
+
+                    if (success) {
+                        this.snackBar.open('Selected flight(s) and their members have been deleted successfully.', 'x', { duration: 5000 });
+                        this.selectedFlights = [];
+                        this.selectedPlayers = [];
+                        this.updateSwapButtonVisibility();
+                        // this.getSelectedPlayers(); // Refresh the flights
+                        flightsToDeleteIds.forEach((id) => this.deleteEmptyFlight(id, 1));
+                    } else {
+                        this.snackBar.open('Failed to delete selected flight(s).', 'x', { duration: 5000 });
+                    }
+                } catch (error) {
+                    this.logger.log('Deleting selected flights failed', 'error', error.toString());
+                    this.snackBar.open('An error occurred while deleting flights.', 'x', { duration: 5000 });
+                }
+            } else {
+                this.snackBar.open('Flight deletion cancelled.', 'x', { duration: 3000 });
+            }
+        });
+    }
+
     getSelectedPlayers() {
         try {
 
@@ -2046,68 +2210,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
         }
     }
 
-    swapFlight(flightIndex: number) {
-        // Get list of available flights to swap with (exclude current flight)
-        const availableFlights = this.selectedMembers
-            .map((flight, idx) => ({
-                flightNo: flight['flightNo'],
-                flightIndex: idx,
-                playerCount: flight.length
-            }))
-            .filter(f => f.flightIndex !== flightIndex);
 
-        if (availableFlights.length === 0) {
-            this.snackBar.open('No other flights available to swap with.', 'x', {
-                duration: 3000,
-            });
-            return;
-        }
-
-        // Build message showing available flights
-        let flightOptions = availableFlights
-            .map(f => `Flight ${f['flightNo']} (${f.playerCount} players)`)
-            .join('\n');
-
-        // Create selection dialog
-        const dialogRef = this.dialog.open(DialogMoveFlightComponent, {
-            width: '500px',
-            data: {
-                flights: this.selectedMembers.length,
-                name: `Select a flight to swap with Flight ${this.selectedMembers[flightIndex]['flightNo']}:`,
-            },
-        });
-
-        dialogRef.afterClosed().subscribe((selectedFlightNo) => {
-            if (selectedFlightNo) {
-                // Find the index of the selected flight
-                const targetFlightIndex = availableFlights.find(
-                    f => f.flightNo == selectedFlightNo
-                )?.flightIndex;
-
-                if (targetFlightIndex !== undefined) {
-                    // Swap the entire flight arrays
-                    const temp = this.selectedMembers[flightIndex];
-                    this.selectedMembers[flightIndex] = this.selectedMembers[targetFlightIndex];
-                    this.selectedMembers[targetFlightIndex] = temp;
-
-                    // Update flight numbers to reflect swap
-                    const tempFlightNo = this.selectedMembers[flightIndex]['flightNo'];
-                    this.selectedMembers[flightIndex]['flightNo'] = this.selectedMembers[targetFlightIndex]['flightNo'];
-                    this.selectedMembers[targetFlightIndex]['flightNo'] = tempFlightNo;
-
-                    this.snackBar.open(
-                        `Flight ${this.selectedMembers[targetFlightIndex]['flightNo']} and Flight ${this.selectedMembers[flightIndex]['flightNo']} have been swapped successfully.`,
-                        'x',
-                        { duration: 5000 }
-                    );
-                } else {
-                    this.snackBar.open('Flight not found. Please enter a valid flight number.', 'x', {
-                        duration: 3000,
-                    });
-                }
-            }
-        });
-    }
 
     editFlight(id, index) {
         //console.log(index);

@@ -3833,6 +3833,7 @@ export class ViewTournamentComponent implements OnInit {
                     const clubName = player?.membership?.[0]?.club?.name || '';
 
                     const sortedScores = [...scores].sort((a, b) => (a.hole?.holeNo || 0) - (b.hole?.holeNo || 0));
+                    // If any player has 9 scores, treat as 9-hole event
 
                     const scoreByHole: { [h: number]: number } = {};
                     let playerHandicap = 0;
@@ -3854,7 +3855,8 @@ export class ViewTournamentComponent implements OnInit {
                     const inn = back9.reduce((a, b) => a + b, 0);
                     const dayGross = out + inn;
                     // For 9-hole events the handicap is halved (rounded to nearest whole)
-                    const effHandicap = nineHole ? Math.round(playerHandicap / 2) : playerHandicap;
+                    // if (sortedScores.length === 9) { nineHole = true; } else { nineHole = false; }
+                    const effHandicap = sortedScores.length === 9 ? Math.round(playerHandicap / 2) : playerHandicap;
                     const dayNet = dayGross > 0 ? Math.max(0, dayGross - effHandicap) : 0;
 
                     if (!playerMap.has(playerId)) {

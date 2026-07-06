@@ -279,7 +279,7 @@ export class DialogCloseRoundComponent implements OnInit {
 
     onSubmit() {
         // TODO: Use EventEmitter with form value
-        console.warn(this.cutOffform.value);
+        // console.warn(this.cutOffform.value);
     }
 
     onNoClick(): void {

@@ -33,6 +33,15 @@
             <button (click)="addFlight(1)"
                 class="bg-white text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors">
                 Add New Group</button>
+            <button *ngIf="showSwapFlightsButton" (click)="swapSelectedFlights()"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-blue-700 transition-colors">
+                Swap Selected Flights</button>
+            <button *ngIf="showSwapPlayersButton" (click)="swapSelectedPlayers()"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-blue-700 transition-colors">
+                Swap Selected Players</button>
+            <button *ngIf="selectedFlights.length > 0" (click)="deleteSelectedFlights()"
+                class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-700 transition-colors">
+                Delete Selected Flight(s)</button>
 
         </div>
         <div *ngIf="selectedMembers.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -40,8 +49,12 @@
             <div *ngFor="let items of selectedMembers;
                         let i = index;
                         let j = index;
-                        trackBy: trackByFn" class="bg-card border border-gray-200 rounded-lg  flex flex-col">
+                        trackBy: trackByFn" class="bg-card border border-gray-200 rounded-lg  flex flex-col"
+                [class.selected-flight]="isFlightSelected(i)">
                 <div class="flex justify-between items-center p-4 border-b border-gray-200">
+                    <mat-checkbox (change)="toggleFlightSelection(i)" [checked]="isFlightSelected(i)">
+
+                    </mat-checkbox>
                     <p class="font-bold text-lg text-gray-800">Group
                         No:{{ items.flightNo }}</p>
 
@@ -53,14 +66,9 @@
                             class="text-sm font-semibold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">{{
                             convertToAMPMFormat(items.time) }}</span>
                         <mat-icon *ngIf="items.length == 0" aria-hidden="false" class=" cursor-pointer"
-                            aria-label="Dragable" color="warn" (click)="
-                                                        deleteEmptyFlight(
-                                                            items.id,
-                                                            i
-                                                        )
-                                                    ">delete_forever</mat-icon>
-                        <mat-icon aria-hidden="false" class="cursor-pointer" matTooltip="Swap Group Players"
-                            (click)="swapFlight(j)">swap_horiz</mat-icon>
+                            aria-label="Dragable" color="warn"
+                            (click)="deleteEmptyFlight(items.id,i)">delete_forever</mat-icon>
+
                     </span>
                 </div>
                 <div class=" divide-y divide-gray-200">
@@ -68,21 +76,24 @@
                                                     let item of items;
                                                     let j = index
                                                 "
-                        class="flex justify-between  items-center text-sm p-4 rounded-md bg-white">
+                        class="flex justify-between  items-center text-sm p-4 rounded-md bg-white" [class.selected-player]="isPlayerSelected(i, j)">
 
-                        <span class="flex gap-x-2 items-center">
+                        <span class="flex gap-x-2 items-center" [class.selected-player]="isPlayerSelected(i, j)">
+                            <mat-checkbox (change)="togglePlayerSelection(i, j)"
+                                [checked]="isPlayerSelected(i, j)"></mat-checkbox>
                             <span class="w-2 h-2 rounded-full" [style.background-color]="getTeamColor(item.id)"></span>
                             <span class="font-medium text-gray-700 text-md">
                                 {{ item.firstName }} {{ item.lastName }}
                             </span>
 
                         </span>
-                        <span class="flex gap-2 items-center">
+                        <span class="flex gap-2 items-center" [class.selected-player]="isPlayerSelected(i, j)">
                             <span class="text-gray-500">HC: {{ item.handicap }}</span>
                             <mat-icon aria-hidden="false" class="cursor-pointer"
                                 (click)="removePlayer(i,j)">delete_forever</mat-icon>
-                            <mat-icon  aria-hidden="false" class="cursor-pointer" matTooltip="Move Player to Another Group"
-                                (click)="movePlayer(i, j)">arrow_right_alt</mat-icon>
+                            <!-- <mat-icon aria-hidden="false" class="cursor-pointer"
+                                matTooltip="Move Player to Another Group"
+                                (click)="movePlayer(i, j)">arrow_right_alt</mat-icon> -->
                         </span>
                     </div>
 

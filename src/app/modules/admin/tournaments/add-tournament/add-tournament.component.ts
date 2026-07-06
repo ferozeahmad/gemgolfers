@@ -141,7 +141,7 @@ export class AddTournamentComponent implements OnInit {
     membersTeamSource: MatTableDataSource<Player | any>;
     isVeterans: boolean;
     isCreatingFlights: boolean = false;
-    skipCat: boolean = true;
+    skipCat: boolean = false;
     isJuniors: boolean;
     isLadies: boolean;
     isProfessionals: boolean;
@@ -969,7 +969,7 @@ export class AddTournamentComponent implements OnInit {
         if (this._localStorage.isClubAdmin()) {
             this.formArray.get([0]).get('clubsFormCtrl').clearValidators();
             this.formArray
-                .get([0]) 
+                .get([0])
                 .get('clubsFormCtrl')
                 .updateValueAndValidity();
         }
@@ -1374,8 +1374,12 @@ export class AddTournamentComponent implements OnInit {
 
     checkDate(cat: any) {
         const result = [];
+
         const start = new Date(cat.startDate);
+        start.setHours(0, 0, 0, 0);
+
         const end = new Date(cat.endDate);
+        end.setHours(0, 0, 0, 0);
 
         let current = new Date(start);
 
@@ -1690,14 +1694,14 @@ export class AddTournamentComponent implements OnInit {
         //console.log(cat);
         let flag: boolean = false;
         if (check) {
-            for (let i of this.currentTournament['categories']) {
+            for (let i of this.currentTournament['CategoriesQL']) {
                 if (i.category == cat) {
                     return i.id;
                 }
             }
             return UniqueIdGenerator.generate();
         } else {
-            for (let i of this.currentTournament['categories']) {
+            for (let i of this.currentTournament['CategoriesQL']) {
                 if (i.category == cat.name) {
                     flag = this.checkUpdatesofDates(cat);
                     //console.log(flag);
