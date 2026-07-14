@@ -1865,6 +1865,11 @@ export const DailyRoundsStatQueryQLs = gql`
                 PlayerQL: player {
                     id
                     playerCategory
+                    firstName
+                    lastName
+                    membershipNumber
+                    email
+                    handicap
                 }
             }
         }
@@ -1926,6 +1931,11 @@ export const DailyRoundsStatQueryAdminQLs = gql`
                 PlayerQL: player {
                     id
                     playerCategory
+                    firstName
+                    lastName
+                    membershipNumber
+                    email
+                    handicap
                 }
             }
         }

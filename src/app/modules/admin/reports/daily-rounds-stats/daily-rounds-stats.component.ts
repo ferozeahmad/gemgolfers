@@ -13,7 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatDrawer } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Apollo } from 'apollo-angular';
-import { Player } from '../../../../shared/models/player.model';
+import { Player, UserSessionModel } from '../../../../shared/models/player.model';
 
 import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { FacadeService } from '../../../../shared/services/facade.service';
@@ -24,6 +24,7 @@ import { ApexOptions } from 'ng-apexcharts';
 import { ceil } from 'lodash';
 import { LocalStorageService } from 'app/shared/services/localStorage';
 import { LogsService } from 'app/shared/services/logs.service';
+import { DialogUncompletedComponent } from '../../dialogs/dialog-uncomplete-players/dialog-uncomplete.component';
 
 @Component({
     standalone: false,
@@ -40,7 +41,7 @@ export class DailyRoundsStatsComponent implements OnInit {
     showdata: Promise<boolean>;
     lastActiveTab = 1;
     noItemsInList = false;
-    loggedInuser: Player;
+    loggedInuser: UserSessionModel;
     scheduleForm: FormGroup;
     refresh: boolean = false;
     minDate: Date;
@@ -126,13 +127,14 @@ export class DailyRoundsStatsComponent implements OnInit {
     dataSource: MatTableDataSource<any>;
     displayedColumns = [
         'id',
+        'details',
         'date',
         'totalMembers',
         'amateurs',
         'ladies',
         'veterans',
         'seniorsAmatuers',
-        'others',
+        // 'others',
     ];
     //['id','name', 'dates','updatedHandicap','details'];
     dataSource2: MatTableDataSource<any>;
@@ -140,24 +142,15 @@ export class DailyRoundsStatsComponent implements OnInit {
 
     dataSource3: MatTableDataSource<any>;
     displayedColumns3 = [
-        'id',
-        'date',
+        // 'id',
+        // 'date',
         'totalMembers',
         'nineHoles',
         'eighteenHoles',
     ];
 
     dataSource4: MatTableDataSource<any>;
-    displayedColumns4 = [
-        'id',
-        'date',
-        'redNine',
-        'blueNine',
-        'yellowNine',
-        'redfrontBlueback',
-        'redFrontYellowback',
-        'blueFrontYellowback',
-    ];
+    displayedColumns4: string[] = [];
 
     @ViewChild(MatPaginator) paginator: MatPaginator;
     @ViewChild(MatSort) sort: MatSort;
@@ -168,6 +161,7 @@ export class DailyRoundsStatsComponent implements OnInit {
         private location: Router,
         private fb: FormBuilder,
         public snackBar: MatSnackBar,
+        public dialog: MatDialog,
         private facadeService: FacadeService,
         private router: Router,
         private route: ActivatedRoute,
@@ -264,49 +258,12 @@ export class DailyRoundsStatsComponent implements OnInit {
     public barChartType4: string;
     public barChartLegend4: boolean;
 
-    public barChartData4: any[] = [
-        {
-            data: this.barChartRedNine,
-            label: 'redNine',
-            dates: this.redNineDates,
-        },
-        {
-            data: this.barChartBlueNine,
-            label: 'blueNine',
-            dates: this.blueNineDates,
-        },
-        {
-            data: this.barChartYellowNine,
-            label: 'yellowNine',
-            dates: this.yellowNineDates,
-        },
-        {
-            data: this.barChartRedfrontBlueback,
-            label: 'redfrontBlueback',
-            dates: this.redFrontblueBackDates,
-        },
-        {
-            data: this.barChartRedfrontYellowback,
-            label: 'RedfrontYellowback',
-            dates: this.redFrontyellowBackDates,
-        },
-        {
-            data: this.barChartBluefrontYellowback,
-            label: 'bluefrontYellowback',
-            dates: this.blueFrontyellowBackDates,
-        }
-    ];
+    public barChartData4: any[] = [];
 
-    public courseholesets: any[] = [
-        'Red 9',
-        'Yellow 9',
-        'Blue 9',
-        'Red 9 - Blue 9',
-        'Red 9 - Yellow 9',
-        'Blue 9 - Yellow 9',
-    ];
+    public courseholesets: any[] = [];
+    public courseHoleSetsData: any[] = [];
 
-    ngOnInit() {
+    async ngOnInit() {
         try {
             this.logger.log('Admin Come to Daily Round Report Page', "info");
             this.logger.log('Getting Daily Round Report Data', "info", "Last Seven Days");
@@ -329,6 +286,14 @@ export class DailyRoundsStatsComponent implements OnInit {
             //console.log(this.scheduleForm);
 
             this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
+
+            // Fetch course hole sets data
+            if (this.loggedInuser?.clubId) {
+                const holeSetsResponse = await this.facadeService.getCourseHoleSetsForCourse(this.loggedInuser.courseId);
+                this.courseHoleSetsData = holeSetsResponse?.course_hole_sets || [];
+                this.courseholesets = this.courseHoleSetsData.map(hs => hs.displayName);
+                this.displayedColumns.push(...this.courseholesets);
+            }
 
             this.weeklyRounds = [];
             of(this.weeklyRounds)
@@ -360,6 +325,13 @@ export class DailyRoundsStatsComponent implements OnInit {
         }
     }
 
+    playerList(players, key, date) {
+        this.logger.log('Getting Daily Starter Report Player Wise', "info", date);
+        const dialogRef = this.dialog.open(DialogUncompletedComponent, {
+            data: { players: players, key: key, date: date },
+        });
+    }
+
     async getDailyRounds(fromDate: Date, toDate: Date) {
         let dailyRoundsData: any[] = [];
         let dataPlayers: any;
@@ -386,15 +358,12 @@ export class DailyRoundsStatsComponent implements OnInit {
         let disclaimer = 0;
         let audioRecording = 0;
         let addedToday = 0;
-        let redNine: number = 0;
-        let blueNine: number = 0;
-        let yellowNine: number = 0;
-        let redfrontBlueback: number = 0;
-        let blueFrontRedback: number = 0;
-        let redFrontYellowback: number = 0;
-        let yellowFrontRedback: number = 0;
-        let blueFrontYellowback: number = 0;
-        let yellowFrontBlueback: number = 0;
+
+        const holeSetCounts: { [key: string]: number } = {};
+        this.courseHoleSetsData.forEach(hs => {
+            holeSetCounts[hs.displayName] = 0;
+        });
+
         let myData: any[] = [];
         let myData4: any[] = [];
         let prevDate = null;
@@ -417,7 +386,7 @@ export class DailyRoundsStatsComponent implements OnInit {
 
             const timestamp = stats.date;
             if (timestamp === prevDate) {
-                memCounter += stats ? stats.MembersQL.length : 0;
+                memCounter += stats ? 1 : 0;
                 totalFlights++;
                 amateurs += stats.MembersQL.length > 0
                     ? stats.MembersQL.filter((a) => {
@@ -461,15 +430,30 @@ export class DailyRoundsStatsComponent implements OnInit {
                         );
                     }).length
                     : 0;
-                redNine += (stats.courseHoleSets == 1 && stats.courseHoleSetsInverted == false) ? 1 : 0;
-                blueNine += (stats.courseHoleSets == 4 && stats.courseHoleSetsInverted == false) ? 1 : 0;
-                redfrontBlueback += (stats.courseHoleSets == 3 && stats.courseHoleSetsInverted == false) ? 1 : 0;
-                yellowNine += (stats.courseHoleSets == 8 && stats.courseHoleSetsInverted == false) ? 1 : 0;
-                blueFrontYellowback += (stats.courseHoleSets == 12 && stats.courseHoleSetsInverted == false) ? 1 : 0;
-                redFrontYellowback += (stats.courseHoleSets == 9 && stats.courseHoleSetsInverted == false) ? 1 : 0;
+
+                const currentHoleSet = this.courseHoleSetsData.find(
+                    (hs) => hs.holeSets === stats.courseHoleSets && hs.inverted === stats.courseHoleSetsInverted
+                );
+                if (currentHoleSet) {
+                    holeSetCounts[currentHoleSet.displayName]++;
+                }
+                if (stats.MembersQL.length) {
+                    for (let p of stats.MembersQL)
+                        myData[myData.length - 1].allPlayersList.push(
+                            p.PlayerQL
+                        );
+                }
             } else {
-                memCounter = stats ? stats.MembersQL.length : 0;
+
+                let allPlayersList = [];
+                memCounter = stats ? 1 : 0;
                 totalFlights = 1;
+
+                if (stats.MembersQL.length) {
+                    for (let p of stats.MembersQL) {
+                        allPlayersList.push(p.PlayerQL);
+                    }
+                }
                 amateurs = stats.MembersQL.length > 0
                     ? stats.MembersQL.filter((a) => {
                         return (
@@ -512,18 +496,25 @@ export class DailyRoundsStatsComponent implements OnInit {
                         );
                     }).length
                     : 0;
-                redNine = (stats.courseHoleSets == 1 && stats.courseHoleSetsInverted == false) ? 1 : 0;
-                blueNine = (stats.courseHoleSets == 4 && stats.courseHoleSetsInverted == false) ? 1 : 0;
-                redfrontBlueback = (stats.courseHoleSets == 3 && stats.courseHoleSetsInverted == false) ? 1 : 0;
-                yellowNine = (stats.courseHoleSets == 8 && stats.courseHoleSetsInverted == false) ? 1 : 0;
-                blueFrontYellowback = (stats.courseHoleSets == 12 && stats.courseHoleSetsInverted == false) ? 1 : 0;
-                redFrontYellowback = (stats.courseHoleSets == 9 && stats.courseHoleSetsInverted == false) ? 1 : 0;
+
+                // Reset and then set counts for the new date
+                this.courseHoleSetsData.forEach(hs => {
+                    holeSetCounts[hs.displayName] = 0;
+                });
+                const newHoleSet = this.courseHoleSetsData.find(
+                    (hs) => hs.holeSets === stats.courseHoleSets && hs.inverted === stats.courseHoleSetsInverted
+                );
+                if (newHoleSet) {
+                    holeSetCounts[newHoleSet.displayName]++;
+                }
                 let obj = {
                     date: timestamp,
                     membersCount: memCounter,
                     totalFlights: totalFlights,
                     amateurs: amateurs,
+                    allPlayersList: allPlayersList,
                     seniorsAmatuers: seniorsAmatuers,
+                    seniors: seniorsAmatuers,
                     ladies: ladies,
                     professionals: professionals,
                     veterans: veterans,
@@ -532,12 +523,7 @@ export class DailyRoundsStatsComponent implements OnInit {
                 };
                 let obj4 = {
                     date: timestamp,
-                    redNine: redNine,
-                    blueNine: blueNine,
-                    yellowNine: yellowNine,
-                    redfrontBlueback: redfrontBlueback,
-                    blueFrontYellowback: blueFrontYellowback,
-                    redFrontYellowback: redFrontYellowback,
+                    ...holeSetCounts
                 }
 
                 myData.push(obj);
@@ -548,32 +534,51 @@ export class DailyRoundsStatsComponent implements OnInit {
             myData[myData.length - 1].membersCount = memCounter;
             myData[myData.length - 1].totalFlights = totalFlights;
             myData[myData.length - 1].amateurs = amateurs;
+            myData[myData.length - 1].seniors = seniorsAmatuers;
             myData[myData.length - 1].seniorsAmatuers = seniorsAmatuers;
             myData[myData.length - 1].ladies = ladies;
             myData[myData.length - 1].professionals = professionals;
             myData[myData.length - 1].veterans = veterans;
             myData[myData.length - 1].nulls = nulls;
-            myData4[myData.length - 1].redNine = redNine;
-            myData4[myData.length - 1].blueNine = blueNine;
-            myData4[myData.length - 1].yellowNine = yellowNine;
-            myData4[myData.length - 1].redfrontBlueback = redfrontBlueback;
-            myData4[myData.length - 1].blueFrontYellowback = blueFrontYellowback;
-            myData4[myData.length - 1].redFrontYellowback = redFrontYellowback;
+
+            myData4[myData.length - 1] = {
+                date: timestamp,
+                ...holeSetCounts
+            };
         }
         //console.log(myData);
         //console.log(myData4);
+        const mergedMap = new Map<string, any>();
+
+        // First pass: add all myData rows keyed by date
+        myData.forEach(item => {
+            mergedMap.set(item.date, { ...item });
+        });
+
+        // Second pass: merge myData4 rows into the same date entry
+        myData4.forEach(item => {
+            if (mergedMap.has(item.date)) {
+                mergedMap.set(item.date, { ...mergedMap.get(item.date), ...item });
+            } else {
+                // date only exists in myData4, add it as a new row
+                mergedMap.set(item.date, { ...item });
+            }
+        });
+
+        const newData = Array.from(mergedMap.values());
+
         this.dataSource = null;
-        this.dataSource = new MatTableDataSource(myData);
-        // //console.log(this.dataSource);
+        this.dataSource = new MatTableDataSource(newData);
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
 
-        this.dataSource4 = null;
-        this.dataSource4 = new MatTableDataSource(myData4);
+        // this.dataSource4 = null;
+        // this.dataSource4 = new MatTableDataSource(myData4);
 
-        // //console.log(this.dataSource4)
-        this.dataSource4.paginator = this.paginator;
-        this.dataSource4.sort = this.sort;
+        // // //console.log(this.dataSource4)
+        // this.dataSource4.paginator = this.paginator;
+        // this.dataSource4.sort = this.sort;
+
 
         this.barChartLabels = [];
         this.barChartDataAmateur = [];
@@ -593,15 +598,12 @@ export class DailyRoundsStatsComponent implements OnInit {
         let dataMembers: any[] = [];
         let dataMembers4: any[] = [];
         let index4 = 0;
-        redNine = 0;
-        blueNine = 0;
-        yellowNine = 0;
-        redfrontBlueback = 0;
-        blueFrontRedback = 0;
-        redFrontYellowback = 0;
-        yellowFrontRedback = 0;
-        blueFrontYellowback = 0;
-        yellowFrontBlueback = 0;
+
+        const totalHoleSetCounts: { [key: string]: number } = {};
+        this.courseHoleSetsData.forEach(hs => {
+            totalHoleSetCounts[hs.displayName] = 0;
+        });
+
         //console.log(myData);
         for (let data of myData) {
             dataMembers.push(data.membersCount);
@@ -613,13 +615,11 @@ export class DailyRoundsStatsComponent implements OnInit {
             this.barChartDataVeteran.push(data.veterans);
             this.barChartDataseniorsAmatuers.push(data.seniorsAmatuers);
             this.barChartDataOthers.push(data.nulls);
-            redNine += myData4[index4].redNine;
-            blueNine += myData4[index4].blueNine;
-            yellowNine += myData4[index4].yellowNine;
-            redfrontBlueback += myData4[index4].redfrontBlueback;
-            redFrontYellowback += myData4[index4].redFrontYellowback;
-            blueFrontYellowback += myData4[index4].blueFrontYellowback;
 
+            const row4 = myData4[index4];
+            this.courseHoleSetsData.forEach(hs => {
+                totalHoleSetCounts[hs.displayName] += row4[hs.displayName] || 0;
+            });
 
             if (data.amateurs > 0) {
                 this.amateurDates.push(data.date);
@@ -638,12 +638,11 @@ export class DailyRoundsStatsComponent implements OnInit {
             }
             index4++;
         }
-        dataMembers4.push(redNine);
-        dataMembers4.push(yellowNine);
-        dataMembers4.push(blueNine);
-        dataMembers4.push(redfrontBlueback);
-        dataMembers4.push(redFrontYellowback);
-        dataMembers4.push(blueFrontYellowback);
+
+        this.courseHoleSetsData.forEach(hs => {
+            dataMembers4.push(totalHoleSetCounts[hs.displayName]);
+        });
+
         this._HolesSetsseries = [
             {
                 data: dataMembers4,
@@ -697,6 +696,18 @@ export class DailyRoundsStatsComponent implements OnInit {
 
         this.barChartType = 'bar';
         this.barChartLegend = true;
+
+        this.barChartData4 = this.courseHoleSetsData.map(hs => {
+            const dataCounts = myData4.map(row => row[hs.displayName] || 0);
+            const activeDates = myData4
+                .filter(row => (row[hs.displayName] || 0) > 0)
+                .map(row => row.date);
+            return {
+                data: dataCounts,
+                label: hs.displayName,
+                dates: activeDates
+            };
+        });
 
         this.chart();
         this.showdata = Promise.resolve(true);

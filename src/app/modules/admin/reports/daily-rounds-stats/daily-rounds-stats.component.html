@@ -98,7 +98,7 @@
 
                                 <div class="font-medium text-secondary"></div>
                                 <div class="flex flex-col flex-auto">
-                                    <apx-chart class="flex-auto w-full h-80" [chart]="chartBudgetDistribution.chart"
+                                    <apx-chart class="flex-auto w-full h-100" [chart]="chartBudgetDistribution.chart"
                                         [colors]="chartBudgetDistribution.colors"
                                         [dataLabels]="chartBudgetDistribution.dataLabels"
                                         [markers]="chartBudgetDistribution.markers"
@@ -142,7 +142,7 @@
                             </mat-button-toggle-group>
                         </div> -->
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 grid-flow-row gap-6 w-full mt-8 sm:mt-4">
+                    <div class=" gap-6 w-full mt-8 sm:mt-4">
                         <!-- New vs. Closed -->
 
                         <table *ngIf="dataSource" mat-table [dataSource]="dataSource" matSort>
@@ -158,13 +158,13 @@
                                     Date
                                 </th>
                                 <td mat-cell *matCellDef="let row">
-                                    {{ row.date.substring(0, 10) }}
+                                    {{ row.date | date:'mediumDate' }}
                                 </td>
                             </ng-container>
 
                             <ng-container matColumnDef="totalMembers">
                                 <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                                    Members
+                                    Rounds
                                 </th>
                                 <td mat-cell *matCellDef="let row">
                                     {{ row.membersCount }}
@@ -221,13 +221,34 @@
                                     {{ row.seniorsAmatuers }}
                                 </td>
                             </ng-container>
-                            <ng-container matColumnDef="others">
+                            <!-- <ng-container matColumnDef="others">
                                 <th mat-header-cell *matHeaderCellDef mat-sort-header>
                                     Others
                                 </th>
                                 <td mat-cell *matCellDef="let row">{{ row.nulls }}</td>
-                            </ng-container>
+                            </ng-container> -->
 
+                            <ng-container *ngFor="let col of courseholesets" [matColumnDef]="col">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    {{ col }} Played
+                                </th>
+                                <td mat-cell *matCellDef="let row">
+                                    {{ row[col] || 0 }}
+                                </td>
+                            </ng-container>
+                            
+                            <ng-container matColumnDef="details">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                    Details
+                                </th>
+                                <td mat-cell *matCellDef="let row">
+                                    <button mat-icon-button color="primary">
+                                        <mat-icon
+                                            (click)="playerList(row.allPlayersList,'all',row.date.substring(0, 10))"
+                                            class="mat-18" color="accent">reorder</mat-icon>
+                                    </button>
+                                </td>
+                            </ng-container>
                             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                             <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
                         </table>
@@ -235,7 +256,7 @@
                         <!-- Overview -->
 
                         <table *ngIf="dataSource4" mat-table [dataSource]="dataSource4" matSort>
-                            <ng-container matColumnDef="id">
+                            <!-- <ng-container matColumnDef="id">
                                 <th mat-header-cell *matHeaderCellDef>Sr.</th>
                                 <td mat-cell *matCellDef="let row; let i = index">
                                     {{ i + 1 }}
@@ -247,90 +268,17 @@
                                     Date
                                 </th>
                                 <td mat-cell *matCellDef="let row">
-                                    {{ row.date.substring(0, 10) }}
+                                    {{ row.date | date:'mediumDate' }}
                                 </td>
-                            </ng-container>
+                            </ng-container> -->
 
-
-
-                            <ng-container matColumnDef="redNine">
+                            <!-- Dynamic CourseHoleSets Columns -->
+                            <ng-container *ngFor="let col of courseholesets" [matColumnDef]="col">
                                 <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                                    red9
+                                    {{ col }} Played
                                 </th>
                                 <td mat-cell *matCellDef="let row">
-                                    {{ row.redNine }}
-                                </td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="blueNine">
-                                <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                                    blue9
-                                </th>
-                                <td mat-cell *matCellDef="let row">
-                                    {{ row.blueNine }}
-                                </td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="yellowNine">
-                                <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                                    yel9
-                                </th>
-                                <td mat-cell *matCellDef="let row">
-                                    {{ row.yellowNine }}
-                                </td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="redfrontBlueback">
-                                <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                                    red-blue
-                                </th>
-                                <td mat-cell *matCellDef="let row">
-                                    {{ row.redfrontBlueback }}
-                                </td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="blueFrontRedback">
-                                <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                                    blue-red
-                                </th>
-                                <td mat-cell *matCellDef="let row">
-                                    {{ row.blueFrontRedback }}
-                                </td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="redFrontYellowback">
-                                <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                                    red-Yell
-                                </th>
-                                <td mat-cell *matCellDef="let row">
-                                    {{ row.redFrontYellowback }}
-                                </td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="yellowFrontRedback">
-                                <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                                    yell-Red
-                                </th>
-                                <td mat-cell *matCellDef="let row">
-                                    {{ row.yellowFrontRedback }}
-                                </td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="blueFrontYellowback">
-                                <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                                    blue-Yell
-                                </th>
-                                <td mat-cell *matCellDef="let row">
-                                    {{ row.blueFrontYellowback }}
-                                </td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="yellowFrontBlueback">
-                                <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                                    yell-Blue
-                                </th>
-                                <td mat-cell *matCellDef="let row">
-                                    {{ row.yellowFrontBlueback }}
+                                    {{ row[col] || 0 }}
                                 </td>
                             </ng-container>
 

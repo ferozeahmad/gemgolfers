@@ -1273,6 +1273,44 @@ export class PlayersService {
         });
     }
 
+    public getClubMemberSubscription(playerId: string, clubId: string, startDate: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.apollo.watchQuery<any>({
+                query: Query.GetClubMemberSubscriptionByPlayerAndMonth,
+                variables: { playerId, clubId, startDate },
+                fetchPolicy: 'network-only',
+            }).valueChanges.subscribe({
+                next: ({ data }) => {
+                    resolve(data.club_member_subscription);
+                },
+                error: (error) => {
+                    console.error('Error fetching club member subscription:', error);
+                    reject(error);
+                }
+            });
+        });
+    }
+
+    public updateClubMemberSubscription(id: string, subscription: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.apollo.mutate<any>({
+                mutation: Query.UpdateClubMemberSubscription,
+                variables: {
+                    id: id,
+                    object: subscription,
+                },
+            }).subscribe({
+                next: ({ data }) => {
+                    resolve(data.update_club_member_subscription_by_pk);
+                },
+                error: (error) => {
+                    console.error('Error updating club member subscription:', error);
+                    reject(error);
+                }
+            });
+        });
+    }
+
     updatePlayer(player: Player): Promise<boolean> {
         //console.log(player.id);
         return new Promise((resolve) => {

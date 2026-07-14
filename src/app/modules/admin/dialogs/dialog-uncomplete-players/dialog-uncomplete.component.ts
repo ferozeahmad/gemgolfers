@@ -22,7 +22,7 @@ export class DialogUncompletedComponent implements OnInit {
     dataSource: MatTableDataSource<Player>;
     displayedColumns = [
         'name',
-        'handicapWhsIndex',
+        // 'handicapWhsIndex',
         'membershipNumber',
         'cat',
         'email',

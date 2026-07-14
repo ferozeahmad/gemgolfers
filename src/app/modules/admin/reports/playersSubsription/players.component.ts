@@ -30,8 +30,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { LocalStorageService } from 'app/shared/services/localStorage';
 import { PlayerSubscriptionHistoryDialogComponent } from './player-subscription-history-dialog/player-subscription-history-dialog.component';
 import { ImportResultsDialogComponent, ImportResult } from './import-results-dialog/import-results-dialog.component';
+import { SelectMonthYearDialogComponent } from './select-month-year-dialog/select-month-year-dialog.component';
 import { LogsService } from 'app/shared/services/logs.service';
 import { SelectionModel } from '@angular/cdk/collections';
+
+const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
 
 const CATEGORIES = [
     'Amateurs',
@@ -117,6 +123,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
     savePlayers: any[] = [];
     duplicatePlayers: any[] = [];
     importingList = false;
+    currentImportRow = 0;
+    totalImportRows = 0;
+    importProgressPercent = 0;
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
@@ -678,19 +687,49 @@ export class PlayersComponent implements OnInit, OnDestroy {
             const workbook = read(bstr, { type: 'binary' });
             const worksheet = workbook.Sheets[workbook.SheetNames[0]];
             this.playersData = utils.sheet_to_json(worksheet, { raw: true, defval: '' });
-            this.importExcelData();
+            
+            // Ask user for the Month and Year first
+            const dialogRef = this.dialog.open(SelectMonthYearDialogComponent, {
+                width: '450px',
+                disableClose: true,
+            });
+
+            dialogRef.afterClosed().subscribe((result) => {
+                if (result) {
+                    this.importExcelData(result.dueDate, result.month, result.year);
+                } else {
+                    this.fileInputVariable.nativeElement.value = '';
+                }
+            });
         };
         fileReader.readAsArrayBuffer(this.file);
     }
 
-    async importExcelData(): Promise<void> {
+    async importExcelData(dueDate: string, month: number, year: number): Promise<void> {
         this.importingList = true;
+        this.totalImportRows = this.playersData.length;
+        this.currentImportRow = 0;
+        this.importProgressPercent = 0;
+        this._changeDetectorRef.markForCheck();
+
         const importResults: ImportResult[] = [];
 
         for (let i = 0; i < this.playersData.length; i++) {
+            this.currentImportRow = i + 1;
+            this.importProgressPercent = Math.round((this.currentImportRow / this.totalImportRows) * 100);
+            this._changeDetectorRef.markForCheck();
+
             const p = this.playersData[i];
             const rowNumber = i + 1;
-            const membershipNumber = p.membershipNumber ? String(p.membershipNumber).trim() : null;
+
+            // Map all keys to lowercase and trim them to find correct properties
+            const rowKeys: { [key: string]: any } = {};
+            for (let key of Object.keys(p)) {
+                rowKeys[key.trim().toLowerCase()] = p[key];
+            }
+
+            const membershipNumberVal = rowKeys['memno'] || rowKeys['membershipno'] || rowKeys['membership number'] || rowKeys['membership_number'] || rowKeys['membershipnumber'] || p.membershipNumber;
+            const membershipNumber = membershipNumberVal ? String(membershipNumberVal).trim() : null;
 
             if (!membershipNumber) {
                 importResults.push({
@@ -708,32 +747,80 @@ export class PlayersComponent implements OnInit, OnDestroy {
                 const existingPlayer = existingPlayerResponse?.[0];
 
                 if (existingPlayer) {
-                    // Add entry to subscription table for existing player
-                    const newSubscription = {
+                    const amtWithGst = this.parseNumber(rowKeys['amtwithgst'] || rowKeys['amountwithgst'] || rowKeys['amount_with_gst']);
+                    const withoutGst = this.parseNumber(rowKeys['withoutgst'] || rowKeys['amountwithoutgst'] || rowKeys['amount_without_gst'] || rowKeys['amount'] || rowKeys['amt']);
+                    const locker = this.parseNumber(rowKeys['locker']);
+                    const capitation = this.parseNumber(rowKeys['capitation']);
+
+                    // Use amtWithGst as primary amount, otherwise fallback to withoutGst
+                    // const amountToSave = amtWithGst;
+
+
+
+                    const selectedMonthName = monthNames[month];
+                    const startDate = `${year}-${(month + 1).toString().padStart(2, '0')}-01`;
+
+                    // Check if a subscription already exists for this player and month/year
+                    const existingSubscriptionResponse = await this._facadeService.getClubMemberSubscription(
+                        existingPlayer.id,
+                        this.loggedInuser.adminClubId,
+                        startDate
+                    );
+                    const existingSubscription = existingSubscriptionResponse?.[0];
+
+                    const subscriptionData = {
                         playerId: existingPlayer.id,
-                        clubId: this.loggedInuser.adminClubId, // Assuming admin's clubId for subscription
-                        dueDate: this.excelSerialDateToISOString(p.dueDate), 
+                        clubId: this.loggedInuser.adminClubId,
+                        dueDate: dueDate,
                         createdAt: new Date().toISOString(),
-                        type: p.subscriptionType || 'default', // Assuming 'subscriptionType' in Excel
+                        startDate: startDate,
+                        type: `${selectedMonthName} ${year} Subscription`,
+                        amountWithGst: amtWithGst,
+                        locker: locker,
+                        capitation: capitation,
+                        amountWithoutGst: withoutGst,
                     };
 
-                    // Assuming a new method in FacadeService to create a single subscription
-                    const createSubscriptionStatus = await this._facadeService.createClubMemberSubscription(newSubscription);
-
-                    if (createSubscriptionStatus) {
-                        importResults.push({
-                            row: rowNumber,
-                            membershipNumber: membershipNumber,
-                            status: 'success',
-                            message: 'Subscription added for existing player.',
-                        });
+                    if (existingSubscription) {
+                        // Update existing subscription
+                        const updateSubscriptionStatus = await this._facadeService.updateClubMemberSubscription(
+                            existingSubscription.id,
+                            subscriptionData
+                        );
+                        if (updateSubscriptionStatus) {
+                            importResults.push({
+                                row: rowNumber,
+                                membershipNumber: membershipNumber,
+                                status: 'success',
+                                message: `Subscription updated with amount ${amtWithGst}. (ID: ${existingSubscription.id})`,
+                            });
+                        } else {
+                            importResults.push({
+                                row: rowNumber,
+                                membershipNumber: membershipNumber,
+                                status: 'error',
+                                message: 'Failed to update subscription for existing player.',
+                            });
+                        }
                     } else {
-                        importResults.push({
-                            row: rowNumber,
-                            membershipNumber: membershipNumber,
-                            status: 'error',
-                            message: 'Failed to add subscription for existing player.',
-                        });
+                        // Create new subscription
+                        const createSubscriptionStatus = await this._facadeService.createClubMemberSubscription(subscriptionData);
+
+                        if (createSubscriptionStatus) {
+                            importResults.push({
+                                row: rowNumber,
+                                membershipNumber: membershipNumber,
+                                status: 'success',
+                                message: `Subscription added with amount ${amtWithGst}.`,
+                            });
+                        } else {
+                            importResults.push({
+                                row: rowNumber,
+                                membershipNumber: membershipNumber,
+                                status: 'error',
+                                message: 'Failed to add subscription for existing player.',
+                            });
+                        }
                     }
                 } else {
                     // Player not found, record error and skip
@@ -763,6 +850,14 @@ export class PlayersComponent implements OnInit, OnDestroy {
         });
         await this.delay(2000);
         this.loadPlayers();
+    }
+
+    private parseNumber(val: any): number {
+        if (val === undefined || val === null || val === '') return 0;
+        if (typeof val === 'number') return val;
+        const str = String(val).replace(/,/g, '').trim();
+        const parsed = parseFloat(str);
+        return isNaN(parsed) ? 0 : parsed;
     }
 
     delay(ms: number): Promise<void> {

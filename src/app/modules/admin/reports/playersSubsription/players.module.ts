@@ -31,6 +31,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDialogModule } from '@angular/material/dialog';
 import { PlayerSubscriptionHistoryDialogComponent } from './player-subscription-history-dialog/player-subscription-history-dialog.component';
 import { ImportResultsDialogComponent } from './import-results-dialog/import-results-dialog.component';
+import { SelectMonthYearDialogComponent } from './select-month-year-dialog/select-month-year-dialog.component';
 import { PlayerResolver } from './players.resolver';
 
 @NgModule({
@@ -38,6 +39,7 @@ import { PlayerResolver } from './players.resolver';
         PlayersComponent,
         PlayerSubscriptionHistoryDialogComponent,
         ImportResultsDialogComponent,
+        SelectMonthYearDialogComponent,
     ],
     imports: [
         RouterModule.forChild(playerRoutes),

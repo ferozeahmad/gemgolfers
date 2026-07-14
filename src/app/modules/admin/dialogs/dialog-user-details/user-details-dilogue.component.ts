@@ -1,7 +1,7 @@
 import { DialogOverviewComponent } from "../dialog-overview/dialog-overview.component";
 import { Component, Inject, OnInit, ViewChild } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
-import { PlayerHanidcap } from "../../../../shared/models/player.model";
+import { PlayerHanidcap, UserSessionModel } from "../../../../shared/models/player.model";
 import { PlayerHandicap } from "../../../../shared/classes/player-hanidcap";
 import { FacadeService } from "../../../../shared/services/facade.service";
 import { PlayerQL } from "../../../../shared/fragments/player.fragment";
@@ -12,9 +12,11 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { DatePipe, formatDate } from "@angular/common";
+import { Constants } from "app/shared/classes/general";
+import { LocalStorageService } from "app/shared/services/localStorage";
 
 @Component({
-    standalone: false,
+  standalone: false,
   selector: "app-user-details-dilogue",
   templateUrl: "./user-details-dilogue.component.html",
   styleUrls: ["./user-details-dilogue.component.scss"],
@@ -26,10 +28,14 @@ export class UserDetailsDilogueComponent implements OnInit {
     "date",
     "playingHandicapCongu",
     "playingHandicapWHS",
+    "score",
+    "holeSet",
     "playingTee",
+    "caddy",
   ];
   public response: any;
   playerId: string;
+  loggedInuser: UserSessionModel;
   playerHandicapList: any[] = [];
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -39,13 +45,24 @@ export class UserDetailsDilogueComponent implements OnInit {
     public dialogRef: MatDialogRef<UserDetailsDilogueComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private facadeService: FacadeService,
-    private datePipe: DatePipe
-  ) {}
+    private datePipe: DatePipe,
+    private _localStorage: LocalStorageService,
+  ) { }
 
   async ngOnInit() {
+    this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
     //console.log(this.data);
     this.playerId = this.data.id;
     //console.log(this.playerId);
+    //wwant to remove the playingHandicapWHS from column if id is not 
+    if (this.loggedInuser.clubId && this.loggedInuser.clubId !== '-LUFS3FAg4OEhIiK0vgY') {
+      this.displayedColumns = this.displayedColumns.filter((column) => {
+        if (column === "playingHandicapWHS" || column === "playingTee") {
+          return false; // Exclude the column if isWHS is false 
+        }
+        return true; // Include all other columns
+      });
+    }
     this.playerHandicapList =
       await this.facadeService.getPlayerHandicapListByPlayer(
         this.playerId,
@@ -62,7 +79,25 @@ export class UserDetailsDilogueComponent implements OnInit {
     this.playerHandicapList = this.playerHandicapList["flight"].sort(
       this.ComparatorDate
     );
-    //console.log(this.playerHandicapList);
+
+    //Calculate the score of each round and show
+    this.playerHandicapList.forEach((round) => {
+      let scorer = 0
+      if (round.members && round.members.length > 0) {
+        const member = round.members[0];
+        if (member.scores && member.scores.length > 0) {
+          member.scores.forEach((score) => {
+            scorer += score.grossScore;
+          })
+        }
+      }
+      if (round.holeSet) {
+        round["holeSetDisplayName"] = round.holeSet.displayName; // Assign holeSet displayName
+        round["score"] = scorer; // Assign total score
+      }
+    });
+
+    console.log(this.playerHandicapList);
     this.dataSource = new MatTableDataSource(this.playerHandicapList);
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
@@ -90,18 +125,18 @@ export class UserDetailsDilogueComponent implements OnInit {
     doc.setFontSize(15);
     doc.text(
       this.playerHandicapList[0].members[0]["player"].firstName +
-        " " +
-        this.playerHandicapList[0].members[0]["player"].lastName +
-        " | " +
-        this.playerHandicapList[0].members[0]["player"].membershipNumber,
+      " " +
+      this.playerHandicapList[0].members[0]["player"].lastName +
+      " | " +
+      this.playerHandicapList[0].members[0]["player"].membershipNumber,
       75,
       15
     );
     doc.text(
       " Rounds Played From " +
-        this.datePipe.transform(this.data.to.toString(), "MMM d, y") +
-        " to " +
-        this.datePipe.transform(this.data.from.toString(), "MMM d, y"),
+      this.datePipe.transform(this.data.to.toString(), "MMM d, y") +
+      " to " +
+      this.datePipe.transform(this.data.from.toString(), "MMM d, y"),
       40,
       22
     );

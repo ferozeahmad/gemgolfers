@@ -532,6 +532,46 @@ export const CreateClubMemberSubscription = gql`
             createdAt
             type
             startDate
+            amountWithGst
+            locker
+            amountWithoutGst
+            capitation
+        }
+    }
+`;
+
+export const GetClubMemberSubscriptionByPlayerAndMonth = gql`
+    query GetClubMemberSubscriptionByPlayerAndMonth($playerId: String!, $clubId: String!, $startDate: date!) {
+        club_member_subscription(where: { playerId: { _eq: $playerId }, clubId: { _eq: $clubId }, startDate: { _eq: $startDate } }) {
+            id
+            playerId
+            clubId
+            dueDate
+            createdAt
+            type
+            startDate
+            amountWithGst
+            locker
+            amountWithoutGst
+            capitation
+        }
+    }
+`;
+
+export const UpdateClubMemberSubscription = gql`
+    mutation UpdateClubMemberSubscription($id: uuid!, $object: club_member_subscription_set_input!) {
+        update_club_member_subscription_by_pk(pk_columns: { id: $id }, _set: $object) {
+            id
+            playerId
+            clubId
+            dueDate
+            createdAt
+            type
+            startDate
+            amountWithGst
+            locker
+            amountWithoutGst
+            capitation
         }
     }
 `;
@@ -1484,15 +1524,26 @@ export const PlayerHandicapListByplayerIdQL = gql`
     query getPlayerHandicap($where: flight_bool_exp!, $playerId: String!) {
         flight(where: $where) {
             date
+            holeSet{
+            id
+            displayName
+            }
             members(where: { playerId: { _eq: $playerId } }) {
                 playingHandicapWhs
                 playingHandicap
                 playingTee
+                caddy
                 player {
                     firstName
                     lastName
                     membershipNumber
                 }
+                    scores{
+                    playerId
+                    flightId
+                    grossScore  
+                    playerHandicap
+                    }
             }
         }
     }

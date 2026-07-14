@@ -451,7 +451,15 @@ export class FacadeService {
   }
 
   createClubMemberSubscription(subscription: any) {
-    return this.playerService.createClubMemberSubscription(subscription); 
+    return this.playerService.createClubMemberSubscription(subscription);
+  }
+
+  getClubMemberSubscription(playerId: string, clubId: string, startDate: string) {
+    return this.playerService.getClubMemberSubscription(playerId, clubId, startDate);
+  }
+
+  updateClubMemberSubscription(id: string, subscription: any) {
+    return this.playerService.updateClubMemberSubscription(id, subscription);
   }
 
   deletePlayer(clubId: string, playerId: string) {

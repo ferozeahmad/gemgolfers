@@ -257,8 +257,7 @@ export const getCourseHoleSets = gql`
 export const getCourseHoleSetsForCourseForm = gql`
     query getCourseHoleSets($where: course_hole_sets_bool_exp!) {
         course_hole_sets(where: $where, order_by: { noOfHoles: asc }) {
-            displayName
-            holeSets
+            ...CourseHoleSetsQL
         }
     }
     ${CourseHoleSetsQL}

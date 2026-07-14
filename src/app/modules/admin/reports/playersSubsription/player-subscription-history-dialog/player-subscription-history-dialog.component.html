@@ -15,13 +15,38 @@
           <td mat-cell *matCellDef="let element"> {{ element.Name }} </td>
         </ng-container>
         <ng-container matColumnDef="membershipNumber">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Membership Number </th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Mem. No </th>
           <td mat-cell *matCellDef="let element"> {{ element.MembershipNo }} </td>
         </ng-container>
         <ng-container matColumnDef="id">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
           <td mat-cell *matCellDef="let element"> {{ element.id }} </td>
         </ng-container>
+        <!-- Amount With GST Column -->
+        <ng-container matColumnDef="amountWithGst">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Amount With GST </th>
+          <td mat-cell *matCellDef="let element"> {{ element.amountWithGst ? (element.amountWithGst | number) : '—' }} </td>  
+        </ng-container>
+
+        <!-- Amount Without GST Column -->
+        <ng-container matColumnDef="amountWithoutGst">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Amount Without GST </th>
+          <td mat-cell *matCellDef="let element"> {{ element.amountWithoutGst ? (element.amountWithoutGst | number) : '—' }} </td>
+        </ng-container>
+
+        <!-- Locker Column -->
+        <ng-container matColumnDef="locker">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Locker </th>
+          <td mat-cell *matCellDef="let element"> {{ element.locker ? (element.locker | number) : '—' }} </td>
+        </ng-container>
+
+        <!-- Capitation Column -->
+        <ng-container matColumnDef="capitation">
+
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Capitation </th>
+          <td mat-cell *matCellDef="let element"> {{ element.capitation ? (element.capitation | number) : '—' }} </td>
+        </ng-container>
+
 
         <!-- Club ID Column -->
         <ng-container matColumnDef="clubId">
@@ -33,6 +58,12 @@
         <ng-container matColumnDef="type">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Type </th>
           <td mat-cell *matCellDef="let element"> {{ element.type }} </td>
+        </ng-container>
+
+        <!-- Amount Column -->
+        <ng-container matColumnDef="amount">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Amount </th>
+          <td mat-cell *matCellDef="let element"> {{ element.amount ? (element.amount | number) : '—' }} </td>
         </ng-container>
 
         <!-- Start Date Column -->

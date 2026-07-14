@@ -194,7 +194,6 @@ export class GolfReportComponent implements OnInit {
 
         if (id) {
             const dialogRef = this.dialog.open(UserDetailsDilogueComponent, {
-                width: "600px",
                 data: {
                     id: id,
                     from: this.formdate,

@@ -248,9 +248,17 @@ export class CoursesService {
           query: Query.getCourseHoleSets,
           variables: {
             where: {
-              courseId: {
-                _eq: id,
-              },
+              _and: [
+                {
+                  courseId: {
+                    _eq: id,
+                  },
+                  isActive: {
+                    _eq: true,
+                  },
+
+                }
+              ]
             },
           },
         })
@@ -266,9 +274,17 @@ export class CoursesService {
           query: Query.getCourseHoleSetsForCourseForm,
           variables: {
             where: {
-              courseId: {
-                _eq: id,
-              },
+              _and: [
+                {
+                  courseId: {
+                    _eq: id,
+                  },
+                  isActive: {
+                    _eq: true,
+                  },
+
+                }
+              ]
             },
           },
         })
