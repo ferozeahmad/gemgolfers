@@ -278,11 +278,27 @@ export class HandicapsComponent implements OnInit {
             doc.setFontSize(10);
             doc.text('W.E.F:', 165, 27);
             doc.text(this.datepipe.transform(this.currentDate.toString(), 'MMM d, y'), 177, 27);
-            this.dataPlayers.player.sort(((a, b) => Number(a.playerCategory) - Number(b.playerCategory)));
-            // **Step 1: Group Players by Category**
+
+            // **Step 1: Get the current sorted and filtered table rows**
+            const sortedTableRows = this.dataSource.sort
+                ? this.dataSource.sortData(this.dataSource.filteredData, this.dataSource.sort)
+                : this.dataSource.filteredData;
+
+            // Map original rich players by their ID for easy lookup
+            const originalPlayersMap = new Map<string, any>();
+            if (this.dataPlayers && this.dataPlayers.player) {
+                this.dataPlayers.player.forEach((p) => {
+                    originalPlayersMap.set(p.id, p);
+                });
+            }
+
+            // **Step 2: Group Players by Category preserving table sort order**
             let playersByCategory = {};
-            this.dataPlayers.player.forEach((player) => {
-                const category = player.playerCategory;
+            sortedTableRows.forEach((row) => {
+                const originalPlayer = originalPlayersMap.get(row.id);
+                if (!originalPlayer) return;
+
+                const category = originalPlayer.playerCategory;
 
                 // Skip "PROFESSIONALS" and null/undefined categories
                 if (category === 'Professionals' || category == null) return;
@@ -291,38 +307,29 @@ export class HandicapsComponent implements OnInit {
                     playersByCategory[category] = [];
                 }
 
-                playersByCategory[category].push(player);
+                playersByCategory[category].push(originalPlayer);
             });
 
-
             let startY = 40; // Start position for first table
-            console.log(playersByCategory);
-            // playersByCategory.sort((a, b) => a - b);
 
-            // **Step 2: Iterate Over Categories**
+            // **Step 3: Iterate Over Categories**
             Object.keys(playersByCategory).sort().forEach((category, categoryIndex) => {
                 let players = playersByCategory[category];
 
-                // **Sort Players within the Category**
-                players.sort((a, b) => a.handicap - b.handicap);
-
-                // **Step 3: Add Category Header**
+                // **Step 4: Add Category Header**
                 if (categoryIndex > 0) {
                     doc.addPage(); // **New Page for Each Category**
                 }
 
-                doc.setFontSize(12);
-                if (categoryIndex == 0) {
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFillColor(200, 200, 200);
-                    doc.rect(14, startY - 8, 180, 6, "F"); // Background for category header
-                    doc.text(`${category.toUpperCase()} (${players.length})`, pageWidth / 2, startY - 3, {
-                        align: 'center',
-                    });
-                }
+                doc.setFillColor(41, 128, 185); // Professional Slate/Blue theme color
+                doc.rect(14, startY - 10, 182, 8, "F");
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(11);
+                doc.text(`${category.toUpperCase()}`, 18, startY - 4.5, { align: 'left' });
+                doc.text(`Players: ${players.length}`, 192, startY - 4.5, { align: 'right' });
 
-
-                // **Step 4: Prepare Table Data**
+                // **Step 5: Prepare Table Data**
                 let count = 0;
                 let rows = [];
                 players.forEach((element) => {
@@ -351,7 +358,7 @@ export class HandicapsComponent implements OnInit {
                     }
                 });
 
-                // **Step 5: Generate Table for Current Category**
+                // **Step 6: Generate Table for Current Category**
                 (doc as any).autoTable({
                     startY: startY,
                     head: [['Sr.', 'M.No', 'Name', 'Exact H/C', 'Play H/C']],
@@ -362,18 +369,16 @@ export class HandicapsComponent implements OnInit {
                     columnStyles: { 2: { halign: "left" } }, // Align Name column to the left
 
                     didDrawPage: (data) => {
-                        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
-                        // Add Category Header on every page
-                        if (currentPage > 1) {
-                            doc.setFontSize(12);
-                            doc.setTextColor(0, 0, 0);
-                            doc.setFillColor(200, 200, 200);
-                            doc.rect(14, data.settings.margin.top - 8, 180, 6, "F");
-                            doc.text(`${category.toUpperCase()} (${players.length})`, pageWidth / 2, data.settings.margin.top - 3, {
-                                align: 'center',
-                            });
+                        // Add Category Header on overflow pages
+                        if (data.pageNumber > 1) {
+                            doc.setFontSize(11);
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFillColor(41, 128, 185);
+                            doc.rect(14, data.settings.margin.top - 10, 182, 8, "F");
+                            doc.setFont('helvetica', 'bold');
+                            doc.text(`${category.toUpperCase()}`, 18, data.settings.margin.top - 4.5, { align: 'left' });
+                            doc.text(`Players: ${players.length}`, 192, data.settings.margin.top - 4.5, { align: 'right' });
                         }
-
                     }
                 });
 
