@@ -453,83 +453,125 @@ export class HandicapsComponent implements OnInit {
     };
     public downloadAsPDFWHS() {
         try {
-
             this.logger.log('Download Handicap WHS Button Click', "info");
-            var doc = new jsPDF();
-            var col = [
-                'Sr.',
-                'M.No',
-                'Name',
-                'Category',
-                'Handicap Index',
-                'Blue Tee',
-                'White Tee',
-                'Yellow Tee',
-                'Black Tee',
-                'Red Tee'
-            ];
-            var rows = [];
-            doc.setFontSize(30);
-            doc.text('WHS Handicap List', 15, 15);
-            doc.setFontSize(15);
-            doc.text('W.E.F:', 143, 15);
-            doc.text(
-                this.datepipe.transform(this.currentDate.toString(), 'MMM d, y'),
-                160,
-                15
-            );
-            doc.setFontSize(15);
-            doc.setTextColor(100);
+            let doc = new jsPDF();
+            const pageWidth = (doc as any).internal.pageSize.width;
 
-            let count = 0;
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            if (this.loggedInuser && this.loggedInuser.club && this.loggedInuser.club.name) {
+                doc.text(this.loggedInuser.club.name.toString().toUpperCase(), pageWidth / 2, 15, { align: "center" });
+            } else {
+                doc.text('WHS Handicap List', pageWidth / 2, 15, { align: "center" });
+            }
+            doc.text('WHS Handicap List', pageWidth / 2, 27, { align: "center" });
+            doc.setFontSize(10);
+            doc.text('W.E.F:', 165, 27);
+            doc.text(this.datepipe.transform(this.currentDate.toString(), 'MMM d, y'), 177, 27);
 
-            this.WHSSource.data.forEach((element) => {
+            // **Step 1: Get the current sorted and filtered table rows**
+            const sortedTableRows = this.WHSSource.sort
+                ? this.WHSSource.sortData(this.WHSSource.filteredData, this.WHSSource.sort)
+                : this.WHSSource.filteredData;
 
-                if (element.playerCategory !== 'Professionals' && element.playerCategory !== 'Caddie') {
+            // Map original rich players by their ID for easy lookup
+            const originalPlayersMap = new Map<string, any>();
+            if (this.dataPlayers && this.dataPlayers.player) {
+                this.dataPlayers.player.forEach((p) => {
+                    originalPlayersMap.set(p.id, p);
+                });
+            }
+
+            // **Step 2: Group Players by Category preserving table sort order**
+            let playersByCategory = {};
+            sortedTableRows.forEach((row) => {
+                const originalPlayer = originalPlayersMap.get(row.id);
+                if (!originalPlayer) return;
+
+                const category = originalPlayer.playerCategory;
+
+                // Skip "Professionals", "Caddie", and null/undefined categories
+                if (category === 'Professionals' || category === 'Caddie' || category == null) return;
+
+                if (!playersByCategory[category]) {
+                    playersByCategory[category] = [];
+                }
+
+                playersByCategory[category].push(originalPlayer);
+            });
+
+            let startY = 40; // Start position for first table
+
+            // **Step 3: Iterate Over Categories**
+            Object.keys(playersByCategory).sort().forEach((category, categoryIndex) => {
+                let players = playersByCategory[category];
+
+                // **Step 4: Add Category Header**
+                if (categoryIndex > 0) {
+                    doc.addPage(); // **New Page for Each Category**
+                }
+
+                doc.setFillColor(41, 128, 185); // Professional Theme Blue
+                doc.rect(14, startY - 10, 182, 8, "F");
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(11);
+                doc.text(`${category.toUpperCase()}`, 18, startY - 4.5, { align: 'left' });
+                doc.text(`Players: ${players.length}`, 192, startY - 4.5, { align: 'right' });
+
+                // **Step 5: Prepare Table Data**
+                let count = 0;
+                let rows = [];
+                players.forEach((element) => {
                     count++;
                     let handicapIndex = element.handicapWhsIndex;
                     let ratings = this.getTeesRating(handicapIndex);
-                    var temp = [
+                    rows.push([
                         count,
-                        element.membershipNumber,
-                        element.firstName + ' ' + element.lastName,
-                        element.playerCategory,
-                        element.handicapWhsIndex != null
-                            ? element.handicapWhsIndex.toFixed(1)
-                            : '-',
-                        ratings['BLACK'] ?? '-',//blue
-                        ratings['BLUE'] ?? '-',//white
-                        ratings['WHITE'] ?? '-',//yellow
-                        ratings['Black-Veterans'] ?? '-',//Balck
-                        ratings['RED'] ?? '-',//red
-                    ];
-                    rows.push(temp);
-                }
+                        element.membershipNumber || '-',
+                        (element.firstName || '').toString().toUpperCase() + ' ' + (element.lastName || '').toString().toUpperCase(),
+                        element.handicapWhsIndex != null ? element.handicapWhsIndex.toFixed(1) : '-',
+                        ratings['BLACK'] ?? '-',      // Blue Tee index (mapped from BLACK key)
+                        ratings['BLUE'] ?? '-',       // White Tee index (mapped from BLUE key)
+                        ratings['WHITE'] ?? '-',      // Yellow Tee index (mapped from WHITE key)
+                        ratings['Black-Veterans'] ?? '-', // Black Tee index (mapped from Black-Veterans key)
+                        ratings['RED'] ?? '-',        // Red Tee index (mapped from RED key)
+                    ]);
+                });
 
+                // **Step 6: Generate Table for Current Category**
+                (doc as any).autoTable({
+                    startY: startY,
+                    head: [['Sr.', 'M.No', 'Name', 'H/C Index', 'Blue Tee', 'White Tee', 'Yellow Tee', 'Black/Vet', 'Red Tee']],
+                    body: rows,
+                    theme: 'grid',
+                    headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 9, halign: "center" },
+                    bodyStyles: { fontSize: 8, halign: "center" },
+                    columnStyles: { 
+                        2: { halign: "left" } // Align Name column to the left
+                    },
+
+                    didDrawPage: (data) => {
+                        // Add Category Header on overflow pages
+                        if (data.pageNumber > 1) {
+                            doc.setFontSize(11);
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFillColor(41, 128, 185);
+                            doc.rect(14, data.settings.margin.top - 10, 182, 8, "F");
+                            doc.setFont('helvetica', 'bold');
+                            doc.text(`${category.toUpperCase()}`, 18, data.settings.margin.top - 4.5, { align: 'left' });
+                            doc.text(`Players: ${players.length}`, 192, data.settings.margin.top - 4.5, { align: 'right' });
+                        }
+                    }
+                });
+
+                startY = 35; // Reset for next page
             });
-            // From HTML
-            var columnStyles = {
-                4: { // Adjusting the width of the "Handicap Index" column (index starts from 1)
-                    cellWidth: 20, // Adjust the width as needed
-                },
-            };
-            // From HTML
-            (doc as any).autoTable({
-                head: [col],
-                body: rows,
-                startY: 25,
-                theme: 'grid',
-                columnStyles: columnStyles,
-            });
 
-            // Open PDF document in new tab
-            //doc.output('dataurlnewwindow');
-
-            // Download PDF document
+            // **Save PDF**
             doc.save('WHS.pdf');
         } catch (error) {
             this.logger.log('Downloading WHS Handicap Data Failed', "error", error.toString());
-
         }
     }
     generatePDF() {
