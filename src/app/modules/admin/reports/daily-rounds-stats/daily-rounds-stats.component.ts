@@ -439,9 +439,7 @@ export class DailyRoundsStatsComponent implements OnInit {
                 }
                 if (stats.MembersQL.length) {
                     for (let p of stats.MembersQL)
-                        myData[myData.length - 1].allPlayersList.push(
-                            p.PlayerQL
-                        );
+                        myData[myData.length - 1].allPlayersList.push({ ...p.PlayerQL, caddy: p.caddy });
                 }
             } else {
 
@@ -451,9 +449,13 @@ export class DailyRoundsStatsComponent implements OnInit {
 
                 if (stats.MembersQL.length) {
                     for (let p of stats.MembersQL) {
-                        allPlayersList.push(p.PlayerQL);
+                        let score = 0;
+                        if (p.scores && p.scores.length > 0) {
+                            score += p.scores.reduce((acc, curr) => acc + (curr.grossScore || 0), 0);
+                        }
+                        allPlayersList.push({ ...p.PlayerQL, caddy: p.caddy, score: score });
                     }
-                }
+                } 
                 amateurs = stats.MembersQL.length > 0
                     ? stats.MembersQL.filter((a) => {
                         return (

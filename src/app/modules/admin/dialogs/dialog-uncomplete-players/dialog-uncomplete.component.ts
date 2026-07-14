@@ -25,7 +25,9 @@ export class DialogUncompletedComponent implements OnInit {
         // 'handicapWhsIndex',
         'membershipNumber',
         'cat',
+        'score',
         'email',
+        'caddy',
 
     ];
     tableColumns = [

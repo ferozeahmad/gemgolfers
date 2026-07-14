@@ -1853,7 +1853,7 @@ export const DailyRoundsStatQueryQLs = gql`
                     { date: { _lte: $fromDate } }
                 ]
             }
-            order_by: { date: asc }
+            order_by: { date: desc }
         ) {
             id
             date
@@ -1862,6 +1862,7 @@ export const DailyRoundsStatQueryQLs = gql`
             MembersQL: members {
                 flightId
                 playerId
+                caddy
                 PlayerQL: player {
                     id
                     playerCategory
@@ -1871,6 +1872,11 @@ export const DailyRoundsStatQueryQLs = gql`
                     email
                     handicap
                 }
+                    scores{
+                    playerId
+                    flightId
+                    grossScore
+                    }
             }
         }
     }
@@ -1900,6 +1906,7 @@ export const DailyRoundsSecateryQuery = gql`
                 flightId
                 playerId
                 playingTee
+                caddy
                 PlayerQL: player {
                     id
                     fullName
@@ -1928,6 +1935,7 @@ export const DailyRoundsStatQueryAdminQLs = gql`
             MembersQL: members {
                 flightId
                 playerId
+                caddy
                 PlayerQL: player {
                     id
                     playerCategory

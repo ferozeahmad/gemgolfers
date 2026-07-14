@@ -120,7 +120,7 @@
                         </button>
 
                         <a mat-mini-fab color="primary" matTooltip="Calculate Handicap" matTooltipPosition="above"
-                            matTooltipClass="tooltipStyle" target="_blank" *ngIf="!flight.ended"
+                            matTooltipClass="tooltipStyle" target="_blank" *ngIf="!flight.ended && flight.courseId == '-LUFS3FCQKOGpJ2IEHmf'"
                             (click)="redirectCalculation(flight.flightId)">
                             <span class="mat-button-wrapper">
                                 <mat-icon _ngcontent-c10="" class="mat-icon material-icons" matsuffix="" role="img"

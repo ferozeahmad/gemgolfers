@@ -59,6 +59,14 @@
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
                 <td mat-cell *matCellDef="let row">{{ row.email }}</td>
             </ng-container>
+            <ng-container matColumnDef="caddy">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Caddy</th>
+                <td mat-cell *matCellDef="let row">{{ row?.caddy }}</td>
+            </ng-container>
+            <ng-container matColumnDef="score">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Score</th>
+                <td mat-cell *matCellDef="let row">{{ row?.score }}</td>
+            </ng-container>
 
 
 
