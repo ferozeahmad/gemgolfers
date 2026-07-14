@@ -1310,6 +1310,8 @@ export class ViewDailyRoundComponent implements OnInit {
                 singleFlight.push(LeaderGross);
             }
             this.index++;
+            console.log(singleFlight);
+            
             ////console.log(this.index);
 
             ////console.log(flightData.courseId + " -" + flightData.courseHoleSets);
@@ -1319,6 +1321,7 @@ export class ViewDailyRoundComponent implements OnInit {
             this.flightPlayers.push(singleFlight);
             ////console.log("members addeed");
             this.flightPlayers[this.findex]['header'] = flightHeader;
+            this.flightPlayers[this.findex]['courseId'] = flightData.courseId;
             this.flightPlayers[this.findex]['ended'] = flightData.ended;
             this.flightPlayers[this.findex]['categoryRound'] =
                 flightData.categoryRound;
