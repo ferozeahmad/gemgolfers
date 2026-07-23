@@ -393,6 +393,10 @@ export class FacadeService {
   getPlayerByClub(clubId: string) {
     return this.playerService.getPlayerByClub(clubId);
   }
+  
+  getProfessionalByClub(clubId: string) {
+    return this.playerService.getProfessionalByClub(clubId);
+  }
 
   AddPlayer(club: Player) {
     return this.playerService.AddPlayer(club);

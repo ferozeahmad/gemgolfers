@@ -34,7 +34,7 @@ export class PlayersService {
         private apollo: Apollo,
         private storage: AngularFireStorage,
         private afAuth: AngularFireAuth,
-    ) {}
+    ) { }
 
     public getPlayersPaginated(
         where: any,
@@ -719,7 +719,7 @@ export class PlayersService {
                 })
                 .finally(() => {
                     // Clean up the secondary app so it doesn't accumulate
-                    deleteApp(secondaryApp).catch(() => {});
+                    deleteApp(secondaryApp).catch(() => { });
                 });
         });
     }
@@ -977,6 +977,24 @@ export class PlayersService {
                 });
         });
     }
+    getProfessionalByClub(clubId: string): Promise<any> {
+        return new Promise((resolve) => {
+            this.apollo
+                .watchQuery<any>({
+                    query: Query.getProfessionalByClub,
+                    variables: {
+                        where: {
+                            clubId: {
+                                _eq: clubId,
+                            },
+                        },
+                    },
+                })
+                .valueChanges.subscribe(({ data }) => {
+                    resolve(data);
+                });
+        });
+    }
 
     public searchPlayer(
         firstName: string,
@@ -1063,7 +1081,10 @@ export class PlayersService {
                                 userRole: player.userRole,
                                 membershipNumber: player.membershipNumber,
                                 membership: {
-                                    data: player?.membership ?? [],
+                                    data: player.playerCategory === 'Professionals' ? [] : player?.membership ?? [],
+                                },
+                                professionalMembership: {
+                                    data: player.playerCategory === 'Professionals' ? player?.membership ?? [] : [],
                                 },
                                 roles: {
                                     data: [{ roleId: player.userRole }],

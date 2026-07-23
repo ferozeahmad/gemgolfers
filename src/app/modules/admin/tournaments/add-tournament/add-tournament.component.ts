@@ -3045,8 +3045,10 @@ export class AddTournamentComponent implements OnInit {
 
         } else if (this._localStorage.isSuperAdmin() || this._localStorage.isClubAdmin()) {
             const data: any = await this.facadeService.getPlayerByClub(selectedClubId);
+            const professionalData: any = await this.facadeService.getProfessionalByClub(selectedClubId);
 
             data.club_member.forEach(m => addUniquePlayer(m.player));
+            professionalData.club_professional.forEach(m => addUniquePlayer(m.player));
 
         } else if (this._localStorage.isTournamentManager()) {
             const data: any = await this.facadeService.getPlayersByID(this.loggedInuser.id);

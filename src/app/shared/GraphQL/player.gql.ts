@@ -401,11 +401,25 @@ export const MergePlayers = gql`
 `;
 
 export const GetPlayersPaginated = gql`
-    query GetPlayersPaginated($where: player_bool_exp!, $limit: Int!, $offset: Int!) {
+    query GetPlayersPaginated(
+        $where: player_bool_exp!
+        $limit: Int!
+        $offset: Int!
+    ) {
         player_aggregate(where: $where) {
-            aggregate { count }
+            aggregate {
+                count
+            }
         }
-        player(where: $where, order_by: [{ firstName: asc_nulls_last }, { lastName: asc_nulls_last }], limit: $limit, offset: $offset) {
+        player(
+            where: $where
+            order_by: [
+                { firstName: asc_nulls_last }
+                { lastName: asc_nulls_last }
+            ]
+            limit: $limit
+            offset: $offset
+        ) {
             id
             firstName
             lastName
@@ -420,7 +434,10 @@ export const GetPlayersPaginated = gql`
                 clubId
                 playerId
                 suspended
-                club { id name }
+                club {
+                    id
+                    name
+                }
             }
         }
     }
@@ -445,8 +462,8 @@ export const GetPlayersByClub = gql`
             email
             membershipNumber
             membershipQL: membership {
-            clubId
-            playerId
+                clubId
+                playerId
                 suspended
                 club {
                     id
@@ -521,9 +538,10 @@ export const GetPlayersListByLeague = gql`
     }
 `;
 
-
 export const CreateClubMemberSubscription = gql`
-    mutation CreateClubMemberSubscription($object: club_member_subscription_insert_input!) {
+    mutation CreateClubMemberSubscription(
+        $object: club_member_subscription_insert_input!
+    ) {
         insert_club_member_subscription_one(object: $object) {
             id
             playerId
@@ -541,8 +559,18 @@ export const CreateClubMemberSubscription = gql`
 `;
 
 export const GetClubMemberSubscriptionByPlayerAndMonth = gql`
-    query GetClubMemberSubscriptionByPlayerAndMonth($playerId: String!, $clubId: String!, $startDate: date!) {
-        club_member_subscription(where: { playerId: { _eq: $playerId }, clubId: { _eq: $clubId }, startDate: { _eq: $startDate } }) {
+    query GetClubMemberSubscriptionByPlayerAndMonth(
+        $playerId: String!
+        $clubId: String!
+        $startDate: date!
+    ) {
+        club_member_subscription(
+            where: {
+                playerId: { _eq: $playerId }
+                clubId: { _eq: $clubId }
+                startDate: { _eq: $startDate }
+            }
+        ) {
             id
             playerId
             clubId
@@ -559,8 +587,14 @@ export const GetClubMemberSubscriptionByPlayerAndMonth = gql`
 `;
 
 export const UpdateClubMemberSubscription = gql`
-    mutation UpdateClubMemberSubscription($id: uuid!, $object: club_member_subscription_set_input!) {
-        update_club_member_subscription_by_pk(pk_columns: { id: $id }, _set: $object) {
+    mutation UpdateClubMemberSubscription(
+        $id: uuid!
+        $object: club_member_subscription_set_input!
+    ) {
+        update_club_member_subscription_by_pk(
+            pk_columns: { id: $id }
+            _set: $object
+        ) {
             id
             playerId
             clubId
@@ -924,7 +958,10 @@ export const getPlayerByIDDetailForm = gql`
                     name
                 }
             }
-            handicap_history(order_by: [{ tournament: { startDate: desc } }], limit: 1) {
+            handicap_history(
+                order_by: [{ tournament: { startDate: desc } }]
+                limit: 1
+            ) {
                 tournamentId
             }
         }
@@ -944,8 +981,8 @@ export const GetPlayerByFilter = gql`
             playerCategory
             membershipNumber
             membership {
-            playerId
-            clubId
+                playerId
+                clubId
             }
         }
     }
@@ -1085,6 +1122,30 @@ export const GetPlayerByClub = gql`
             }
         }
         club_member(where: $where) {
+            player {
+                id
+                firstName
+                lastName
+                playerCategory
+                handicap
+                handicapWhsIndex
+                phone
+                email
+                membershipNumber
+            }
+        }
+    }
+    ${PlayerQL}
+`;
+
+export const getProfessionalByClub = gql`
+    query PostsGetQuery($where: club_professional_bool_exp!) {
+        AggregateQL: club_professional_aggregate(where: $where) {
+            aggregate {
+                totalCount: count
+            }
+        }
+        club_professional(where: $where) {
             player {
                 id
                 firstName
@@ -1524,9 +1585,9 @@ export const PlayerHandicapListByplayerIdQL = gql`
     query getPlayerHandicap($where: flight_bool_exp!, $playerId: String!) {
         flight(where: $where) {
             date
-            holeSet{
-            id
-            displayName
+            holeSet {
+                id
+                displayName
             }
             members(where: { playerId: { _eq: $playerId } }) {
                 playingHandicapWhs
@@ -1538,12 +1599,12 @@ export const PlayerHandicapListByplayerIdQL = gql`
                     lastName
                     membershipNumber
                 }
-                    scores{
+                scores {
                     playerId
                     flightId
-                    grossScore  
+                    grossScore
                     playerHandicap
-                    }
+                }
             }
         }
     }
@@ -1887,6 +1948,12 @@ export const searchPlayerForTournamentQL = gql`
                     name
                 }
             }
+            professionalMembership {
+                club {
+                    id
+                    name
+                }
+            }
         }
     }
     ${PlayerQL}
@@ -2084,7 +2151,6 @@ export const GetPlayersByTournament = gql`
         }
     }
 `;
-
 
 export const GetPlayerActivityByUserId = gql`
     query GetPlayerActivityByUserId($userId: String!) {

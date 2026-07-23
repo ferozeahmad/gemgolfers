@@ -51,7 +51,8 @@ export class PlayerRegistrationFormComponent implements OnInit {
         this.loggedInUser = this._localStorage.get(Constants.LOGGED_IN_USER);
         this.isEditMode = !!this.data?.entry;
         this._logger.log(`Form in edit mode: ${this.isEditMode}`, "info", this.data?.entry);
-        this.minDate = new Date(2000, 0, 1);
+        // set minDate to today only
+        this.minDate = new Date();
         this.maxDate = new Date();
         const today = new Date();
         this.form = this.fb.group({

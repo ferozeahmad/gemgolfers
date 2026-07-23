@@ -221,7 +221,10 @@ export class DialogPlayerListComponent implements OnInit {
             console.log(matchingList['Result']);
             if (this._localStorage.isClubAdmin()) {
                 matchingList['Result'] = matchingList['Result'].filter((a) => {
-                    return a?.membership.some((b) => b?.club?.id == this.loggedInuser.adminClubId);
+                    return (
+                        a?.professionalMembership?.some((b) => b?.club?.id == this.loggedInuser.adminClubId) ||
+                        a?.membership?.some((b) => b?.club?.id == this.loggedInuser.adminClubId)
+                    );
                 });
             }
             this.setDataSource(matchingList['Result']);

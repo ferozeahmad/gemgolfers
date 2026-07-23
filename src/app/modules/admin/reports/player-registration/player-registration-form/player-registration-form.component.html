@@ -9,7 +9,7 @@
             <!-- Date Picker -->
             <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Date</mat-label>
-                <input matInput [matDatepicker]="datePicker" formControlName="date" [min]="minDate" [max]="maxDate" />
+                <input matInput [matDatepicker]="datePicker" formControlName="date" [min]="minDate" />
                 <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
                 <mat-datepicker #datePicker></mat-datepicker>
                 <mat-error *ngIf="form.get('date')?.hasError('required')">
