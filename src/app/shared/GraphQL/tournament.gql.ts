@@ -231,6 +231,7 @@ export const tournamentDashBoard = gql`
                 tournamentId
                 category
                 handicap
+                
                 PlayerQL: player {
                     id
                     playerCategory
@@ -253,6 +254,7 @@ export const tournamentDashBoard = gql`
                 MembersQL: members(order_by: { playerId: asc }) {
                     flightId
                     playerId
+                    playingHandicap
                     PlayerQL: player {
                         id
                         playerCategory
