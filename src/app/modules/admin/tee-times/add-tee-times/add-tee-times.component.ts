@@ -78,7 +78,7 @@ export class AddTeeTimesComponent implements OnInit {
             teeDate: [new Date(), Validators.required],
             bookingDate: [new Date(), Validators.required],
             teeBookingTime: ['09:00', Validators.required],
-            interval: [5, Validators.required],
+            interval: [8, Validators.required],
             courseName: ['', Validators.required],
             club: ['', Validators.required],
             noOfPlayers: ['4', Validators.required],
