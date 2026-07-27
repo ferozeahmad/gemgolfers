@@ -36,7 +36,7 @@ export class LogsService {
           },
         })
         .subscribe();
-    }else{
+    } else {
       console.log(msg, additionalData);
     }
   }

@@ -259,7 +259,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
     }
 
     private _filter(value: string): Club[] {
-        this.logger.log(`_filter called with value: ${value}`, 'DEBUG');
+        this.logger.log(`_filter called with value: ${value}`, 'INFO');
         if (value) {
             const filterValue = value.toLowerCase();
 
@@ -272,7 +272,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
     }
 
     changeHandicap(item) {
-        this.logger.log(`changeHandicap called with item: ${item}`, 'DEBUG');
+        this.logger.log(`changeHandicap called with item: ${item}`, 'INFO');
         if (
             item != null &&
             this.playerID &&
@@ -295,7 +295,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
         }
     }
     changeHandicapWHS(item) {
-        this.logger.log(`changeHandicapWHS called with item: ${item}`, 'DEBUG');
+        this.logger.log(`changeHandicapWHS called with item: ${item}`, 'INFO');
         if (
             item != null &&
             this.playerID &&
@@ -318,7 +318,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
         }
     }
     changeHandicapWHSDiff(item) {
-        this.logger.log(`changeHandicapWHSDiff called with item: ${item}`, 'DEBUG');
+        this.logger.log(`changeHandicapWHSDiff called with item: ${item}`, 'INFO');
         if (
             item != null &&
             this.playerID &&
@@ -340,7 +340,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
     }
 
     displayFn(club: Club): string {
-        this.logger.log(`displayFn called with club: ${JSON.stringify(club)}`, 'DEBUG');
+        // this.logger.log(`displayFn called with club: ${JSON.stringify(club)}`, 'INFO');/
         return typeof club === 'string' ? club : club ? club.name : '';
     }
     /**
@@ -351,7 +351,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
         try {
             if (this.handicapIndex != this.contactForm.get('handicapWHS').value) {
                 this.changeWHSHandicap();
-                this.logger.log('changeWHSHandicap called from updateContact', 'DEBUG');
+                this.logger.log('changeWHSHandicap called from updateContact', 'INFO');
             }
             let newFlag = true;
             let checkEmail: any = [];
@@ -368,7 +368,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
             // Get the contact object
 
             const contact = this.contactForm.getRawValue();
-            this.logger.log(`Contact form values: ${JSON.stringify(contact)}`, 'DEBUG');
+            this.logger.log(`Contact form values: ${JSON.stringify(contact)}`, 'INFO');
             if (this.contactForm.valid) {
                 if (!this.editMode && contact.email)
                     checkEmail = <Player>(
@@ -403,17 +403,23 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
                         await this._facadeService.getPlayerByMembershipNumber(contact.membershipNo)
                     );
                     if (checkEmail && checkEmail.length > 0) {
-                        const confirmation = this._fuseConfirmationService.open({
-                            title: 'Duplicate Membership Number',
-                            message: 'Player already exists in this club.',
-                            actions: {
-                                confirm: {
-                                    label: 'Close',
+
+                        const alreadyInClub = checkEmail[0].membership?.some(
+                            (m) => m.clubId === this.loggedInuser.adminClubId
+                        );
+                        if (alreadyInClub) {
+                            const confirmation = this._fuseConfirmationService.open({
+                                title: 'Duplicate Membership Number',
+                                message: 'Player already exists in this club.',
+                                actions: {
+                                    confirm: {
+                                        label: 'Close',
+                                    },
                                 },
-                            },
-                        })
-                        // e.g. this.toastService.show('Player already exists in this club');
-                        return; // or continue / break depending on your loop context
+                            })
+                            // e.g. this.toastService.show('Player already exists in this club');
+                            return; // or continue / break depending on your loop context
+                        }
 
                     }
 
@@ -572,29 +578,40 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
 
             if (!this.editMode) {
                 if (this._localStorage.isClubAdmin() || this._localStorage.isSuperAdmin()) {
-                    // AddPlayer must run FIRST while the admin Firebase session is still
-                    // active. Creating the Firebase user account (updateAccountInFirebase)
-                    // can change the current auth state to the new player, whose token
-                    // lacks Hasura JWT claims — causing the mutation to fail if run after.
-                    const isSuccess = <boolean>(await this._facadeService.AddPlayer(player));
-                    if (isSuccess) {
-                        // Now create the Firebase account (safe to do after Hasura write)
-                        this._facadeService.updateAccountInFirebase(player.email, password).subscribe((re) => {
+                    // Creating the Firebase user account (updateAccountInFirebase) first as requested.
+                    // Be aware that this might change the current auth state to the new player,
+                    // whose token might lack Hasura JWT claims, potentially causing
+                    // the subsequent AddPlayer mutation to fail if not handled properly.
+                    this._facadeService.updateAccountInFirebase(player.email, password).subscribe({
+                        next: async (re) => {
                             if (re) {
-                                this._facadeService.sendTransactionalEmail(player.email, player.firstName, password).subscribe();
+                                const isSuccess = <boolean>(await this._facadeService.AddPlayer(player));
+                                if (isSuccess) {
+                                    this._facadeService.sendTransactionalEmail(player.email, player.firstName, password).subscribe();
+                                    this.save = true;
+                                    this.snackBar.open('Player has been created.', 'x', {
+                                        duration: 1000,
+                                    });
+                                    this.reset();
+                                    this._router.navigate(['/players']);
+                                } else {
+                                    this.snackBar.open('Error creating player in DB. Please try again.', 'x', {
+                                        duration: 1000,
+                                    });
+                                }
+                            } else {
+                                this.snackBar.open('Error creating Firebase account. Please try again.', 'x', {
+                                    duration: 1000,
+                                });
                             }
-                        });
-                        this.save = true;
-                        this.snackBar.open('Player has been created.', 'x', {
-                            duration: 1000,
-                        });
-                        this.reset();
-                        this._router.navigate(['/players']);
-                    } else {
-                        this.snackBar.open('Error!. Please try again.', 'x', {
-                            duration: 1000,
-                        });
-                    }
+                        },
+                        error: (error) => {
+                            this.snackBar.open('Error creating Firebase account. Please try again.', 'x', {
+                                duration: 1000,
+                            });
+                            this.logger.log('Error creating Firebase account', 'error', error);
+                        }
+                    });
                 } else {
                     let state = this._localStorage.get(Constants.STATE);
                     if (state == Constants.TOUR) {

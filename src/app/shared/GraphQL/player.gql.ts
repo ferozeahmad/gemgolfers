@@ -1049,6 +1049,8 @@ export const GetPlayerByMembershipNumber = gql`
             playerCategory
             membershipNumber
             membership {
+                playerId
+                clubId
                 club {
                     name
                 }
