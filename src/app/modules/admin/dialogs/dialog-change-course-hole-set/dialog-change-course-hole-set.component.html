@@ -1,4 +1,4 @@
-<div class="flex flex-col max-w-240 md:min-w-160 max-h-screen -m-6">
+<div class="flex flex-col max-w-240 md:min-w-160 max-h-screen ">
   <div class="flex flex-0 items-center justify-between h-16 pr-3 sm:pr-5 pl-6 sm:pl-8 bg-primary text-on-primary">
     <div class="text-lg font-medium">Change Round Settings</div>
     <button mat-icon-button (click)="dialogRef.close()" [tabIndex]="-1">
@@ -27,12 +27,12 @@
           </mat-select>
         </mat-form-field>
       </div>
-      <!-- <div *ngIf="showTournamentTitle" class="flex w-full my-4">
+      <div *ngIf="showTournamentTitle" class="flex w-full my-4">
         <mat-form-field class="fuse-mat-no-subscript w-full">
           <mat-label>Tournament / League Name</mat-label>
           <input matInput placeholder="Tournament / League Name" formControlName="title" />
         </mat-form-field>
-      </div> -->
+      </div>
       <!-- <div class="flex w-full my-4">
         <mat-form-field class="fuse-mat-no-subscript w-full">
           <input type="text" matInput atp-time-picker formControlName="startingTime" placeholder="Select Time" />

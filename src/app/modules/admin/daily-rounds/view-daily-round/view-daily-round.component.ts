@@ -592,6 +592,7 @@ export class ViewDailyRoundComponent implements OnInit {
                 flightId: flightData.id,
                 tournamentId: flightData.tournamentId,
                 courseId: flightData.courseId,
+                ended: flightData.ended,
                 playerId: player.id,
                 name: player.firstName + ' ' + player.lastName,
                 picture: player.picture,
@@ -1311,7 +1312,7 @@ export class ViewDailyRoundComponent implements OnInit {
             }
             this.index++;
             console.log(singleFlight);
-            
+
             ////console.log(this.index);
 
             ////console.log(flightData.courseId + " -" + flightData.courseHoleSets);
@@ -2583,6 +2584,8 @@ export class ViewDailyRoundComponent implements OnInit {
 
                         this.flightPlayers[flightIndex] = singleFlight;
                         this.flightPlayers[flightIndex]['header'] = flightHeader;
+                        this.flightPlayers[flightIndex]['ended'] = singleFlight?.[0]?.ended ?? false;
+                        this.flightPlayers[flightIndex]['courseId'] = singleFlight?.[0]?.courseId ?? '';
                         this.flightPlayers[flightIndex]['flightId'] =
                             updatedData.FlightsQL[0].id;
                         this.flightPlayers[flightIndex]['tournamentId'] =
