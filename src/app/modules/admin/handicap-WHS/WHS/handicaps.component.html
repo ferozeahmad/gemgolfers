@@ -19,12 +19,23 @@
                         <div class="flex items-center gap-3">
                             <button (click)="exportToExcel()" mat-flat-button [color]="'accent'">
                                 <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:document-report'"></mat-icon>
-                                <span class="ml-1 text-xs">Export to Excel</span>
+                                <span class="ml-1 text">Export to Excel</span>
                             </button>
-                            <button (click)="downloadAsPDFWHS()" mat-flat-button [color]="'warn'">
+                            <button [matMenuTriggerFor]="pdfMenu" mat-flat-button [color]="'warn'">
                                 <mat-icon class="icon-size-4">picture_as_pdf</mat-icon>
-                                <span class="ml-1 text-xs">Export to PDF</span>
+                                <span class="ml-1 tex">Export to PDF</span>
                             </button>
+
+                            <mat-menu #pdfMenu="matMenu">
+                                <button mat-menu-item (click)="downloadAsPDFWHS('category')">
+                                    <mat-icon>view_agenda</mat-icon>
+                                    <span>Category Wise</span>
+                                </button>
+                                <button mat-menu-item (click)="downloadAsPDFWHS('overall')">
+                                    <mat-icon>view_list</mat-icon>
+                                    <span>Overall</span>
+                                </button>
+                            </mat-menu>
                         </div>
                     </div>
 

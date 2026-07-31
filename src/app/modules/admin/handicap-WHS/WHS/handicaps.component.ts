@@ -451,9 +451,9 @@ export class HandicapsComponent implements OnInit {
         // Mark for check
         this._changeDetectorRef.markForCheck();
     };
-    public downloadAsPDFWHS() {
+    public downloadAsPDFWHS(mode: 'category' | 'overall' = 'category') {
         try {
-            this.logger.log('Download Handicap WHS Button Click', "info");
+            this.logger.log(`Download Handicap WHS PDF (${mode})`, "info");
             let doc = new jsPDF();
             const pageWidth = (doc as any).internal.pageSize.width;
 
@@ -469,77 +469,82 @@ export class HandicapsComponent implements OnInit {
             doc.text('W.E.F:', 165, 27);
             doc.text(this.datepipe.transform(this.currentDate.toString(), 'MMM d, y'), 177, 27);
 
-            // **Step 1: Get the current sorted and filtered table rows**
-            const sortedTableRows = this.WHSSource.sort
+            const sortedTableRows = this.WHSSource?.sort
                 ? this.WHSSource.sortData(this.WHSSource.filteredData, this.WHSSource.sort)
-                : this.WHSSource.filteredData;
+                : (this.WHSSource?.filteredData ?? []);
 
-            // Map original rich players by their ID for easy lookup
             const originalPlayersMap = new Map<string, any>();
             if (this.dataPlayers && this.dataPlayers.player) {
-                this.dataPlayers.player.forEach((p) => {
+                this.dataPlayers.player.forEach((p: any) => {
                     originalPlayersMap.set(p.id, p);
                 });
             }
 
-            // **Step 2: Group Players by Category preserving table sort order**
-            let playersByCategory = {};
-            sortedTableRows.forEach((row) => {
-                const originalPlayer = originalPlayersMap.get(row.id);
-                if (!originalPlayer) return;
+            const exportPlayers = sortedTableRows
+                .map((row: any) => originalPlayersMap.get(row.id) ?? row)
+                .filter((player: any) => {
+                    if (!player) {
+                        return false;
+                    }
 
-                const category = originalPlayer.playerCategory;
+                    const category = player.playerCategory;
+                    return category !== 'Professionals' && category !== 'Caddie' && category != null;
+                });
 
-                // Skip "Professionals", "Caddie", and null/undefined categories
-                if (category === 'Professionals' || category === 'Caddie' || category == null) return;
+            const sections = mode === 'category'
+                ? (() => {
+                    const playersByCategory: { [key: string]: any[] } = {};
+                    exportPlayers.forEach((player: any) => {
+                        const category = player.playerCategory;
+                        if (!playersByCategory[category]) {
+                            playersByCategory[category] = [];
+                        }
+                        playersByCategory[category].push(player);
+                    });
 
-                if (!playersByCategory[category]) {
-                    playersByCategory[category] = [];
+                    return Object.keys(playersByCategory).sort().map((category) => ({
+                        title: category,
+                        players: playersByCategory[category],
+                    }));
+                })()
+                : [{ title: 'Overall', players: exportPlayers }];
+
+            let startY = 40;
+
+            sections.forEach((section, sectionIndex) => {
+                const { title, players } = section;
+
+                if (sectionIndex > 0) {
+                    doc.addPage();
                 }
 
-                playersByCategory[category].push(originalPlayer);
-            });
-
-            let startY = 40; // Start position for first table
-
-            // **Step 3: Iterate Over Categories**
-            Object.keys(playersByCategory).sort().forEach((category, categoryIndex) => {
-                let players = playersByCategory[category];
-
-                // **Step 4: Add Category Header**
-                if (categoryIndex > 0) {
-                    doc.addPage(); // **New Page for Each Category**
-                }
-
-                doc.setFillColor(41, 128, 185); // Professional Theme Blue
+                doc.setFillColor(41, 128, 185);
                 doc.rect(14, startY - 10, 182, 8, "F");
                 doc.setTextColor(255, 255, 255);
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(11);
-                doc.text(`${category.toUpperCase()}`, 18, startY - 4.5, { align: 'left' });
+                doc.text(`${title.toUpperCase()}`, 18, startY - 4.5, { align: 'left' });
                 doc.text(`Players: ${players.length}`, 192, startY - 4.5, { align: 'right' });
 
-                // **Step 5: Prepare Table Data**
                 let count = 0;
-                let rows = [];
-                players.forEach((element) => {
+                const rows: any[][] = [];
+                players.forEach((element: any) => {
                     count++;
-                    let handicapIndex = element.handicapWhsIndex;
-                    let ratings = this.getTeesRating(handicapIndex);
+                    const handicapIndex = element.handicapWhsIndex;
+                    const ratings = this.getTeesRating(handicapIndex);
                     rows.push([
                         count,
                         element.membershipNumber || '-',
                         (element.firstName || '').toString().toUpperCase() + ' ' + (element.lastName || '').toString().toUpperCase(),
                         element.handicapWhsIndex != null ? element.handicapWhsIndex.toFixed(1) : '-',
-                        ratings['BLACK'] ?? '-',      // Blue Tee index (mapped from BLACK key)
-                        ratings['BLUE'] ?? '-',       // White Tee index (mapped from BLUE key)
-                        ratings['WHITE'] ?? '-',      // Yellow Tee index (mapped from WHITE key)
-                        ratings['Black-Veterans'] ?? '-', // Black Tee index (mapped from Black-Veterans key)
-                        ratings['RED'] ?? '-',        // Red Tee index (mapped from RED key)
+                        ratings['BLACK'] ?? '-',
+                        ratings['BLUE'] ?? '-',
+                        ratings['WHITE'] ?? '-',
+                        ratings['Black-Veterans'] ?? '-',
+                        ratings['RED'] ?? '-',
                     ]);
                 });
 
-                // **Step 6: Generate Table for Current Category**
                 (doc as any).autoTable({
                     startY: startY,
                     head: [['Sr.', 'M.No', 'Name', 'H/C Index', 'Blue Tee', 'White Tee', 'Yellow Tee', 'Black/Vet', 'Red Tee']],
@@ -547,28 +552,25 @@ export class HandicapsComponent implements OnInit {
                     theme: 'grid',
                     headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 9, halign: "center" },
                     bodyStyles: { fontSize: 8, halign: "center" },
-                    columnStyles: { 
-                        2: { halign: "left" } // Align Name column to the left
+                    columnStyles: {
+                        2: { halign: "left" }
                     },
-
                     didDrawPage: (data) => {
-                        // Add Category Header on overflow pages
                         if (data.pageNumber > 1) {
                             doc.setFontSize(11);
                             doc.setTextColor(255, 255, 255);
                             doc.setFillColor(41, 128, 185);
                             doc.rect(14, data.settings.margin.top - 10, 182, 8, "F");
                             doc.setFont('helvetica', 'bold');
-                            doc.text(`${category.toUpperCase()}`, 18, data.settings.margin.top - 4.5, { align: 'left' });
+                            doc.text(`${title.toUpperCase()}`, 18, data.settings.margin.top - 4.5, { align: 'left' });
                             doc.text(`Players: ${players.length}`, 192, data.settings.margin.top - 4.5, { align: 'right' });
                         }
                     }
                 });
 
-                startY = 35; // Reset for next page
+                startY = 35;
             });
 
-            // **Save PDF**
             doc.save('WHS.pdf');
         } catch (error) {
             this.logger.log('Downloading WHS Handicap Data Failed', "error", error.toString());
