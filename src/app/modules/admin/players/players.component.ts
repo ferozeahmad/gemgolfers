@@ -20,9 +20,9 @@ import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
 import 'jspdf-autotable';
 import { jsPDF } from 'jspdf';
 import { MatDrawer } from '@angular/material/sidenav';
-import { Constants, UniqueIdGenerator, generateGemId } from '../../../shared/classes/general';
+import { Constants } from '../../../shared/classes/general';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ClubMembership, Player, UserSessionModel } from 'app/shared/models/player.model';
+import { Player, UserSessionModel } from 'app/shared/models/player.model';
 import { read, utils } from 'xlsx';
 import { HandicapService } from 'app/shared/services/handicap.service';
 import { DialogOverviewComponent } from '../dialogs/dialog-overview/dialog-overview.component';
@@ -31,6 +31,7 @@ import { LocalStorageService } from 'app/shared/services/localStorage';
 import { SetPasswordDialogComponent } from './set-password-dialog/set-password-dialog.component';
 import { LogsService } from 'app/shared/services/logs.service';
 import { SelectionModel } from '@angular/cdk/collections';
+import { RemoveMembersResultsDialogComponent, RemoveMemberResult } from './remove-members-results-dialog/remove-members-results-dialog.component';
 
 const CATEGORIES = [
     'Amateurs',
@@ -54,7 +55,8 @@ export class PlayersComponent implements OnInit, OnDestroy {
     @ViewChild('matDrawer', { static: true }) matDrawer: MatDrawer;
     @ViewChild(MatPaginator) paginator: MatPaginator;
     @ViewChild(MatSort) sort: MatSort;
-    @ViewChild('fileInput') fileInputVariable: ElementRef;
+    @ViewChild('caddieFileInput') caddieFileInputVariable: ElementRef;
+    @ViewChild('removeMembersFileInput') removeMembersFileInputVariable: ElementRef;
 
     drawerMode: 'side' | 'over';
 
@@ -109,13 +111,15 @@ export class PlayersComponent implements OnInit, OnDestroy {
     isSuperAdmin: boolean = false;
     isClubAdmin: boolean = false;
 
-    // ── Excel import ───────────────────────────────────────────────────────────
+    // ── Excel import (caddies) ─────────────────────────────────────────────────
     file: File;
     arrayBuffer: any;
-    playersData: any;
-    savePlayers: any[] = [];
-    duplicatePlayers: any[] = [];
+    caddiesData: any[] = [];
     importingList = false;
+
+    // ── Excel-driven club member removal ──────────────────────────────────────
+    removeMembersData: any[] = [];
+    removingMembers = false;
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
@@ -756,16 +760,13 @@ export class PlayersComponent implements OnInit, OnDestroy {
         }
     }
 
-    // ── Excel import (unchanged logic) ─────────────────────────────────────────
+    // ── Excel import (caddies) ──────────────────────────────────────────────────
+    // Reads an Excel file of caddies (Card No, Name, Address, CNIC, Mobile, Category)
+    // and inserts them into the caddie table, tagged with the logged-in admin's club.
 
-    onFileChange(event: any): void {
-        this.logger.log('onFileChange called', 'DEBUG', event);
-        if (event.target.files.length > 0) this.file = event.target.files[0];
-    }
-
-    parseFlightsData(event: any): void {
-        this.logger.log('parseFlightsData called', 'INFO', event);
-        this.playersData = [];
+    parseCaddieExcel(event: any): void {
+        this.logger.log('parseCaddieExcel called', 'INFO', event);
+        this.caddiesData = [];
         if (event.target.files.length > 0) this.file = event.target.files[0];
         const fileReader = new FileReader();
         fileReader.onload = (e) => {
@@ -775,55 +776,64 @@ export class PlayersComponent implements OnInit, OnDestroy {
             const bstr = arr.join('');
             const workbook = read(bstr, { type: 'binary' });
             const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-            this.playersData = utils.sheet_to_json(worksheet, { raw: true, defval: '' });
-            this.importExcelData();
+            this.caddiesData = utils.sheet_to_json(worksheet, { raw: true, defval: '' });
+            this.importCaddieExcel();
         };
         fileReader.readAsArrayBuffer(this.file);
     }
 
-    async importExcelData(): Promise<void> {
-        this.logger.log('importExcelData called', 'INFO');
+    async importCaddieExcel(): Promise<void> {
+        this.logger.log('importCaddieExcel called', 'INFO');
         try {
             this.importingList = true;
-            this.savePlayers = [];
-            this.duplicatePlayers = [];
-            const clubMember: ClubMembership[] = [];
+            this._changeDetectorRef.markForCheck();
 
-            for (const p of this.playersData) {
-                const UniqueId = UniqueIdGenerator.generate();
-                clubMember.push({ clubId: this.loggedInuser.adminClubId, playerId: UniqueId } as any);
-                this.savePlayers.push({
-                    id: UniqueId,
-                    adminClubId: null, firebaseUid: null, fcmToken: null,
-                    gemId: generateGemId.generate(UniqueId),
-                    firstName: p.firstName, lastName: p.lastName,
-                    gender: p.gender || null, dob: p.dob || null, picture: p.picture || null,
-                    email: p.email || null, phone: p.phone || null,
-                    playerCategory: p.category || null, handicap: p.hc || 0,
-                    online: false, countryCode: p.code || null, extraData: p.extra || null,
-                    membershipNumber: p.membershipNumber, userRole: 3, membership: null,
-                });
+            const clubId = this.loggedInuser.adminClubId;
+            let skipped = 0;
+
+            const caddies = this.caddiesData.reduce((acc: any[], row: any) => {
+                const rowKeys: { [key: string]: any } = {};
+                for (const key of Object.keys(row)) {
+                    rowKeys[key.trim().toLowerCase()] = row[key];
+                }
+
+                const name = String(rowKeys['name'] ?? '').trim();
+                if (!name) {
+                    skipped++;
+                    return acc;
+                }
+
+                const cardNo = String(rowKeys['card no'] ?? rowKeys['cardno'] ?? rowKeys['card_no'] ?? '').trim();
+                const address = String(rowKeys['address'] ?? '').trim();
+                const phone = String(rowKeys['mobile'] ?? rowKeys['phone'] ?? '').trim();
+                const cnic = String(rowKeys['cnic'] ?? '').trim();
+                const category = String(rowKeys['category'] ?? '').trim() || null;
+
+                acc.push({ name, cardNo, address, phone, cnic, category, clubId });
+                return acc;
+            }, []);
+
+            if (!caddies.length) {
+                this.snackBar.open('No valid caddie rows found in the file (Name is required).', 'x', { duration: 4000 });
+                this.importingList = false;
+                this.caddieFileInputVariable.nativeElement.value = '';
+                return;
             }
 
-            const status = await this._facadeService.importPlayerList(this.savePlayers, clubMember);
+            const status = await this._facadeService.importCaddieList(caddies);
             if (status) {
-                const newProfiles = Math.max(0, this.savePlayers.length - this.duplicatePlayers.length);
-                this.snackBar.open(
-                    `${newProfiles} players created. ${this.duplicatePlayers.length} already existed.`,
-                    'x', { duration: 5000 },
-                );
+                const skippedMsg = skipped > 0 ? ` ${skipped} row(s) skipped (missing name).` : '';
+                this.snackBar.open(`${caddies.length} caddie(s) imported.${skippedMsg}`, 'x', { duration: 5000 });
                 this.importingList = false;
-                this.fileInputVariable.nativeElement.value = '';
-                await this.delay(2000);
-                this.loadPlayers();
-                this.logger.log('Excel data imported successfully', 'INFO', { newProfiles, duplicates: this.duplicatePlayers.length });
+                this.caddieFileInputVariable.nativeElement.value = '';
+                this.logger.log('Caddie data imported successfully', 'INFO', { imported: caddies.length, skipped });
             } else {
-                this.snackBar.open('Error while loading file', 'x', { duration: 3000 });
+                this.snackBar.open('Error while importing caddies', 'x', { duration: 3000 });
                 this.importingList = false;
-                this.logger.log('Error importing Excel data', 'ERROR');
+                this.logger.log('Error importing caddie data', 'ERROR');
             }
         } catch (error) {
-            this.logger.log('Exception in importExcelData', 'ERROR', error);
+            this.logger.log('Exception in importCaddieExcel', 'ERROR', error);
             this.importingList = false;
         }
     }
@@ -831,5 +841,99 @@ export class PlayersComponent implements OnInit, OnDestroy {
     delay(ms: number): Promise<void> {
         this.logger.log(`Delaying for ${ms}ms`, 'DEBUG');
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // ── Excel-driven club member removal ───────────────────────────────────────
+    // Reads an Excel file of players by membershipNumber, looks each one up in the
+    // player table, then removes their club_member row for the logged-in admin's club.
+
+    parseRemoveMembersExcel(event: any): void {
+        this.logger.log('parseRemoveMembersExcel called', 'INFO', event);
+        this.removeMembersData = [];
+        if (event.target.files.length > 0) this.file = event.target.files[0];
+        const fileReader = new FileReader();
+        fileReader.onload = (e) => {
+            this.arrayBuffer = fileReader.result;
+            const data = new Uint8Array(this.arrayBuffer as ArrayBuffer);
+            const arr = Array.from(data).map(c => String.fromCharCode(c));
+            const bstr = arr.join('');
+            const workbook = read(bstr, { type: 'binary' });
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            this.removeMembersData = utils.sheet_to_json(worksheet, { raw: true, defval: '' });
+
+            if (!this.removeMembersData.length) {
+                this.snackBar.open('The selected file has no rows to process.', 'x', { duration: 4000 });
+                this.removeMembersFileInputVariable.nativeElement.value = '';
+                return;
+            }
+
+            const dialogRef = this.dialog.open(DialogOverviewComponent, {
+                width: '400px',
+                data: `This will remove ${this.removeMembersData.length} member(s) from your club based on the uploaded file. Continue?`,
+            });
+            dialogRef.afterClosed().subscribe((confirmed) => {
+                if (confirmed) {
+                    this.removeMembersFromClub();
+                } else {
+                    this.removeMembersFileInputVariable.nativeElement.value = '';
+                }
+            });
+        };
+        fileReader.readAsArrayBuffer(this.file);
+    }
+
+    async removeMembersFromClub(): Promise<void> {
+        this.logger.log('removeMembersFromClub called', 'INFO');
+        this.removingMembers = true;
+        this._changeDetectorRef.markForCheck();
+
+        const results: RemoveMemberResult[] = [];
+
+        for (let i = 0; i < this.removeMembersData.length; i++) {
+            const p = this.removeMembersData[i];
+            const rowNumber = i + 1;
+
+            const rowKeys: { [key: string]: any } = {};
+            for (const key of Object.keys(p)) {
+                rowKeys[key.trim().toLowerCase()] = p[key];
+            }
+            const membershipNumberVal = rowKeys['membershipnumber'];
+            const membershipNumber = membershipNumberVal ? String(membershipNumberVal).trim() : null;
+
+            if (!membershipNumber) {
+                results.push({ row: rowNumber, membershipNumber: 'N/A', status: 'error', message: 'Membership number is missing.' });
+                continue;
+            }
+
+            try {
+                const matchingPlayers = await this._facadeService.getPlayerByMembershipNumber(membershipNumber);
+                const player = matchingPlayers?.[0];
+
+                if (!player) {
+                    results.push({ row: rowNumber, membershipNumber, status: 'error', message: 'Player with this membership number was not found.' });
+                    continue;
+                }
+
+                const removed = await this._facadeService.deletePlayer(this.loggedInuser.adminClubId, player.id);
+                if (removed) {
+                    results.push({ row: rowNumber, membershipNumber, status: 'success', message: `Removed from club (Player ID: ${player.id}).` });
+                } else {
+                    results.push({ row: rowNumber, membershipNumber, status: 'error', message: 'Failed to remove club membership.' });
+                }
+            } catch (error) {
+                this.logger.log(`Error removing member for row ${rowNumber}`, 'ERROR', error);
+                results.push({ row: rowNumber, membershipNumber, status: 'error', message: `An unexpected error occurred: ${error?.message || error}` });
+            }
+        }
+
+        this.removingMembers = false;
+        this.removeMembersFileInputVariable.nativeElement.value = '';
+        this.dialog.open(RemoveMembersResultsDialogComponent, {
+            width: '800px',
+            data: results,
+        });
+        this.logger.log('removeMembersFromClub finished', 'INFO', { total: results.length });
+        await this.delay(2000);
+        this.loadPlayers();
     }
 }

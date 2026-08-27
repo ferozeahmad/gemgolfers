@@ -33,6 +33,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDialogModule } from '@angular/material/dialog';
 import { PlayerResolver } from './players.resolver';
 import { SetPasswordDialogComponent } from './set-password-dialog/set-password-dialog.component';
+import { RemoveMembersResultsDialogComponent } from './remove-members-results-dialog/remove-members-results-dialog.component';
 
 @NgModule({
     declarations: [
@@ -40,6 +41,7 @@ import { SetPasswordDialogComponent } from './set-password-dialog/set-password-d
         ContactsDetailsComponent,
         ViewPlayerComponent,
         SetPasswordDialogComponent,
+        RemoveMembersResultsDialogComponent,
     ],
     imports: [
         RouterModule.forChild(playerRoutes),

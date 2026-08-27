@@ -391,9 +391,11 @@ export class HandicapsComponent implements OnInit {
 
 
     exportToExcel(): void {
+        const sortedRows = this.WHSSource?.sort
+            ? this.WHSSource.sortData(this.WHSSource.filteredData, this.WHSSource.sort)
+            : this.WHSSource?.filteredData ?? [];
 
-        const data = this.WHSSource.data.map((item) => {
-            // Create a new object without the 'Details' column
+        const data = sortedRows.map((item: any) => {
             const { id, Status, Sr, view, Edit, Delete, ...filteredItem } = item;
             return filteredItem;
         });
@@ -402,9 +404,7 @@ export class HandicapsComponent implements OnInit {
         const wb: XLSX.WorkBook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Report');
 
-        // Export the Excel file
         XLSX.writeFile(wb, 'Players_report.xlsx');
-
     }
     Comparatordsc(a, b) {
         let handicapA =

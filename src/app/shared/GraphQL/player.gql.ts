@@ -1281,6 +1281,17 @@ export const SavePlayersList = gql`
         }
     }
 `;
+export const InsertCaddies = gql`
+    mutation InsertCaddies($objects: [caddie_insert_input!]!) {
+        insert_caddie(objects: $objects) {
+            affected_rows
+            returning {
+                id
+            }
+        }
+    }
+`;
+
 export const insertClubMember = gql`
     mutation insertClubMember($clubmembers: [club_member_insert_input!]!) {
         insert_club_member(

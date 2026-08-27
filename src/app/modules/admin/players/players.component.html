@@ -47,15 +47,27 @@
                     <span>Set Password ({{ selection.selected.length }})</span>
                 </button>
                 <mat-divider></mat-divider>
-                <label for="bulk-import" mat-menu-item>
+                <label for="caddie-import" mat-menu-item [class.pointer-events-none]="!loggedInuser?.adminClubId"
+                    [class.opacity-40]="!loggedInuser?.adminClubId">
                     <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:save'"></mat-icon>
-                    <span>Bulk Import Excel</span>
+                    <span>Import Caddies (Excel)</span>
+                </label>
+                <label for="remove-members-import" mat-menu-item [class.pointer-events-none]="!loggedInuser?.adminClubId"
+                    [class.opacity-40]="!loggedInuser?.adminClubId">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:delete'"></mat-icon>
+                    <span>Remove Members (Excel)</span>
                 </label>
             </mat-menu>
 
-            <!-- Hidden file input for bulk import -->
-            <input id="bulk-import" class="hidden" type="file" accept=".xls,.xlsx"
-                (change)="parseFlightsData($event)" #fileInput />
+            <!-- Hidden file input for importing caddies -->
+            <input id="caddie-import" class="hidden" type="file" accept=".xls,.xlsx"
+                [disabled]="!loggedInuser?.adminClubId"
+                (change)="parseCaddieExcel($event)" #caddieFileInput />
+
+            <!-- Hidden file input for removing club members by membershipNumber -->
+            <input id="remove-members-import" class="hidden" type="file" accept=".xls,.xlsx"
+                [disabled]="!loggedInuser?.adminClubId"
+                (change)="parseRemoveMembersExcel($event)" #removeMembersFileInput />
         </div>
     </div>
 
@@ -164,6 +176,12 @@
         <div *ngIf="importingList" class="flex items-center gap-2 text-base text-blue-600 ml-auto">
             <mat-spinner [diameter]="18"></mat-spinner>
             <span>Importing...</span>
+        </div>
+
+        <!-- Removing members spinner -->
+        <div *ngIf="removingMembers" class="flex items-center gap-2 text-base text-red-600 ml-auto">
+            <mat-spinner [diameter]="18"></mat-spinner>
+            <span>Removing members...</span>
         </div>
     </div>
 

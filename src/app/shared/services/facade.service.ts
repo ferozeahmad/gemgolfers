@@ -418,6 +418,9 @@ export class FacadeService {
   importPlayerList(players: any[], clubMembers: any[]) {
     return this.playerService.importPlayerList(players, clubMembers);
   }
+  importCaddieList(caddies: any[]) {
+    return this.playerService.importCaddieList(caddies);
+  }
   insertClubMember(clubMembers: any[]) {
     return this.playerService.insertClubMember(clubMembers);
   }

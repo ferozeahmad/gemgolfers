@@ -3941,63 +3941,59 @@ export class ViewTournamentComponent implements OnInit {
             }
 
             const tournamentTitle = (this.fullTournament.title || 'Tournament').toString();
-            const numRounds = completedRounds.length;
-            // Columns per round: 9-hole = H1-H9 + OUT + DAY GROSS + DAY NET (12); 18-hole adds H10-H18 + IN (22)
-            const colsPerRound = nineHole ? 12 : 22;
+            // Columns for a single round: 9-hole = H1-H9 + OUT + DAY GROSS (11); 18-hole adds H10-H18 + IN (21)
+            const colsPerRound = nineHole ? 11 : 21;
 
-            // Dynamically size the page width so all round columns fit
-            const perRoundWidth = nineHole ? 92 : 159;
-            const pageWidth = Math.max(nineHole ? 210 : 297, 90 + perRoundWidth * numRounds + 26);
+            // One round per page — a standard landscape page fits a single round's columns
+            const pageWidth = nineHole ? 210 : 297;
             const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [210, pageWidth] });
             const usableWidth = pageWidth - 28;
 
-            // Tournament title
-            doc.setFontSize(13);
-            doc.setFont('helvetica', 'bold');
-            doc.text(tournamentTitle.toUpperCase(), pageWidth / 2, 12, { align: 'center' });
+            const parOut = pars.slice(0, 9).reduce((a, b) => a + b, 0);
+            const parIn = pars.slice(9, 18).reduce((a, b) => a + b, 0);
 
-            let startY = 16;
+            let firstPage = true;
 
-            for (let ci = 0; ci < categories.length; ci++) {
-                const cat = categories[ci];
-                if (ci > 0) { doc.addPage(); startY = 16; }
+            for (const cat of categories) {
+                for (let ri = 0; ri < completedRounds.length; ri++) {
+                    const r = completedRounds[ri];
+                    if (!firstPage) { doc.addPage(); }
+                    firstPage = false;
+                    let startY = 16;
 
-                // Category bar
-                doc.setFillColor(41, 128, 185);
-                doc.rect(14, startY, usableWidth, 7, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(9);
-                doc.text(`RESULT – ${cat.name.toUpperCase()}`, pageWidth / 2, startY + 4.5, { align: 'center' });
-                doc.setTextColor(0, 0, 0);
-                startY += 9;
+                    // Tournament title
+                    doc.setFontSize(13);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(tournamentTitle.toUpperCase(), pageWidth / 2, 12, { align: 'center' });
 
-                const parOut = pars.slice(0, 9).reduce((a, b) => a + b, 0);
-                const parIn = pars.slice(9, 18).reduce((a, b) => a + b, 0);
+                    // Category + round bar
+                    doc.setFillColor(41, 128, 185);
+                    doc.rect(14, startY, usableWidth, 7, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(9);
+                    doc.text(`RESULT – ${cat.name.toUpperCase()} – ROUND ${r}`, pageWidth / 2, startY + 4.5, { align: 'center' });
+                    doc.setTextColor(0, 0, 0);
+                    startY += 9;
 
-                const header1: string[] = ['', '', '', ''];
-                const header2: string[] = ['S#', 'NAME', 'HCP', 'CLUB'];
-                const parRow: (string | number)[] = ['PAR', '', '', ''];
+                    const header2: string[] = ['S#', 'NAME', 'HCP', 'CLUB'];
+                    const parRow: (string | number)[] = ['PAR', '', '', ''];
 
-                for (const r of completedRounds) {
-                    header1.push(`ROUND ${r}`, ...Array(colsPerRound - 1).fill(''));
                     if (nineHole) {
                         header2.push('H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'OUT',
                             `DAY ${r} GROSS`);
-                        parRow.push(...pars.slice(0, 9), parOut, '', '');
+                        parRow.push(...pars.slice(0, 9), parOut, '');
                     } else {
                         header2.push('H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'OUT',
                             'H10', 'H11', 'H12', 'H13', 'H14', 'H15', 'H16', 'H17', 'H18', 'IN',
                             `DAY ${r} GROSS`);
-                        parRow.push(...pars.slice(0, 9), parOut, ...pars.slice(9, 18), parIn, '', '');
+                        parRow.push(...pars.slice(0, 9), parOut, ...pars.slice(9, 18), parIn, '');
                     }
-                }
-                header2.push('TOTAL GROSS');
-                parRow.push('', '');
+                    header2.push('TOTAL GROSS');
+                    parRow.push('');
 
-                const body: any[][] = [];
-                cat.players.forEach((p, idx) => {
-                    const row: any[] = [idx + 1, p.name, p.hcp, p.club];
-                    for (const r of completedRounds) {
+                    const body: any[][] = [];
+                    cat.players.forEach((p, idx) => {
+                        const row: any[] = [idx + 1, p.name, p.hcp, p.club];
                         const rd = p.rounds[r];
                         if (rd) {
                             if (nineHole) {
@@ -4011,17 +4007,15 @@ export class ViewTournamentComponent implements OnInit {
                         } else {
                             row.push(...Array(colsPerRound).fill(''));
                         }
-                    }
-                    row.push(p.totalGross || '');
-                    body.push(row);
-                });
+                        row.push(p.totalGross || '');
+                        body.push(row);
+                    });
 
-                // Column widths
-                const colStyles: any = {
-                    0: { cellWidth: 7 }, 1: { cellWidth: 30 }, 2: { cellWidth: 8 }, 3: { cellWidth: 20 }
-                };
-                let ci2 = 4;
-                for (const _r of completedRounds) {
+                    // Column widths
+                    const colStyles: any = {
+                        0: { cellWidth: 7 }, 1: { cellWidth: 30 }, 2: { cellWidth: 8 }, 3: { cellWidth: 20 }
+                    };
+                    let ci2 = 4;
                     for (let h = 0; h < 9; h++) colStyles[ci2++] = { cellWidth: 6.5 };
                     colStyles[ci2++] = { cellWidth: 8 };          // OUT
                     if (!nineHole) {
@@ -4029,45 +4023,41 @@ export class ViewTournamentComponent implements OnInit {
                         colStyles[ci2++] = { cellWidth: 8 };      // IN
                     }
                     colStyles[ci2++] = { cellWidth: 12 };         // DAY GROSS
-                    colStyles[ci2++] = { cellWidth: 12 };         // DAY NET
-                }
-                colStyles[ci2++] = { cellWidth: 13 };
-                colStyles[ci2++] = { cellWidth: 13 };
-                colStyles[1] = { ...colStyles[1], halign: 'left' };
-                colStyles[3] = { ...colStyles[3], halign: 'left' };
+                    colStyles[ci2++] = { cellWidth: 13 };         // TOTAL GROSS
+                    colStyles[1] = { ...colStyles[1], halign: 'left' };
+                    colStyles[3] = { ...colStyles[3], halign: 'left' };
 
-                (doc as any).autoTable({
-                    startY,
-                    head: [header1, header2, parRow],
-                    body,
-                    theme: 'grid',
-                    headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 6.5, halign: 'center', cellPadding: 1 },
-                    bodyStyles: { fontSize: 6.5, halign: 'center', cellPadding: 1 },
-                    columnStyles: colStyles,
-                    tableWidth: usableWidth,
-                });
-
-                let finalY = (doc as any).lastAutoTable.finalY + 5;
-
-                // Positions table
-                const topGross = cat.players.filter(p => p.grossPos).sort((a, b) => a.grossPos - b.grossPos).slice(0, 3);
-                // const topNet = cat.players.filter(p => p.netPos).sort((a, b) => a.netPos - b.netPos).slice(0, 3);
-                const posBody: any[][] = [
-                    ...topGross.map(p => [`${this.ordinalSuffix(p.grossPos)} Gross`, p.name, p.hcp, p.club, p.totalGross, '']),
-                    // ...topNet.map(p => [`${this.ordinalSuffix(p.netPos)} Net`, p.name, p.hcp, p.club, '', p.totalNet]),
-                ];
-                if (posBody.length > 0) {
                     (doc as any).autoTable({
-                        startY: finalY,
-                        head: [['Position', 'Name', 'HCP', 'Club', 'Gross']],
-                        body: posBody,
+                        startY,
+                        head: [header2, parRow],
+                        body,
                         theme: 'grid',
-                        headStyles: { fillColor: [200, 200, 200], textColor: 0, fontSize: 7, halign: 'center', cellPadding: 1 },
-                        bodyStyles: { fontSize: 7, cellPadding: 1 },
-                        columnStyles: { 1: { halign: 'left' }, 3: { halign: 'left' } },
-                        tableWidth: 100,
-                        margin: { left: 14 },
+                        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 6.5, halign: 'center', cellPadding: 1 },
+                        bodyStyles: { fontSize: 6.5, halign: 'center', cellPadding: 1 },
+                        columnStyles: colStyles,
+                        tableWidth: usableWidth,
                     });
+
+                    let finalY = (doc as any).lastAutoTable.finalY + 5;
+
+                    // Positions table — only on the category's final round page (based on the overall event total)
+                    if (ri === completedRounds.length - 1) {
+                        const topGross = cat.players.filter(p => p.grossPos).sort((a, b) => a.grossPos - b.grossPos).slice(0, 3);
+                        const posBody: any[][] = topGross.map(p => [`${this.ordinalSuffix(p.grossPos)} Gross`, p.name, p.hcp, p.club, p.totalGross, '']);
+                        if (posBody.length > 0) {
+                            (doc as any).autoTable({
+                                startY: finalY,
+                                head: [['Position', 'Name', 'HCP', 'Club', 'Gross']],
+                                body: posBody,
+                                theme: 'grid',
+                                headStyles: { fillColor: [200, 200, 200], textColor: 0, fontSize: 7, halign: 'center', cellPadding: 1 },
+                                bodyStyles: { fontSize: 7, cellPadding: 1 },
+                                columnStyles: { 1: { halign: 'left' }, 3: { halign: 'left' } },
+                                tableWidth: 100,
+                                margin: { left: 14 },
+                            });
+                        }
+                    }
                 }
             }
 
@@ -4089,127 +4079,121 @@ export class ViewTournamentComponent implements OnInit {
             }
 
             const tournamentTitle = (this.fullTournament.title || 'Tournament').toString();
-            const numRounds = completedRounds.length;
-            const colsPerRound = nineHole ? 12 : 22;
+            // Columns for a single round: 9-hole = H1-H9 + OUT + DAY NET (11); 18-hole adds H10-H18 + IN (21)
+            const colsPerRound = nineHole ? 11 : 21;
 
-            const perRoundWidth = nineHole ? 92 : 159;
-            const pageWidth = Math.max(nineHole ? 210 : 297, 90 + perRoundWidth * numRounds + 26);
+            // One round per page — a standard landscape page fits a single round's columns
+            const pageWidth = nineHole ? 210 : 297;
             const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [210, pageWidth] });
             const usableWidth = pageWidth - 28;
 
-            doc.setFontSize(13);
-            doc.setFont('helvetica', 'bold');
-            doc.text(tournamentTitle.toUpperCase(), pageWidth / 2, 12, { align: 'center' });
+            const parOut = pars.slice(0, 9).reduce((a, b) => a + b, 0);
+            const parIn = pars.slice(9, 18).reduce((a, b) => a + b, 0);
 
-            let startY = 16;
+            let firstPage = true;
 
-            for (let ci = 0; ci < categories.length; ci++) {
-                const cat = categories[ci];
-                if (ci > 0) { doc.addPage(); startY = 16; }
+            for (const cat of categories) {
+                for (let ri = 0; ri < completedRounds.length; ri++) {
+                    const r = completedRounds[ri];
+                    if (!firstPage) { doc.addPage(); }
+                    firstPage = false;
+                    let startY = 16;
 
-                doc.setFillColor(41, 128, 185);
-                doc.rect(14, startY, usableWidth, 7, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(9);
-                doc.text(`RESULT – ${cat.name.toUpperCase()}`, pageWidth / 2, startY + 4.5, { align: 'center' });
-                doc.setTextColor(0, 0, 0);
-                startY += 9;
+                    doc.setFontSize(13);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(tournamentTitle.toUpperCase(), pageWidth / 2, 12, { align: 'center' });
 
-                const parOut = pars.slice(0, 9).reduce((a, b) => a + b, 0);
-                const parIn = pars.slice(9, 18).reduce((a, b) => a + b, 0);
+                    doc.setFillColor(41, 128, 185);
+                    doc.rect(14, startY, usableWidth, 7, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(9);
+                    doc.text(`RESULT – ${cat.name.toUpperCase()} – ROUND ${r}`, pageWidth / 2, startY + 4.5, { align: 'center' });
+                    doc.setTextColor(0, 0, 0);
+                    startY += 9;
 
-                const header1: string[] = ['', '', '', ''];
-                const header2: string[] = ['S#', 'NAME', 'HCP', 'CLUB'];
-                const parRow: (string | number)[] = ['PAR', '', '', ''];
+                    const header2: string[] = ['S#', 'NAME', 'HCP', 'CLUB'];
+                    const parRow: (string | number)[] = ['PAR', '', '', ''];
 
-                for (const r of completedRounds) {
-                    header1.push(`ROUND ${r}`, ...Array(colsPerRound - 1).fill(''));
                     if (nineHole) {
                         header2.push('H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'OUT',
-                             `DAY ${r} NET`);
-                        parRow.push(...pars.slice(0, 9), parOut, '', '');
+                            `DAY ${r} NET`);
+                        parRow.push(...pars.slice(0, 9), parOut, '');
                     } else {
                         header2.push('H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'OUT',
                             'H10', 'H11', 'H12', 'H13', 'H14', 'H15', 'H16', 'H17', 'H18', 'IN',
-                             `DAY ${r} NET`);
-                        parRow.push(...pars.slice(0, 9), parOut, ...pars.slice(9, 18), parIn, '', '');
+                            `DAY ${r} NET`);
+                        parRow.push(...pars.slice(0, 9), parOut, ...pars.slice(9, 18), parIn, '');
                     }
-                }
-                header2.push('TOTAL NET');
-                parRow.push('', '');
+                    header2.push('TOTAL GROSS', 'TOTAL NET');
+                    parRow.push('', '');
 
-                const body: any[][] = [];
-                cat.players.forEach((p, idx) => {
-                    const row: any[] = [idx + 1, p.name, p.hcp, p.club];
-                    for (const r of completedRounds) {
+                    const body: any[][] = [];
+                    cat.players.forEach((p, idx) => {
+                        const row: any[] = [idx + 1, p.name, p.hcp, p.club];
                         const rd = p.rounds[r];
                         if (rd) {
                             if (nineHole) {
                                 row.push(...rd.front9.map(s => s || ''), rd.out || '',
-                                     rd.dayNet || '');
+                                    rd.dayNet || '');
                             } else {
                                 row.push(...rd.front9.map(s => s || ''), rd.out || '',
                                     ...rd.back9.map(s => s || ''), rd.in || '',
-                                     rd.dayNet || '');
+                                    rd.dayNet || '');
                             }
                         } else {
                             row.push(...Array(colsPerRound).fill(''));
                         }
-                    }
-                    row.push(p.totalGross || '', p.totalNet || '');
-                    body.push(row);
-                });
+                        row.push(p.totalGross || '', p.totalNet || '');
+                        body.push(row);
+                    });
 
-                const colStyles: any = {
-                    0: { cellWidth: 7 }, 1: { cellWidth: 30 }, 2: { cellWidth: 8 }, 3: { cellWidth: 20 }
-                };
-                let ci2 = 4;
-                for (const _r of completedRounds) {
+                    const colStyles: any = {
+                        0: { cellWidth: 7 }, 1: { cellWidth: 30 }, 2: { cellWidth: 8 }, 3: { cellWidth: 20 }
+                    };
+                    let ci2 = 4;
                     for (let h = 0; h < 9; h++) colStyles[ci2++] = { cellWidth: 6.5 };
                     colStyles[ci2++] = { cellWidth: 8 };          // OUT
                     if (!nineHole) {
                         for (let h = 0; h < 9; h++) colStyles[ci2++] = { cellWidth: 6.5 };
                         colStyles[ci2++] = { cellWidth: 8 };      // IN
                     }
-                    colStyles[ci2++] = { cellWidth: 12 };         // DAY GROSS
                     colStyles[ci2++] = { cellWidth: 12 };         // DAY NET
-                }
-                colStyles[ci2++] = { cellWidth: 13 };
-                colStyles[ci2++] = { cellWidth: 13 };
-                colStyles[1] = { ...colStyles[1], halign: 'left' };
-                colStyles[3] = { ...colStyles[3], halign: 'left' };
+                    colStyles[ci2++] = { cellWidth: 13 };         // TOTAL GROSS
+                    colStyles[ci2++] = { cellWidth: 13 };         // TOTAL NET
+                    colStyles[1] = { ...colStyles[1], halign: 'left' };
+                    colStyles[3] = { ...colStyles[3], halign: 'left' };
 
-                (doc as any).autoTable({
-                    startY,
-                    head: [header1, header2, parRow],
-                    body,
-                    theme: 'grid',
-                    headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 6.5, halign: 'center', cellPadding: 1 },
-                    bodyStyles: { fontSize: 6.5, halign: 'center', cellPadding: 1 },
-                    columnStyles: colStyles,
-                    tableWidth: usableWidth,
-                });
-
-                let finalY = (doc as any).lastAutoTable.finalY + 5;
-
-                // const topGross = cat.players.filter(p => p.grossPos).sort((a, b) => a.grossPos - b.grossPos).slice(0, 3);
-                const topNet = cat.players.filter(p => p.netPos).sort((a, b) => a.netPos - b.netPos).slice(0, 3);
-                const posBody: any[][] = [
-                    // ...topGross.map(p => [`${this.ordinalSuffix(p.grossPos)} Gross`, p.name, p.hcp, p.club, p.totalGross, '']),
-                    ...topNet.map(p => [`${this.ordinalSuffix(p.netPos)} Net`, p.name, p.hcp, p.club, p.totalNet]),
-                ];
-                if (posBody.length > 0) {
                     (doc as any).autoTable({
-                        startY: finalY,
-                        head: [['Position', 'Name', 'HCP', 'Club', 'Net']],
-                        body: posBody,
+                        startY,
+                        head: [header2, parRow],
+                        body,
                         theme: 'grid',
-                        headStyles: { fillColor: [200, 200, 200], textColor: 0, fontSize: 7, halign: 'center', cellPadding: 1 },
-                        bodyStyles: { fontSize: 7, cellPadding: 1 },
-                        columnStyles: { 1: { halign: 'left' }, 3: { halign: 'left' } },
-                        tableWidth: 100,
-                        margin: { left: 14 },
+                        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 6.5, halign: 'center', cellPadding: 1 },
+                        bodyStyles: { fontSize: 6.5, halign: 'center', cellPadding: 1 },
+                        columnStyles: colStyles,
+                        tableWidth: usableWidth,
                     });
+
+                    let finalY = (doc as any).lastAutoTable.finalY + 5;
+
+                    // Positions table — only on the category's final round page (based on the overall event total)
+                    if (ri === completedRounds.length - 1) {
+                        const topNet = cat.players.filter(p => p.netPos).sort((a, b) => a.netPos - b.netPos).slice(0, 3);
+                        const posBody: any[][] = topNet.map(p => [`${this.ordinalSuffix(p.netPos)} Net`, p.name, p.hcp, p.club, p.totalNet]);
+                        if (posBody.length > 0) {
+                            (doc as any).autoTable({
+                                startY: finalY,
+                                head: [['Position', 'Name', 'HCP', 'Club', 'Net']],
+                                body: posBody,
+                                theme: 'grid',
+                                headStyles: { fillColor: [200, 200, 200], textColor: 0, fontSize: 7, halign: 'center', cellPadding: 1 },
+                                bodyStyles: { fontSize: 7, cellPadding: 1 },
+                                columnStyles: { 1: { halign: 'left' }, 3: { halign: 'left' } },
+                                tableWidth: 100,
+                                margin: { left: 14 },
+                            });
+                        }
+                    }
                 }
             }
 

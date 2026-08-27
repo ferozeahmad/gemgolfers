@@ -1254,6 +1254,27 @@ export class PlayersService {
         });
     }
 
+    public importCaddieList(caddies: any[]): Promise<boolean> {
+        return new Promise((resolve) => {
+            this.apollo
+                .mutate<any>({
+                    mutation: Query.InsertCaddies,
+                    variables: {
+                        objects: caddies,
+                    },
+                })
+                .subscribe(
+                    ({ data }) => {
+                        resolve(true);
+                    },
+                    (error) => {
+                        resolve(false);
+                        //console.log("Could not add due to " + error);
+                    },
+                );
+        });
+    }
+
     public insertClubMember(clubMembers: any[]): Promise<boolean> {
         return new Promise((resolve) => {
             this.apollo
