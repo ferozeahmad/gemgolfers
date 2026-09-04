@@ -611,6 +611,38 @@
                                                     [for]="endPicker"></mat-datepicker-toggle>
                                                 <mat-datepicker #endPicker></mat-datepicker>
                                             </mat-form-field>
+
+                                            <!-- Handicap limits: only for categories split into two leaderboard brackets -->
+                                            <div *ngIf="isHandicapLimitCategory(cat.name)"
+                                                class="grid grid-cols-2 gap-2">
+                                                <mat-form-field appearance="outline"
+                                                    class="w-full custom-mat-input">
+                                                    <mat-label>Lower Limit Start</mat-label>
+                                                    <input matInput type="number"
+                                                        formControlName="lowerLimitStart">
+                                                </mat-form-field>
+
+                                                <mat-form-field appearance="outline"
+                                                    class="w-full custom-mat-input">
+                                                    <mat-label>Lower Limit End</mat-label>
+                                                    <input matInput type="number"
+                                                        formControlName="lowerLimitEnd">
+                                                </mat-form-field>
+
+                                                <mat-form-field appearance="outline"
+                                                    class="w-full custom-mat-input">
+                                                    <mat-label>Higher Limit Start</mat-label>
+                                                    <input matInput type="number"
+                                                        formControlName="upperLimitStart">
+                                                </mat-form-field>
+
+                                                <mat-form-field appearance="outline"
+                                                    class="w-full custom-mat-input">
+                                                    <mat-label>Higher Limit End</mat-label>
+                                                    <input matInput type="number"
+                                                        formControlName="upperLimitEnd">
+                                                </mat-form-field>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -486,6 +486,10 @@ export class AddTournamentComponent implements OnInit {
                     checked: false,
                     startDate: null,
                     endDate: null,
+                    lowerLimitStart: [null],
+                    lowerLimitEnd: [null],
+                    upperLimitStart: [null],
+                    upperLimitEnd: [null],
                 })
             );
 
@@ -850,6 +854,10 @@ export class AddTournamentComponent implements OnInit {
                             checked: true,
                             startDate: new Date(savedCat.flightSettings?.[0]?.dates) || null,
                             endDate: new Date(savedCat.flightSettings?.[savedCat.flightSettings.length - 1]?.dates) || null,
+                            lowerLimitStart: savedCat.handicapLimits?.lowerLimitStart ?? null,
+                            lowerLimitEnd: savedCat.handicapLimits?.lowerLimitEnd ?? null,
+                            upperLimitStart: savedCat.handicapLimits?.upperLimitStart ?? null,
+                            upperLimitEnd: savedCat.handicapLimits?.upperLimitEnd ?? null,
                         });
 
                         this.Categories[idx]['checked'] = true;
@@ -1399,6 +1407,32 @@ export class AddTournamentComponent implements OnInit {
         const m = ("0" + (date.getMonth() + 1)).slice(-2);
         const y = date.getFullYear();
         return `${y}-${m}-${d}`;
+    }
+
+    // Categories that support a handicap-limit split (two brackets shown on the stroke-play leaderboard)
+    isHandicapLimitCategory(name: string): boolean {
+        if (!name) return false;
+        const normalized = name.replace(/\s/g, '').toLowerCase();
+        return (
+            normalized === Constants.CATEGORY_AMATEURS.replace(/\s/g, '').toLowerCase() ||
+            normalized === Constants.CATEGORY_SENIORS_AMATEUR.replace(/\s/g, '').toLowerCase()
+        );
+    }
+
+    // Builds the handicapLimits jsonb for a category form value, or null if not applicable/filled in
+    private buildCategoryHandicapLimits(catValue: any): any {
+        if (!this.isHandicapLimitCategory(catValue.name)) return null;
+        const { lowerLimitStart, lowerLimitEnd, upperLimitStart, upperLimitEnd } = catValue;
+        const values = [lowerLimitStart, lowerLimitEnd, upperLimitStart, upperLimitEnd];
+        const hasAny = values.some((v) => v !== null && v !== undefined && v !== '');
+        if (!hasAny) return null;
+        const toNum = (v: any) => (v === null || v === undefined || v === '' ? null : Number(v));
+        return {
+            lowerLimitStart: toNum(lowerLimitStart),
+            lowerLimitEnd: toNum(lowerLimitEnd),
+            upperLimitStart: toNum(upperLimitStart),
+            upperLimitEnd: toNum(upperLimitEnd),
+        };
     }
 
     updateCategoryDates(cat) {
@@ -2631,66 +2665,10 @@ export class AddTournamentComponent implements OnInit {
         console.log(tournamentRoundCourses);
 
         for (let index in this.formArray.get([0]).value.clubctgies) {
-            let TCdata: any;
             if (this.formArray.get([0]).value.clubctgies[index].checked) {
-                if (
-                    this.formArray
-                        .get([0])
-                        .value.clubctgies[index].name.replace(/\s/g, '')
-                        .toLowerCase() ==
-                    Constants.CATEGORY_AMATEURS.replace(/\s/g, '').toLowerCase()
-                ) {
-                    //this.TCdata.lowerLimitStart = 1;
-                    //this.TCdata.lowerLimitEnd = this.formArray.get([0]).value.prizeCategoryA;
-
-                    if (
-                        this.formArray.get([0]).value.handicapCats &&
-                        this.formArray.get([0]).value.prizeCategoryA != '' &&
-                        this.formArray.get([0]).value.prizeCategoryB != ''
-                    ) {
-                        TCdata = {
-                            lowerLimitStart: -1,
-                            lowerLimitEnd: this.formArray.get([0]).value
-                                .handicapCats
-                                ? this.formArray.get([0]).value.prizeCategoryA
-                                : '',
-                            upperLimitStart: this.formArray.get([0]).value
-                                .handicapCats
-                                ? this.formArray.get([0]).value.prizeCategoryB
-                                : '',
-                            upperLimitEnd: 18,
-                        };
-                    }
-                }
-                if (
-                    this.formArray
-                        .get([0])
-                        .value.clubctgies[index].name.replace(/\s/g, '')
-                        .toLowerCase() ==
-                    Constants.CATEGORY_SENIORS_AMATEUR.replace(/\s/g, '').toLowerCase()
-                ) {
-                    //this.TCdata.lowerLimitStart = 1;
-                    //this.TCdata.lowerLimitEnd = this.formArray.get([0]).value.prizeCategoryA;
-
-                    if (
-                        this.formArray.get([0]).value.handicapCats &&
-                        this.formArray.get([0]).value.prizeCategoryC != '' &&
-                        this.formArray.get([0]).value.prizeCategoryD != ''
-                    ) {
-                        TCdata = {
-                            lowerLimitStart: -1,
-                            lowerLimitEnd: this.formArray.get([0]).value
-                                .handicapCats
-                                ? this.formArray.get([0]).value.prizeCategoryC
-                                : '',
-                            upperLimitStart: this.formArray.get([0]).value
-                                .handicapCats
-                                ? this.formArray.get([0]).value.prizeCategoryD
-                                : '',
-                            upperLimitEnd: 18,
-                        };
-                    }
-                }
+                let TCdata: any = this.buildCategoryHandicapLimits(
+                    this.formArray.get([0]).value.clubctgies[index]
+                );
 
                 let prizeInfo: any;
 
@@ -3123,32 +3101,9 @@ export class AddTournamentComponent implements OnInit {
         }
         for (let index in this.formArray.get([0]).value.clubctgies) {
             if (this.formArray.get([0]).value.clubctgies[index].checked) {
-                let TCdata: any;
-                if (
-                    this.formArray
-                        .get([0])
-                        .value.clubctgies[index].name.replace(/\s/g, '')
-                        .toLowerCase() ==
-                    Constants.CATEGORY_AMATEURS.replace(/\s/g, '').toLowerCase()
-                ) {
-                    //this.TCdata.lowerLimitStart = 1;
-                    //this.TCdata.lowerLimitEnd = this.formArray.get([0]).value.prizeCategoryA;
-
-                    if (this.formArray.get([0]).value.handicapCats) {
-                        TCdata = {
-                            lowerLimitStart: 1,
-                            lowerLimitEnd: this.formArray.get([0]).value
-                                .handicapCats
-                                ? this.formArray.get([0]).value.prizeCategoryA
-                                : '',
-                            upperLimitStart: this.formArray.get([0]).value
-                                .handicapCats
-                                ? this.formArray.get([0]).value.prizeCategoryB
-                                : '',
-                            upperLimitEnd: 18,
-                        };
-                    }
-                }
+                let TCdata: any = this.buildCategoryHandicapLimits(
+                    this.formArray.get([0]).value.clubctgies[index]
+                );
 
                 let prizeInfo: any;
 

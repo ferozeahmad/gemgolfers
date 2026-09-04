@@ -46,9 +46,9 @@ export class StrokePlayComponent implements OnInit, OnChanges {
     isNet: boolean = false;
 
     selectedCategoryValue: string = '';
-    eventCategories: string[] = [];
+    eventCategories: any[] = [];
     tRounds: any[] = [];
-    categoryLimit: number;
+    categoryLimit: string;
     constructor(
         public dialog: MatDialog, public facadeService: FacadeService
     ) {
@@ -77,12 +77,8 @@ export class StrokePlayComponent implements OnInit, OnChanges {
                         return a.default == true;
                     });
                 const fullCategory = this.selectedCategory.category;
-                if (this.selectedCategory.lowerHandicap) {
-                    this.categoryLowerLimt = this.selectedCategory.lowerHandicap;
-                }
-                if (this.selectedCategory.higherHandicap) {
-                    this.categoryUpperLimt = this.selectedCategory.higherHandicap;
-                }
+                this.categoryLimit = this.hasLimits(this.selectedCategory) ? '0' : undefined;
+                this.applyCategoryLimit(this.selectedCategory, this.categoryLimit);
                 const match = fullCategory.match(/^([^(]+)/); // Match everything before '(' or entire string
 
                 this.selectedCategoryValue = match ? match[1].trim() : fullCategory;
@@ -584,15 +580,17 @@ export class StrokePlayComponent implements OnInit, OnChanges {
     }
     hasLimits(categoryData): boolean {
         if (!categoryData.handicapLimits) return false;
-
+        const l = categoryData.handicapLimits;
+        // lowerLimitStart can legitimately be negative (a "plus" handicap), so only the
+        // relative ordering of the two ranges is validated here, not a >= 0 floor.
         return (
-            categoryData.handicapLimits.lowerLimitStart >= 0 &&
-            categoryData.handicapLimits.lowerLimitEnd >
-            categoryData.handicapLimits.lowerLimitStart &&
-            categoryData.handicapLimits.upperLimitStart >
-            categoryData.handicapLimits.lowerLimitEnd &&
-            categoryData.handicapLimits.upperLimitEnd >
-            categoryData.handicapLimits.upperLimitStart
+            l.lowerLimitStart != null &&
+            l.lowerLimitEnd != null &&
+            l.upperLimitStart != null &&
+            l.upperLimitEnd != null &&
+            l.lowerLimitEnd > l.lowerLimitStart &&
+            l.upperLimitStart > l.lowerLimitEnd &&
+            l.upperLimitEnd > l.upperLimitStart
         );
     }
 
@@ -603,6 +601,31 @@ export class StrokePlayComponent implements OnInit, OnChanges {
             categoryData.handicapLimits.middleLimitEnd >
             categoryData.handicapLimits.middleLimitStart
         );
+    }
+
+    // Sets categoryLowerLimt (max handicap, inclusive) / categoryUpperLimt (min handicap, inclusive)
+    // from the selected category's handicapLimits tier ('0' lower / '1' middle / '2' upper),
+    // falling back to the legacy lowerHandicap/higherHandicap columns when no tiers are set.
+    applyCategoryLimit(categoryData: any, tier?: string): void {
+        if (categoryData && this.hasLimits(categoryData)) {
+            const limits = categoryData.handicapLimits;
+            if (tier === '2') {
+                this.categoryUpperLimt = limits.upperLimitStart;
+                this.categoryLowerLimt = limits.upperLimitEnd;
+            } else if (tier === '1' && this.hasMiddleLimits(categoryData)) {
+                this.categoryUpperLimt = limits.middleLimitStart;
+                this.categoryLowerLimt = limits.middleLimitEnd;
+            } else {
+                this.categoryUpperLimt = limits.lowerLimitStart;
+                this.categoryLowerLimt = limits.lowerLimitEnd;
+            }
+        } else if (categoryData?.lowerHandicap || categoryData?.higherHandicap) {
+            this.categoryLowerLimt = categoryData.lowerHandicap ?? 90;
+            this.categoryUpperLimt = categoryData.higherHandicap ?? 0;
+        } else {
+            this.categoryLowerLimt = 90;
+            this.categoryUpperLimt = 0;
+        }
     }
     filterByQuery(query) {
         if (query.length > 3) {
@@ -644,29 +667,24 @@ export class StrokePlayComponent implements OnInit, OnChanges {
         //console.log('TAb Changes');
 
         this.activeRound = this.Leaderboard.activeRound;
-        let originalCategory: string = '';
-        if (item.tab.textLabel.search('#') == -1) {
-            originalCategory = item.tab.textLabel;
-        } else {
-            let splitted = item.tab.textLabel.split('#', 3);
+        // The tab's visible text label includes the "(range)" suffix for tiered categories, so it
+        // can't be split on '#' — look up the underlying eventCategories entry (Value = "Category#tier") by tab index instead.
+        const selectedEventCat = this.eventCategories[item.index];
+        const value: string = selectedEventCat ? selectedEventCat.Value : item.tab.textLabel;
+        let originalCategory: string = value;
+        if (value && value.indexOf('#') !== -1) {
+            let splitted = value.split('#', 2);
             originalCategory = splitted[0];
             this.categoryLimit = splitted[1];
+        } else {
+            this.categoryLimit = undefined;
         }
 
         this.selectedCategory = this.Leaderboard.CategoriesQL.find(
             (c) => c.category === originalCategory
         );
         const fullCategory = this.selectedCategory.category;
-        if (this.selectedCategory.lowerHandicap) {
-            this.categoryLowerLimt = this.selectedCategory.lowerHandicap;
-        } else {
-            this.categoryLowerLimt = 90
-        }
-        if (this.selectedCategory.higherHandicap) {
-            this.categoryUpperLimt = this.selectedCategory.higherHandicap;
-        } else {
-            this.categoryUpperLimt = 0
-        }
+        this.applyCategoryLimit(this.selectedCategory, this.categoryLimit);
         const match = fullCategory.match(/^([^(]+)/);
         this.selectedCategoryValue = match ? match[1].trim() : fullCategory;
         if (this.flightRound == 0) {

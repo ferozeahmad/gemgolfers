@@ -3888,8 +3888,24 @@ export class ViewTournamentComponent implements OnInit {
             categoryMap.get(p.category)!.push(p);
         }
 
-        const categories: { name: string; players: any[] }[] = [];
-        for (const [catName, catPlayers] of categoryMap) {
+        // A category with valid handicapLimits splits into a lower-bracket and an
+        // upper-bracket table (mirrors the stroke-play leaderboard's tab logic) —
+        // only stroke play scores every player individually against par, so this
+        // split only makes sense for that format.
+        const categoryDefs: any[] = tournament.CategoriesQL || [];
+        const isStrokePlay = tournament.matchFormat === matchFormat.STROKE_PLAY;
+        const hasHandicapLimits = (catDef: any): boolean => {
+            const l = catDef?.handicapLimits;
+            if (!l) return false;
+            return (
+                l.lowerLimitStart != null && l.lowerLimitEnd != null &&
+                l.upperLimitStart != null && l.upperLimitEnd != null &&
+                l.lowerLimitEnd > l.lowerLimitStart &&
+                l.upperLimitStart > l.lowerLimitEnd &&
+                l.upperLimitEnd > l.upperLimitStart
+            );
+        };
+        const finalizeCategory = (name: string, catPlayers: any[]): { name: string; players: any[] } => {
             const byGross = catPlayers.filter(p => p.totalGross > 0).sort((a, b) => a.totalGross - b.totalGross);
             const byNet = catPlayers.filter(p => p.totalNet > 0).sort((a, b) => a.totalNet - b.totalNet);
             byGross.forEach((p, i) => { p.grossPos = i + 1; });
@@ -3903,7 +3919,25 @@ export class ViewTournamentComponent implements OnInit {
                 if (!scoreB) return -1;
                 return scoreA - scoreB;
             });
-            categories.push({ name: catName, players: catPlayers });
+            return { name, players: catPlayers };
+        };
+
+        const categories: { name: string; players: any[] }[] = [];
+        for (const [catName, catPlayers] of categoryMap) {
+            const catDef = categoryDefs.find((c: any) => c.category === catName);
+            if (isStrokePlay && hasHandicapLimits(catDef)) {
+                const limits = catDef.handicapLimits;
+                const lowerPlayers = catPlayers.filter(p => Number(p.hcp) <= limits.lowerLimitEnd);
+                const upperPlayers = catPlayers.filter(p => Number(p.hcp) > limits.lowerLimitEnd);
+                if (lowerPlayers.length > 0) {
+                    categories.push(finalizeCategory(`${catName} (${limits.lowerLimitStart} - ${limits.lowerLimitEnd})`, lowerPlayers));
+                }
+                if (upperPlayers.length > 0) {
+                    categories.push(finalizeCategory(`${catName} (${limits.upperLimitStart} - ${limits.upperLimitEnd})`, upperPlayers));
+                }
+            } else {
+                categories.push(finalizeCategory(catName, catPlayers));
+            }
         }
 
         return { categories, completedRounds, pars: displayPars, nineHole };
