@@ -23,6 +23,7 @@ import {
 } from '../../../../shared/classes/general';
 import { LocalStorageService } from 'app/shared/services/localStorage';
 import { TournamentMember } from 'app/shared/models/tournament.model';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -53,10 +54,12 @@ export class DialogAddPlayerComponent implements OnInit {
         private route: ActivatedRoute,
         private location: Location,
         public snackBar: MatSnackBar,
-        public facadeService: FacadeService, public _localStorage: LocalStorageService
+        public facadeService: FacadeService, public _localStorage: LocalStorageService,
+        private logger: LogsService
     ) { }
 
     async ngOnInit() {
+        this.logger.log('Add Player Dialog Opened', "info", { tournamentID: this.data?.tournamentID });
         ////console.log(this.route.snapshot.paramMap.get("id"));
 
         this.route.paramMap.subscribe((params) => {
@@ -156,10 +159,12 @@ export class DialogAddPlayerComponent implements OnInit {
     }
 
     public onCancel = () => {
+        this.logger.log('Admin Click on Cancel in Add Player Dialog', "info");
         this.location.back();
     };
 
     public createPlayer = (playerFormValue: any) => {
+        this.logger.log('Admin Click on Save in Add Player Dialog', "info", { firstName: playerFormValue?.firstName, lastName: playerFormValue?.lastName, playerCategory: playerFormValue?.playerCategory, valid: this.playerForm?.valid });
         if (this.playerForm.valid) {
             this.executePlayerCreation(playerFormValue);
         }
@@ -226,6 +231,7 @@ export class DialogAddPlayerComponent implements OnInit {
             };
 
             await this.facadeService.insertTournamentMember([member]);
+            this.logger.log('Existing Player Added to Tournament from Add Player Dialog', "info", { tournamentId: member.tournamentId, playerId: member.playerId });
             this.dialogRef.close(existingPlayer);
             return;
         }
@@ -304,6 +310,7 @@ export class DialogAddPlayerComponent implements OnInit {
                     );
                     ////console.log(isSuccess);
                     if (isSuccess) {
+                        this.logger.log('Player Added Successfully from Add Player Dialog', "info", { playerId: player.id });
                         this.snackBar.open('Player has been added.', 'x', {
                             duration: 5000,
                         });
@@ -333,6 +340,7 @@ export class DialogAddPlayerComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Close in Add Player Dialog', "info");
         this.dialogRef.close();
     }
 }

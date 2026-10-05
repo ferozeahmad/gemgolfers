@@ -29,6 +29,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectionModel } from '@angular/cdk/collections';
 import { FuseConfirmationDialogComponent } from '@fuse/services/confirmation/dialog/dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-signUp-report',
@@ -113,9 +114,11 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
         private _data: TournamentService, private _projectService: ProjectService,
         public dialog: MatDialog,
         public snackBar: MatSnackBar,
+        private logger: LogsService,
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Admin comes to Tournament Report Page', "info");
         this.scheduleForm = this.fb.group({
             startDate: ['', [Validators.required]],
             endDate: ['', [Validators.required]],
@@ -298,6 +301,7 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
         //console.log(this.dataMembers);
     }
     async toggleDetails(productId: string) {
+        this.logger.log('Admin Click on Details in Tournament Report Page', "info", productId);
         // If the product is already selected...
         if (this.selectedPlayer != null && this.selectedPlayer == productId) {
             // Close the details
@@ -321,6 +325,7 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
             productId
         );
         this.flightCount = count['flight_member'].length;
+        this.logger.log('Getting Flights Count Successfully in Tournament Report Page', "info", productId);
         const selectedPlayerElement = document.getElementById(productId);
         if (selectedPlayerElement) {
             selectedPlayerElement.classList.remove('warn');
@@ -458,6 +463,7 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
                 },
                 events: {
                     dataPointSelection: (e, chart, options) => {
+                        this.logger.log('Admin Click on Chart Month in Tournament Report Page', "info", this.labelsE[options.dataPointIndex]);
 
                         //console.log(options);
                         //console.log(this.labelsE[options.dataPointIndex]);
@@ -465,6 +471,7 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
                         this.facadeService.getTournamentListByDate(startDate.toString(), endDate.toString()).
                             subscribe((res) => {
                                 console.log(res);
+                                this.logger.log('Getting Tournaments List By Month Successfully in Tournament Report Page', "info", this.labelsE[options.dataPointIndex]);
                                 let rows = [];
                                 let count = 0;
                                 for (let item of res?.tournament) {
@@ -636,6 +643,7 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
     }
 
     Dailysetup(selectedValue) {
+        this.logger.log('Admin Select Date Filter in Tournament Report Page', "info", selectedValue.value);
         ////console.log(selectedValue)
         // this.lo.log('Getting Daily Round Data By Dropdown', "info", selectedValue.value.toString());
         if (selectedValue.value == Constants.DR_TODAY) {
@@ -686,6 +694,7 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
 
     onDatePick() {
         const result = this.scheduleForm.value.startDate + ',' + this.scheduleForm.value.endDate;
+        this.logger.log('Admin Click on Search By Dates in Tournament Report Page', "info", result);
         // this.logger.log('Getting Daily Round Data By Dates', "info", result.toString());
         //console.log(this.scheduleForm.value.startDate);
         //console.log(this.scheduleForm.value.endDate);
@@ -716,11 +725,13 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
         }
     }
     navigateToTournament(tournamentId: string) {
+        this.logger.log('Admin Click on View Tournament in Tournament Report Page', "info", tournamentId);
         this.location.navigate(['/tournaments/view', tournamentId]);
     }
 
     /** Selects all rows if they are not all selected; otherwise clear selection. */
     masterToggle() {
+        this.logger.log('Admin Click on Select All in Tournament Report Page', "info");
         //console.log(this.selection);
         //console.log(this.selection.selected.length);
         this.isAllSelected()
@@ -739,6 +750,7 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
             } player ${row.firstName} ${row.lastName}`;
     }
     exportToExcel(): void {
+        this.logger.log('Admin Click on Export to Excel in Tournament Report Page', "info", this.selection.selected.length);
 
         const data = this.selection.selected.map((item) => {
             // Create a new object without the 'Details' column
@@ -752,9 +764,11 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
 
         // Export the Excel file
         XLSX.writeFile(wb, 'Tournaments_report.xlsx');
+        this.logger.log('Tournaments exported to Excel successfully', "info");
         this.selection.clear();
     }
     deleteTournaments(): void {
+        this.logger.log('Admin Click on Delete Tournaments in Tournament Report Page', "info", this.selection.selected.length);
         const data = this.selection.selected;
         const dialogRef = this.dialog.open(FuseConfirmationDialogComponent, {
             data: {
@@ -783,10 +797,13 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
 
         dialogRef.afterClosed().subscribe(result => {
             // this.logger.info("Dialog for confirmation is close", result);
+            this.logger.log('Delete Tournaments confirmation dialog closed in Tournament Report Page', "info", result);
             if (result === 'confirmed') {
                 const deletedtournaments = data.map(element => element.id);
+                this.logger.log('Deleting Tournaments', "info", deletedtournaments);
                 this._data.deleteTournaments(deletedtournaments).then(res => {
                     if (res) {
+                        this.logger.log('Tournaments deleted successfully', "info", deletedtournaments);
                         for (let index in data) {
                             const leadSourceIndex =
                                 this.dataSource.data.findIndex(
@@ -806,6 +823,7 @@ export class TournamentReportComponent implements OnInit, AfterViewInit {
                         this.dataSource._updateChangeSubscription();
                         this.selection.clear();
                     } else {
+                        this.logger.log('Deleting Tournaments Failed', "error", deletedtournaments);
                         this.snackBar.open("Error!Please try again later.", "close", {
                             duration: 5 * 3000,
                         });

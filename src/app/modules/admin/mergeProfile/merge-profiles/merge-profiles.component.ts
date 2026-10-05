@@ -12,6 +12,7 @@ import { DialogMergeComponent } from '../../dialogs/dialog-merge-profile/dialog-
 import { MatDialog } from '@angular/material/dialog';
 import { Constants } from 'app/shared/classes/general';
 import { LocalStorageService } from 'app/shared/services/localStorage';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-merge-profiles',
@@ -54,8 +55,11 @@ export class MergeProfilesComponent implements OnInit {
         private handicapService: HandicapService,
         public snackBar: MatSnackBar,
         public dialog: MatDialog, private _localStorage: LocalStorageService,
+        private logger: LogsService,
     ) { }
     async ngOnInit() {
+        this.logger.log('Admin comes to Merge Profiles Page', "info");
+        this.logger.log('Getting Players Data in Merge Profiles Page', "info");
         let rows = [];
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
         of(this.Players)
@@ -96,6 +100,7 @@ export class MergeProfilesComponent implements OnInit {
                     this.DataSourceA.sort = this.Asort;
                     this.DataSourceB.paginator = this.Bpaginator;
                     this.DataSourceB.sort = this.Bsort;
+                    this.logger.log('Getting Players Data in Merge Profiles Page Successful', "info", { count: rows.length });
                 },
                 (error) => console.log('error')
             );
@@ -104,6 +109,7 @@ export class MergeProfilesComponent implements OnInit {
     async mergeProfiles() {
         let oldPlayer = Object.assign({}, this.selectionA.selected);
         let newPlayer = Object.assign({}, this.selectionB.selected);
+        this.logger.log('Admin Click on Merge Profiles in Merge Profiles Page', "info", { oldPlayerId: oldPlayer[0]?.id, newPlayerId: newPlayer[0]?.id });
 
         const dialogRef = this.dialog.open(DialogMergeComponent, {
             width: '350px',
@@ -115,6 +121,7 @@ export class MergeProfilesComponent implements OnInit {
         dialogRef.afterClosed().subscribe(async (result) => {
             //console.log(result);
             if (result != undefined) {
+                this.logger.log('Admin confirmed Merge Profiles dialog, merging players', "info", { oldPlayerId: oldPlayer[0]?.id, newPlayerId: newPlayer[0]?.id, count: result });
                 let response = await this._facadeService.mergePlayers(
                     oldPlayer[0].id,
                     newPlayer[0].id
@@ -129,6 +136,7 @@ export class MergeProfilesComponent implements OnInit {
                         .calculateHandicap(obj)
                         .then((response) => {
                             //console.log(response);
+                            this.logger.log('Players merged and handicap calculated successfully', "info", obj);
                             this.snackBar.open(
                                 'Players are Merged and Handicap Calculated Successfully.',
                                 'x',
@@ -141,6 +149,7 @@ export class MergeProfilesComponent implements OnInit {
                         })
                         .catch((err) => {
                             //console.log('error' + err);
+                            this.logger.log('Calculating handicap after merging players Failed', "error", err?.toString());
                             this.snackBar.open('Error!.', 'x', {
                                 duration: 5000,
                             });
@@ -166,6 +175,7 @@ export class MergeProfilesComponent implements OnInit {
                     //         });
                     //     });
                 } else if (response == true) {
+                    this.logger.log('Players merged successfully', "info");
                     this.selectionA.clear(true);
                     this.selectionB.clear(true);
                     this.snackBar.open(
@@ -176,10 +186,13 @@ export class MergeProfilesComponent implements OnInit {
                         }
                     );
                 } else {
+                    this.logger.log('Merging players Failed', "error");
                     this.snackBar.open('Error!.', 'x', {
                         duration: 5000,
                     });
                 }
+            } else {
+                this.logger.log('Admin cancelled Merge Profiles dialog', "info");
             }
         });
     }

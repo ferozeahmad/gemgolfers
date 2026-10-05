@@ -8,6 +8,7 @@ import { FacadeService } from '../../../../shared/services/facade.service';
 import { General, UniqueIdGenerator, Constants } from '../../../../shared/classes/general';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LocalStorageService } from 'app/shared/services/localStorage';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -29,10 +30,12 @@ export class DialogClubScheduleComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<DialogClubScheduleComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any, private fb: FormBuilder,
-    private facadeService: FacadeService, public snackBar: MatSnackBar, private _localStorage: LocalStorageService
+    private facadeService: FacadeService, public snackBar: MatSnackBar, private _localStorage: LocalStorageService,
+    private logger: LogsService
   ) {}
 
   async ngOnInit() {
+    this.logger.log('Club Schedule Dialog Opened', "info");
     this.scheduleForm = this.fb.group({
       courseId: ["", Validators.required],
       tournamentTitle: ["", Validators.required],
@@ -57,6 +60,7 @@ export class DialogClubScheduleComponent implements OnInit {
   }
 
   onSubmit() {
+    this.logger.log('Admin Click on Add Schedule in Club Schedule Dialog', "info", { courseId: this.scheduleForm?.value?.courseId, tournamentTitle: this.scheduleForm?.value?.tournamentTitle });
     // TODO: Use EventEmitter with form value
     
    this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
@@ -76,6 +80,7 @@ export class DialogClubScheduleComponent implements OnInit {
     let result = this.facadeService.AddClubSchedule(schedule);
 
     if(result) {
+      this.logger.log('Club Schedule Added Successfully', "info", { id: schedule.id, tournamentTitle: schedule.tournamentTitle });
       this.snackBar.open("Schedule has been added.", "x", {
         duration: 5000,
       });

@@ -107,10 +107,12 @@ export class DailyPlayerReportComponent implements OnInit, AfterViewInit {
   }
   async getTotalReport(todayDate: Date) {
     let players: any;
+    this.logger.log('Getting Daily Players Round Data By Date', "info", todayDate);
     players = await this.facadeService.getFlightPlayedAdmin(
       '-LUFS3FCQKOGpJ2IEHmf',
       this.datePipe.transform(todayDate.toString(), 'yyyy-MM-dd')
     );
+    this.logger.log('Getting Daily Players Round Data By Date Successfully', "info", players?.['flight']?.length);
 
     //console.log(players);
 

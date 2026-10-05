@@ -3,6 +3,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { FacadeService } from 'app/shared/services/facade.service';
 import { Subject } from 'rxjs';
 import { Router } from '@angular/router';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-league-members-list',
@@ -21,10 +22,12 @@ export class LeagueMembersListComponent implements OnInit {
     constructor(
         private _facadeService: FacadeService,
         private _changeDetectorRef: ChangeDetectorRef,
-        private _router: Router
+        private _router: Router,
+        private logger: LogsService
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Admin comes to League Members List in League Detail Page', "info", this.leagueId);
         if (this.leagueId) {
             this.loadLeagueMembers();
         }
@@ -36,6 +39,7 @@ export class LeagueMembersListComponent implements OnInit {
     }
 
     async loadLeagueMembers(): Promise<void> {
+        this.logger.log('Getting League Members Data', "info", this.leagueId);
         this.isLoading = true;
         this._changeDetectorRef.markForCheck();
         try {
@@ -48,7 +52,9 @@ export class LeagueMembersListComponent implements OnInit {
                 Category: m.player.playerCategory,
             }));
             this.dataSource = new MatTableDataSource(members);
+            this.logger.log('Getting League Members Data Successful', "info", { leagueId: this.leagueId, count: members.length });
         } catch (error) {
+            this.logger.log('Getting League Members Data Failed', "error", error.toString());
             console.error('Error loading league members:', error);
         } finally {
             this.isLoading = false;
@@ -57,6 +63,7 @@ export class LeagueMembersListComponent implements OnInit {
     }
 
     viewUserProfile(userId: string): void {
+        this.logger.log('Admin Click on View Player Profile in League Members List', "info", userId);
         this._router.navigate(['/players/viewProfile/', userId]);
     }
 }

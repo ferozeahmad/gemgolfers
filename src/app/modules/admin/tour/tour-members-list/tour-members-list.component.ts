@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDet
 import { MatTableDataSource } from '@angular/material/table';
 import { Subject } from 'rxjs';
 import { FacadeService } from 'app/shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -20,10 +21,12 @@ export class TourMembersListComponent implements OnInit, OnDestroy {
 
     constructor(
         private _facadeService: FacadeService,
-        private _changeDetectorRef: ChangeDetectorRef
+        private _changeDetectorRef: ChangeDetectorRef,
+        private logger: LogsService
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Admin comes to Tour Members List in Tour Detail Page', "info", this.tourId);
         if (this.tourId) {
             this.loadTourMembers();
         }
@@ -35,6 +38,7 @@ export class TourMembersListComponent implements OnInit, OnDestroy {
     }
 
     async loadTourMembers(): Promise<void> {
+        this.logger.log('Getting Tour Members Data', "info", this.tourId);
         this.isLoading = true;
         this._changeDetectorRef.markForCheck();
         try {
@@ -47,7 +51,9 @@ export class TourMembersListComponent implements OnInit, OnDestroy {
                 Category: m.player.playerCategory,
             }));
             this.dataSource = new MatTableDataSource(members);
+            this.logger.log('Getting Tour Members Data Successful', "info", { tourId: this.tourId, count: members.length });
         } catch (error) {
+            this.logger.log('Getting Tour Members Data Failed', "error", error.toString());
             console.error('Error loading tour members:', error);
         } finally {
             this.isLoading = false;

@@ -12,6 +12,7 @@ import { TournamentMember } from 'app/shared/models/tournament.model';
 import { FacadeService } from 'app/shared/services/facade.service';
 import * as XLSX from 'xlsx';
 import { read, utils } from 'xlsx';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-uncompleted',
@@ -47,10 +48,12 @@ export class DialogPlayersComponent implements OnInit {
         public dialogRef: MatDialogRef<DialogPlayersComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any,
         private facadeService: FacadeService,
-      
+        private logger: LogsService,
+
     ) {}
 
     ngOnInit() {
+        this.logger.log('Report Players Dialog Opened', "info", { players: this.data?.players?.length });
         //console.log(this.data);
 
         this.playerList = this.data.players;
@@ -71,6 +74,7 @@ export class DialogPlayersComponent implements OnInit {
     }
 
     public downloadAsPDF() {
+        this.logger.log('Admin Click on Download PDF in Report Players Dialog', "info", this.data?.key);
         var doc = new jsPDF();
         let date=new Date(this.data.date).getDate() +'/'+(new Date(this.data.date).getMonth()+1) +'/'+new Date(this.data.date).getFullYear(); 
         var day=new Date(this.data.date).getDay()-1;
@@ -105,15 +109,18 @@ export class DialogPlayersComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Report Players Dialog', "info");
         this.dialogRef.close();
     }
 
-   
+
     close() {
+        this.logger.log('Admin Click on Close in Report Players Dialog', "info");
         this.dialogRef.close();
     }
 
     exportToExcel(): void {
+        this.logger.log('Admin Click on Export to Excel in Report Players Dialog', "info", { players: this.dataSource?.data?.length });
 
         const data = this.dataSource.data.map((item) => {
             // Create a new object without the 'Details' column
@@ -127,6 +134,7 @@ export class DialogPlayersComponent implements OnInit {
 
         // Export the Excel file
         XLSX.writeFile(wb, 'Players_report.xlsx');
+        this.logger.log('Players report exported to Excel successfully', "info");
         this.selection.clear();
     }
 }

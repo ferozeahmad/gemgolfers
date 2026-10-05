@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -23,10 +24,12 @@ export class DialogHanidcapListComponent implements OnInit {
 
   constructor(
     public dialogRef: MatDialogRef<DialogHanidcapListComponent>,
+    private logger: LogsService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 
   ngOnInit() {
+    this.logger.log('Handicap List Dialog Opened', "info", { handicaps: this.data?.handicaps?.length, Whs: this.data?.Whs });
     this.handicapList = this.data.handicaps;
     this.IsWhs = this.data.Whs;
 
@@ -78,6 +81,7 @@ export class DialogHanidcapListComponent implements OnInit {
   }
 
   onNoClick(): void {
+    this.logger.log('Admin Click on Close in Handicap List Dialog', "info");
     this.dialogRef.close();
   }
 

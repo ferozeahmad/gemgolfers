@@ -25,6 +25,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatSort } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-dialog-add-tour',
@@ -41,10 +42,12 @@ export class DialogAddTourComponent implements OnInit {
     maxDate: Date;
     constructor(
         @Inject(MAT_DIALOG_DATA) public data: any,
-        public dialogRef: MatDialogRef<DialogAddTourComponent>
+        public dialogRef: MatDialogRef<DialogAddTourComponent>,
+        private logger: LogsService
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Add Tour Dialog Opened', "info");
         this.tourForm = new FormGroup({
             title: new FormControl('', [
                 Validators.required,
@@ -57,11 +60,13 @@ export class DialogAddTourComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Add Tour Dialog', "info");
         this.dialogRef.close();
     }
     onSubmit() {
     }
     createTour(value) {
+        this.logger.log('Admin Click on Save in Add Tour Dialog', "info", { title: value?.title, startDate: value?.startDate, endDate: value?.endDate });
         let result = {
             file: this.file,
             title: value.title,
@@ -75,6 +80,7 @@ export class DialogAddTourComponent implements OnInit {
         return this.tourForm.controls[controlName].hasError(errorName);
     };
     uploadAvatar(fileList: FileList): void {
+        this.logger.log('Admin Selects Logo File in Add Tour Dialog', "info", fileList?.[0]?.name);
         // Return if canceled
         if (!fileList.length) {
             this.pictureUrl = null;

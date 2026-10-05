@@ -5,6 +5,7 @@ import { fuseAnimations } from '@fuse/animations';
 import { FuseValidators } from '@fuse/validators';
 import { FuseAlertType } from '@fuse/components/alert';
 import { AuthService } from 'app/core/auth/auth.service';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -29,7 +30,8 @@ export class AuthResetPasswordComponent implements OnInit
      */
     constructor(
         private _authService: AuthService,
-        private _formBuilder: UntypedFormBuilder
+        private _formBuilder: UntypedFormBuilder,
+        private logger: LogsService
     )
     {
     }
@@ -43,6 +45,7 @@ export class AuthResetPasswordComponent implements OnInit
      */
     ngOnInit(): void
     {
+        this.logger.log('User comes to Reset Password Page', "info");
         // Create the form
         this.resetPasswordForm = this._formBuilder.group({
                 password       : ['', Validators.required],
@@ -63,6 +66,7 @@ export class AuthResetPasswordComponent implements OnInit
      */
     resetPassword(): void
     {
+        this.logger.log('User Click on Reset Password in Reset Password Page', "info");
         // Return if the form is invalid
         if ( this.resetPasswordForm.invalid )
         {
@@ -98,6 +102,7 @@ export class AuthResetPasswordComponent implements OnInit
                         type   : 'success',
                         message: 'Your password has been reset.'
                     };
+                    this.logger.log('Password Reset Successfully', "info");
                 },
                 (response) => {
 
@@ -106,6 +111,7 @@ export class AuthResetPasswordComponent implements OnInit
                         type   : 'error',
                         message: 'Something went wrong, please try again.'
                     };
+                    this.logger.log('Password Reset Failed', "error");
                 }
             );
     }

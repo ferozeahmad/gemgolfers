@@ -175,6 +175,7 @@ export class PairManagementComponent implements OnInit {
     }
 
     masterToggleM() {
+        this.logger.log('Admin Click on Select All Players in Pair Management Page', "info");
         //console.log(this.selection);
         //console.log(this.selection.selected.length);
         this.isAllSelectedM()
@@ -193,6 +194,7 @@ export class PairManagementComponent implements OnInit {
     }
 
     selectColor(color: string) {
+        this.logger.log('Admin Click on Pair Color in Pair Management Page', "info", color);
         this.selectedTeamColor = color;
         this.teamForm.get('teamColor')?.setValue(color);
     }
@@ -225,6 +227,7 @@ export class PairManagementComponent implements OnInit {
         }
     }
     removeTeamPlayer(playerId: string, teamId: string) {
+        this.logger.log('Admin Click on Remove Player from Pair in Pair Management Page', "info", { playerId: playerId, pairId: teamId });
         // Find the team with the given ID
         const teamToUpdate = this.selectedPairs.find(team => team.id === teamId);
 
@@ -240,6 +243,7 @@ export class PairManagementComponent implements OnInit {
 
 
     deletePair(teamId: string) {
+        this.logger.log('Admin Click on Delete Pair in Pair Management Page', "info", teamId);
         // Find the team being deleted
         const deletedTeam = this.selectedPairs.find(team => team.id === teamId);
 
@@ -268,6 +272,7 @@ export class PairManagementComponent implements OnInit {
 
 
     addSelectedPlayersToPair(pairId: string) {
+        this.logger.log('Admin Click on Add Selected Players to Pair in Pair Management Page', "info", { pairId: pairId, selectedCount: this.memberSelection.selected.length });
         const selectedPlayers = [...this.memberSelection.selected]; // array of selected players
         if (!selectedPlayers.length) return;
 
@@ -299,6 +304,7 @@ export class PairManagementComponent implements OnInit {
     }
 
     async saveTournamentPairs() {
+        this.logger.log('Admin Click on Save Pairs in Pair Management Page', "info", { tournamentId: this.tournamentID, pairsCount: this.selectedPairs.length });
         let tournamentPairs: any[] = [];
         let teamsMembersToRemove: any[] = [];
         // let selectionArray = Object.assign({}, this.selection.selected);
@@ -322,10 +328,12 @@ export class PairManagementComponent implements OnInit {
         );
 
         if (result) {
+            this.logger.log('Tournament Pairs saved successfully', "info", this.tournamentID);
             this.snackBar.open('Tournament Pairs have been saved.', 'x', {
                 duration: 2000,
             });
         } else {
+            this.logger.log('Saving Tournament Pairs Failed', "error", this.tournamentID);
             this.snackBar.open('Error!.Try Again', 'x', {
                 duration: 2000,
             });
@@ -335,6 +343,7 @@ export class PairManagementComponent implements OnInit {
     addPairs() {
         const teamName = this.teamForm.get('teamName')?.value?.trim();
         const teamColor = this.teamForm.get('teamColor')?.value;
+        this.logger.log('Admin Click on Create Pair in Pair Management Page', "info", { pairName: teamName, pairColor: teamColor });
 
         this.selectedPairs.push({
             id: UniqueIdGenerator.generate(),

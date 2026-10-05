@@ -15,6 +15,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Constants, General, UniqueIdGenerator, generateGemId } from 'app/shared/classes/general';
 import { Club } from 'app/shared/models/club.model';
 import { LocalStorageService } from 'app/shared/services/localStorage';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-dialog-player-list',
@@ -46,10 +47,12 @@ export class DialogPlayerListComponent implements OnInit {
         public dialogRef: MatDialogRef<DialogPlayerListComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any,
         private facadeService: FacadeService,
-        public snackBar: MatSnackBar, public _localStorage: LocalStorageService
+        public snackBar: MatSnackBar, public _localStorage: LocalStorageService,
+        private logger: LogsService
     ) { }
 
     async ngOnInit() {
+        this.logger.log('Player List Dialog Opened', "info", { tournamentID: this.data?.tournamentID, players: this.data?.players?.length });
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
         this.playerCategories = this.facadeService.getPlayerCategories();
         //console.log(this.data);
@@ -84,6 +87,7 @@ export class DialogPlayerListComponent implements OnInit {
 
     /** Selects all rows if they are not all selected; otherwise clear selection. */
     masterToggle() {
+        this.logger.log('Admin Toggles Select All in Player List Dialog', "info");
         //console.log(this.selection);
         //console.log(this.selection.selected.length);
         this.isAllSelected()
@@ -100,6 +104,7 @@ export class DialogPlayerListComponent implements OnInit {
             } player ${row.firstName} ${row.lastName}`;
     }
     public downloadAsPDF() {
+        this.logger.log('Admin Click on Download PDF in Player List Dialog', "info");
         var doc = new jsPDF();
 
         doc.setFontSize(18);
@@ -123,10 +128,12 @@ export class DialogPlayerListComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Player List Dialog', "info");
         this.dialogRef.close();
     }
 
     async saveTournamentMembers() {
+        this.logger.log('Admin Click on Save Tournament Members in Player List Dialog', "info", { tournamentID: this.data?.tournamentID, selected: this.selection?.selected?.length });
         let tournamentMember: TournamentMember[] = [];
         let counter: number;
         let DelplayerIndex: any;
@@ -176,6 +183,7 @@ export class DialogPlayerListComponent implements OnInit {
         );
 
         if (result) {
+            this.logger.log('Tournament Members Saved Successfully from Player List Dialog', "info", { tournamentID: this.data?.tournamentID, members: tournamentMember.length });
             this.snackBar.open('Tournament members have been saved.', 'x', {
                 duration: 3000,
             });
@@ -195,6 +203,7 @@ export class DialogPlayerListComponent implements OnInit {
         let text1 = '%';
         let text4 = '%';
         let result = text1.concat(fullName, text4);
+        this.logger.log('Admin Search Player by Name in Player List Dialog', "info", { fullName: fullName, handicap: handicap });
         //console.log('====================================');
         //console.log(fullName);
         //console.log('====================================');
@@ -219,6 +228,7 @@ export class DialogPlayerListComponent implements OnInit {
             );
             // this.player = matchingList['Result'];
             console.log(matchingList['Result']);
+            this.logger.log('Search Player by Name in Player List Dialog Successful', "info", { found: matchingList?.['Result']?.length });
             if (this._localStorage.isClubAdmin()) {
                 matchingList['Result'] = matchingList['Result'].filter((a) => {
                     return (
@@ -246,9 +256,11 @@ export class DialogPlayerListComponent implements OnInit {
         this.dataSource.sort = this.sort;
     }
     close() {
+        this.logger.log('Admin Click on Close in Player List Dialog', "info");
         this.dialogRef.close();
     }
     addNewPlayer() {
+        this.logger.log('Admin Click on Add New Player in Player List Dialog', "info");
         this.playerForm = new FormGroup({
             firstName: new FormControl('', [
                 Validators.required,
@@ -275,6 +287,7 @@ export class DialogPlayerListComponent implements OnInit {
     }
 
     public createPlayer = (playerFormValue: any) => {
+        this.logger.log('Admin Click on Create Player in Player List Dialog', "info", { firstName: playerFormValue?.firstName, lastName: playerFormValue?.lastName, playerCategory: playerFormValue?.playerCategory, valid: this.playerForm?.valid });
         if (this.playerForm.valid) {
             this.executePlayerCreation(playerFormValue);
         }
@@ -306,6 +319,7 @@ export class DialogPlayerListComponent implements OnInit {
             };
 
             await this.facadeService.insertTournamentMember([member]);
+            this.logger.log('Existing Player Added to Tournament from Player List Dialog', "info", { tournamentId: member.tournamentId, playerId: member.playerId });
             this.dialogRef.close(existingPlayer);
             return;
         }
@@ -376,6 +390,7 @@ export class DialogPlayerListComponent implements OnInit {
                     category: player.playerCategory,
                 };
                 await this.saveMembers(member);
+                this.logger.log('Player Created and Added to Tournament from Player List Dialog', "info", { tournamentId: member.tournamentId, playerId: player.id });
                 this.snackBar.open('Player has been created.', 'x', {
                     duration: 5000,
                 });

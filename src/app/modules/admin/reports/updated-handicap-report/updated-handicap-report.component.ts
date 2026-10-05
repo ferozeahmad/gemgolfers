@@ -374,6 +374,7 @@ export class UpdatedHandicapReportComponent implements OnInit {
         }
     }
     onPageFired(event) {
+        this.logger.log('Admin Change Page in Updated Handicap Report', "info", { pageIndex: event.pageIndex, pageSize: event.pageSize });
         this.index = event.pageIndex * event.pageSize;
         this.pageSize = event.pageSize;
         //console.log(this.index);
@@ -623,10 +624,12 @@ export class UpdatedHandicapReportComponent implements OnInit {
     }
 
     redirectToDetails = (id: string) => {
+        this.logger.log('Admin Click on View Player in Updated Handicap Report', "info", id);
         this.location.navigate(['/players/view/' + id]);
     };
 
     redirectToUpdate = (id: string) => {
+        this.logger.log('Admin Click on Update Player in Updated Handicap Report', "info", id);
         this.location.navigate(['/players/update/' + id]);
     };
 
@@ -687,6 +690,7 @@ export class UpdatedHandicapReportComponent implements OnInit {
 
         // Download PDF document
         doc.save('CONGU-Handicap Change Log.pdf');
+        this.logger.log('Congu Pdf Updated Handicap Report downloaded successfully', "info");
     }
     public downloadAsPDFWHS() {
         this.logger.log('Admin Click Download WHS Pdf Updated Handicap Report', "info");
@@ -740,6 +744,7 @@ export class UpdatedHandicapReportComponent implements OnInit {
 
         // Download PDF document
         doc.save('WHS-Handicap Change Log.pdf');
+        this.logger.log('WHS Pdf Updated Handicap Report downloaded successfully', "info");
     }
     onDatePick() {
         const combinedData = `StartDate=${this.scheduleForm.value.startDate}, EndDate=${this.scheduleForm.value.endDate}`;

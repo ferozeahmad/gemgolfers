@@ -173,6 +173,7 @@ export class TournamentsComponent implements OnInit {
                     }
                 }
             }
+            this.logger.log('Getting Tournaments Data Sucessfully', "info");
         } catch (error) {
             this.logger.log('Getting Tournaments Data Failed', "error", error.toString());
         }
@@ -189,6 +190,7 @@ export class TournamentsComponent implements OnInit {
     filterByCategory($event) {
         //console.log($event);
         try {
+            this.logger.log('Admin Select Category Filter in Tournament Page', "info", $event.value);
             if (this._localStorage.isClubAdmin()) {
                 if ($event.value == 1) {
                     this.selected = 1;
@@ -261,6 +263,7 @@ export class TournamentsComponent implements OnInit {
             this.isLoadingUpComing = false;
             this.Tournaments = dataTournamentsForCompleted.CompletedRecently;
             this.copiedcompletedTournaments = this.Tournaments;
+            this.logger.log('Getting Compeleted Tournaments Sucessfully', "info");
             this.isLoading = false;
         } catch (error) {
             this.logger.log('Getting Tournaments Data Failed', "error", error.toString());
@@ -333,6 +336,7 @@ export class TournamentsComponent implements OnInit {
                 );
             this.Tournaments = dataTournamentsLive.Incomplete;
             this.copiedTournamentsIncomplete = this.Tournaments;
+            this.logger.log('Getting Incompelete Tournaments Sucessfully', "info");
         } catch (error) {
             this.logger.log('Getting Tournaments Data Failed', "error", error.toString());
         }
@@ -441,6 +445,7 @@ export class TournamentsComponent implements OnInit {
 
 
     menuChange(a) {
+        this.logger.log('Admin Change Menu in Tournament Page', "info");
         this.selectedProject = 'Live';
         //console.log(a);
     }

@@ -274,6 +274,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
     }
 
     changeFlight(item) {
+        this.logger.log('Admin Change Flight filter in Tournament Score Page', "info", item.value);
         ////console.log("Selected value: " + item.value);
         this.ddSelectedFlight = item.value;
 
@@ -288,6 +289,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
     }
 
     changeCourse(item) {
+        this.logger.log('Admin Change Course filter in Tournament Score Page', "info", item.value);
         //console.log('Selected value: ' + item.value);
         this.selectedCourse = item.value;
 
@@ -302,6 +304,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
     }
 
     filterPlayerFlight(query) {
+        this.logger.log(query ? 'Admin Click on Search Player in Tournament Score Page' : 'Admin Click on Clear Search in Tournament Score Page', "info", query ? this.filters.get('name').value : undefined);
         if (query) {
             this.filterPlayer = this.filters.get('name').value;
         }
@@ -327,6 +330,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
     }
 
     async changeRound(item) {
+        this.logger.log('Round changed in Tournament Score Page', "info", { tournamentId: this.tournamentID, round: item.round });
         ////console.log("Selected value: " + item.value);
         let roundCourse;
         // if (this.active) {
@@ -389,6 +393,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
         // }
     }
     async generatePDFGross() {
+        this.logger.log('Admin Click on Download Gross Score PDF in Tournament Score Page', "info", this.tournamentID);
         const doc = new jsPDF("l", "mm", "a4"); // Landscape mode
         const pageWidth = (doc as any).internal.pageSize.width;
 
@@ -519,8 +524,10 @@ export class MatchplayComponent implements OnInit, OnChanges {
 
         // **Save PDF**
         doc.save("Golf_ScoreSheet.pdf");
+        this.logger.log('Gross Score PDF downloaded successfully', "info", this.tournamentID);
     }
     async generatePDFNet() {
+        this.logger.log('Admin Click on Download Net Score PDF in Tournament Score Page', "info", this.tournamentID);
         const doc = new jsPDF("l", "mm", "a4"); // Landscape mode
         const pageWidth = (doc as any).internal.pageSize.width;
 
@@ -651,6 +658,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
 
         // **Save PDF**
         doc.save("Golf_ScoreSheet.pdf");
+        this.logger.log('Net Score PDF downloaded successfully', "info", this.tournamentID);
     }
 
 
@@ -1515,6 +1523,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
     }
 
     viewPlayerScore(flight: any) {
+        this.logger.log('Admin Click on View Player Score in Tournament Score Page', "info");
         //console.log(flight);
 
         let player: any[] = flight.filter((a) => a);
@@ -1533,6 +1542,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
         try {
             // If no flightId provided, save all flights
             if (!flightId) {
+                this.logger.log('Admin Click on Save All Scores in Tournament Score Page', "info", { tournamentId: this.tournamentID, flightsCount: this.flightPlayers.length });
                 for (let flight of this.flightPlayers) {
                     await this.saveFlightScore(flight.flightId);
                 }
@@ -2192,6 +2202,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
 
             if (result) {
                 document.getElementById('savePlayer_' + playerId).classList.add('active')
+                this.logger.log('Tournament Player Score Data Saved', "info", playerId);
                 this.snackBar.open('Score has been submitted.', 'x', {
                     duration: 5000,
                 });
@@ -2210,6 +2221,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
     }
 
     copyRoundScore(round) {
+        this.logger.log('Admin Click on Copy Round Score in Tournament Score Page', "info", { tournamentId: this.tournamentID, round: round });
 
         this.facadeService.getTournamentsListByCourse(this.matchPlayData.courseId).then((res) => {
             let rows = [];
@@ -2237,6 +2249,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
                 console.log(resp);
 
                 if (resp) {
+                    this.logger.log('Copy Round Score dialog confirmed in Tournament Score Page', "info", { round: round });
                     let selectedTournament = res.tournament.find(a => a.id == resp[0].id);
                     console.log(selectedTournament);
                     let roundFlights = [];
@@ -2293,6 +2306,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
                     }
 
                     if (result) {
+                        this.logger.log('Round Score copied successfully', "info", { round: round, scoresCount: playerScores.length });
                         this.snackBar.open('Score has been copied.', 'x', {
                             duration: 5000,
                         });
@@ -2520,21 +2534,26 @@ export class MatchplayComponent implements OnInit, OnChanges {
     }
 
     redirectToScores() {
+        this.logger.log('Admin Click on Scores in Tournament Score Page', "info", this.tournamentID);
         this.router.navigate(['/matchplay/' + this.tournamentID]);
     }
 
     redirectToflightManagement() {
+        this.logger.log('Admin Click on Flight Management in Tournament Score Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/manage/' + this.tournamentID]);
     }
     redirectToDetail() {
+        this.logger.log('Admin Click on Tournament Detail in Tournament Score Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/view/' + this.tournamentID]);
     }
 
     redirectToAttendance() {
+        this.logger.log('Admin Click on Attendance in Tournament Score Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/attendance/' + this.tournamentID]);
     }
 
     redirectToLeaderboard() {
+        this.logger.log('Admin Click on Leaderboard in Tournament Score Page', "info", this.tournamentID);
         //this.router.navigate(['/leaderboard/' + this.tournamentID]);
 
         let url = this.router.createUrlTree([
@@ -2585,6 +2604,7 @@ export class MatchplayComponent implements OnInit, OnChanges {
     }
 
     changeView(view: 'player' | 'flight') {
+        this.logger.log('Admin Click on Change View in Tournament Score Page', "info", view);
         this.activeView = view;
     }
 }

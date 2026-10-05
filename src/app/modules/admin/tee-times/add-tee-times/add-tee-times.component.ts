@@ -154,6 +154,7 @@ export class AddTeeTimesComponent implements OnInit {
 
     async loadTeeTimeForEdit(id: string) {
         try {
+            this.logger.log('Getting Tee Time Data for Edit', "info", id);
             this.isLoading = true;
             const data = await this.facadeService.getTeeTimeById(id);
             const tt = data?.tee_time_booking?.[0];
@@ -222,7 +223,9 @@ export class AddTeeTimesComponent implements OnInit {
             }
 
             this.isLoading = false;
+            this.logger.log('Getting Tee Time Data for Edit Successfull', "info", id);
         } catch (err) {
+            this.logger.log('Getting Tee Time Data for Edit Failed', "error", err?.toString());
             this.isLoading = false;
             console.error('loadTeeTimeForEdit error', err);
         }
@@ -324,6 +327,7 @@ export class AddTeeTimesComponent implements OnInit {
             if (this.editMode) {
                 const response = await this.facadeService.updateTeeTimeSchedule(schedule, teeTimeSlots);
                 if (response) {
+                    this.logger.log('Tee Time updated successfully', "info", schedule.id);
                     this.snackBar.open('Tee Time has been updated.', 'x', { duration: 2000 });
                     this.isSaving = false;
                     this.router.navigate(['/teetimes']);
@@ -331,6 +335,7 @@ export class AddTeeTimesComponent implements OnInit {
             } else {
                 let response = await this.facadeService.AddTeeTimeSchedule(schedule);
                 if (response) {
+                    this.logger.log('Tee Time created successfully', "info", schedule.id);
                     this.snackBar.open('Tee Time has been created.', 'x', { duration: 2000 });
                     this.isSaving = false;
                     this.reset();
@@ -338,6 +343,7 @@ export class AddTeeTimesComponent implements OnInit {
                 }
             }
         } catch {
+            this.logger.log('Saving Tee Time Failed', "error");
             this.isSaving = false;
             this.snackBar.open('Something went wrong. Try again later.', 'x', {
                 duration: 5000,
@@ -488,6 +494,7 @@ export class AddTeeTimesComponent implements OnInit {
     public onCancel() { }
 
     teeChange(event: any) {
+        this.logger.log('Admin change Starting Tee Box in Add Tee Time Page', "info", event?.value);
         const selectedValues = event.value; // Get the selected values from the event
         console.log(event.value);
         const timingFormArray = this.scheduleForm.get('timing') as FormArray;
@@ -608,6 +615,7 @@ export class AddTeeTimesComponent implements OnInit {
     }
 
     addBreakPeriod(timingIndex: number) {
+        this.logger.log('Admin Click on Add Break Period in Add Tee Time Page', "info", timingIndex);
         this.getBreakPeriods(timingIndex).push(
             this.fb.group(
                 { breakStart: [''], breakEnd: [''] },
@@ -617,9 +625,11 @@ export class AddTeeTimesComponent implements OnInit {
     }
 
     removeBreakPeriod(timingIndex: number, breakIndex: number) {
+        this.logger.log('Admin Click on Remove Break Period in Add Tee Time Page', "info", { timingIndex, breakIndex });
         this.getBreakPeriods(timingIndex).removeAt(breakIndex);
     }
     guestTeeChange(event: any) {
+        this.logger.log('Admin change Guest Starting Tee Box in Add Tee Time Page', "info", event?.value);
         const selectedValues = event.value; // Get the selected values from the event
         console.log(event.value);
 
@@ -657,6 +667,7 @@ export class AddTeeTimesComponent implements OnInit {
     }
 
     public participantsChange(event) {
+        this.logger.log('Admin change Participants in Add Tee Time Page', "info", event?.value);
         console.log(event);
         if (event.value == '1') {
             this.showGuestTime = true;

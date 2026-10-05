@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FacadeService } from 'app/shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -19,7 +20,8 @@ export class LeagueLeaderboardComponent implements OnInit {
     selectedTab;
     constructor(
         private route: ActivatedRoute,
-        private facadeService: FacadeService
+        private facadeService: FacadeService,
+        private logger: LogsService
     ) {}
 
     ngOnInit(): void {
@@ -27,11 +29,13 @@ export class LeagueLeaderboardComponent implements OnInit {
             ////console.log(params.get("id"));
             this.leagueId = params.get('id');
         });
+        this.logger.log('User comes to League Leaderboard Page', "info", this.leagueId);
         this.fetchData();
         this.isLoading = false;
     }
 
     async fetchData() {
+        this.logger.log('Getting League Leaderboard Data', "info", this.leagueId);
         this.leagueTitle = await this.facadeService.getLeagueName(
             this.leagueId
         );
@@ -40,6 +44,7 @@ export class LeagueLeaderboardComponent implements OnInit {
         );
         //console.log(leaderboard);
         this.leagueQL = leaderboard['LeaderBoardQL'];
+        this.logger.log('Getting League Leaderboard Data Successful', "info", { leagueId: this.leagueId, count: this.leagueQL?.length });
         for (let obj of leaderboard['LeaderBoardQL']) {
             this.Leaders.push(obj);
         }
@@ -85,6 +90,7 @@ export class LeagueLeaderboardComponent implements OnInit {
         return 0;
     }
     changeleaderBoard(leader) {
+        this.logger.log('User Changed Tab in League Leaderboard Page', "info", leader?.tab?.textLabel);
         //console.log(leader);
 
         for (let obj of this.leagueQL) {

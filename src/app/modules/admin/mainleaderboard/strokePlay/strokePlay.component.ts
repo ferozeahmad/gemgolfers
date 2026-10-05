@@ -8,6 +8,7 @@ import { Score } from 'app/shared/classes/score';
 import { LeaderTypeValue } from 'app/shared/classes/leader';
 import { PlayersScoreLoader } from 'app/shared/helper/PlayersViewScore';
 import { FacadeService } from 'app/shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 import { matchFormat } from 'app/shared/models/tournament.model';
 
 @Component({
@@ -50,7 +51,7 @@ export class StrokePlayComponent implements OnInit, OnChanges {
     tRounds: any[] = [];
     categoryLimit: string;
     constructor(
-        public dialog: MatDialog, public facadeService: FacadeService
+        public dialog: MatDialog, public facadeService: FacadeService, private logger: LogsService
     ) {
         this.flightRound = 0;
     }
@@ -367,6 +368,7 @@ export class StrokePlayComponent implements OnInit, OnChanges {
         return style;
     }
     changeRound(item) {
+        this.logger.log('User Changed Round in Stroke Play Leaderboard', "info", item?.value);
         this.flightRound = item.value;
         if (item.value == '0') {
             if (this.lastActiveTab == 1) {
@@ -429,6 +431,7 @@ export class StrokePlayComponent implements OnInit, OnChanges {
         }
     }
     selectionChanged(item) {
+        this.logger.log('User Changed Gross/Net Selection in Stroke Play Leaderboard', "info", item?.value);
         this.activeRound = this.Leaderboard.activeRound;
         if (this.flightRound == 0) {
             if (item.value == LeaderTypeValue.GROSS) {
@@ -487,6 +490,7 @@ export class StrokePlayComponent implements OnInit, OnChanges {
         }
     }
     formatChange(event) {
+        this.logger.log('User Changed Format in Stroke Play Leaderboard', "info", event?.value);
         console.log(this.LeaderboardAllPlayers);
         console.log(this.LeaderboardAllPlayers);
         this.currentFormat = +event.value;
@@ -664,6 +668,7 @@ export class StrokePlayComponent implements OnInit, OnChanges {
         return hcAllocation;
     }
     changeCategory(item) {
+        this.logger.log('User Changed Category in Stroke Play Leaderboard', "info", item?.value ?? item?.tab?.textLabel);
         //console.log('TAb Changes');
 
         this.activeRound = this.Leaderboard.activeRound;
@@ -763,6 +768,7 @@ export class StrokePlayComponent implements OnInit, OnChanges {
         holeSetsInverted: string,
         scoreType: string
     ) {
+        this.logger.log('User Click on View Player Score in Stroke Play Leaderboard', "info", { name: name, playerId: playerId });
         let playerGrossScore: any[] = [];
         let playerNetScore: any[] = [];
         let playerPerTeam: any[];
@@ -781,6 +787,7 @@ export class StrokePlayComponent implements OnInit, OnChanges {
         }
         console.log(scoreResult);
 
+        this.logger.log('Player Score Loaded Successfully, Opening Score Dialog in Stroke Play Leaderboard', "info", playerId);
         const dialogRef = this.dialog.open(DialogPlayerScoreComponent, {
             data: {
                 name: name,

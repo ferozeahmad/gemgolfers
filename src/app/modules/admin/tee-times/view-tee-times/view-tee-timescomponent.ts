@@ -241,6 +241,7 @@ export class ViewTeeTimeComponent implements OnInit {
                     (error) => (this.isLoading = false)
                 );
         } catch (error) {
+            this.logger.log('Getting View Tee Time Data Failed', "error", error.toString());
 
         }
     }
@@ -335,15 +336,21 @@ export class ViewTeeTimeComponent implements OnInit {
 
             console.log(this.teeTimes);
         }
+        this.logger.log('Getting View Tee Time Data Successfull', "info", { date: date, slots: this.teeTimes.length });
     }
 
     async addGuest(item) {
+        this.logger.log('Admin Click on Add Guest in View Tee Time Page, Dialog Open', "info", { slotId: item?.id, flightId: item?.flightId });
 
 
         const dialogRef = this.dialog.open(DialogAddGuestComponent);
         dialogRef.afterClosed().subscribe(async (result) => {
             console.log(result);
+            if (!result) {
+                this.logger.log('Add Guest Dialog cancelled on View Tee Time Page', "info", item?.id);
+            }
             if (result) {
+                this.logger.log('Add Guest Dialog confirmed on View Tee Time Page', "info", { slotId: item?.id, guestName: result.firstName + ' ' + result.lastName });
                 let guest: any = {
                     flightId: item.flightId,
                     guestId: UniqueIdGenerator.generate(),
@@ -360,6 +367,7 @@ export class ViewTeeTimeComponent implements OnInit {
                     let result = <any>await this.facadeService.insertFlightGuest(item.id, [guest], count);
                     console.log(result);
                     if (result) {
+                        this.logger.log('Guest added to Tee Time Slot successfully', "info", { slotId: item?.id, guestId: guest.guestId });
                         let members = [];
                         item.joinedMembers = Number(count);
                         members.push(guest)
@@ -446,6 +454,7 @@ export class ViewTeeTimeComponent implements OnInit {
         }
     }
     filterByCategory(event: MatSelectChange): void {
+        this.logger.log('Admin filter by Category on View Tee Time Page', "info", event.value);
 
         const filterOption = event.value;
 
@@ -482,6 +491,7 @@ export class ViewTeeTimeComponent implements OnInit {
         }
     }
     filterByHoleSet(event: MatSelectChange): void {
+        this.logger.log('Admin filter by Hole Set on View Tee Time Page', "info", event.value?.displayName);
         const filterOption = event.value;
         if (event.value.displayName == 'All') {
             this.teeTimes = this.copyTeeTimes;
@@ -493,6 +503,7 @@ export class ViewTeeTimeComponent implements OnInit {
     }
 
     hideResult() {
+        this.logger.log('Admin Click on Back to list in View Tee Time Page', "info");
         this.router.navigate(['/teetimes']);
 
     }
@@ -542,6 +553,7 @@ export class ViewTeeTimeComponent implements OnInit {
         }
     }
     async openAddPlayersDialog(item: any) {
+        this.logger.log('Admin Click on Add Player in View Tee Time Page', "info", { slotId: item?.id, flightId: item?.flightId });
         console.log(item);
 
         let datas = await this.facadeService.getPlayersListForTournament(
@@ -554,8 +566,12 @@ export class ViewTeeTimeComponent implements OnInit {
         // Handle dialog close or dismiss if needed
         dialogRef.afterClosed().subscribe(result => {
             console.log(result);
+            if (!result) {
+                this.logger.log('Add Player Dialog cancelled on View Tee Time Page', "info", item?.id);
+            }
             if (result) {
                 let membersCount = Object.keys(result).length;
+                this.logger.log('Add Player Dialog confirmed on View Tee Time Page', "info", { slotId: item?.id, selectedPlayers: membersCount });
                 let flag: boolean = this.checkMembersCount(membersCount, item?.noOfPlayers);
                 // if (flag) {
                 for (var index in result) {
@@ -598,6 +614,7 @@ export class ViewTeeTimeComponent implements OnInit {
     }
 
     async createTournament(item, players, guestCheck) {
+        this.logger.log('Creating Round for Tee Time Slot', "info", { slotId: item?.id, guest: guestCheck });
 
         let courseId = this.loggedInUser.courseId ?? '-LUFS3FCQKOGpJ2IEHmf';
         // starterFormValue.roundDate = this.datepipe.transform(
@@ -611,6 +628,7 @@ export class ViewTeeTimeComponent implements OnInit {
                 this.routeDate
             );
             if (founded && founded.length > 0) {
+                this.logger.log('Creating Round for Tee Time Slot stopped, Player already played in a round today', "warn", member.playerId);
                 this.snackBar.open(
                     'Player already played in a round today.',
                     'x',
@@ -753,6 +771,7 @@ export class ViewTeeTimeComponent implements OnInit {
         let count = item.joinedMembers + this.flightMembers.length;
         let result = <any>await this.facadeService.addTournament(tournament, flight.id, item.id, count);
         if (result) {
+            this.logger.log('Round for Tee Time Slot created successfully', "info", { slotId: item?.id, tournamentId: tournament.id, flightId: flight.id });
             let members = [];
             item.joinedMembers = Number(count);
             for (var index in players) {
@@ -777,6 +796,7 @@ export class ViewTeeTimeComponent implements OnInit {
     }
 
     async insertFlightMember(item, member, players) {
+        this.logger.log('Adding Players to Tee Time Slot', "info", { slotId: item?.id, flightId: item?.flightId, players: this.flightMembers.length });
         let roundMembers: any[] = [];
         for (let member of this.flightMembers) {
             let founded = await this.facadeService.getPlayerTodayRound(
@@ -784,6 +804,7 @@ export class ViewTeeTimeComponent implements OnInit {
                 this.routeDate
             );
             if (founded && founded.length > 0) {
+                this.logger.log('Adding Players to Tee Time Slot stopped, Player already played in a round today', "warn", member.playerId);
                 this.snackBar.open(
                     'Player already played in a round today.',
                     'x',
@@ -807,6 +828,7 @@ export class ViewTeeTimeComponent implements OnInit {
         let result = <any>await this.facadeService.insertFlightMembers(item.id, roundMembers, count);
         console.log(result);
         if (result) {
+            this.logger.log('Players added to Tee Time Slot successfully', "info", { slotId: item?.id, flightId: item?.flightId, players: roundMembers.length });
             let members = [];
             item.joinedMembers = Number(count);
             for (var index in players) {
@@ -830,6 +852,7 @@ export class ViewTeeTimeComponent implements OnInit {
         }
     }
     deleteUser(item, slote: any) {
+        this.logger.log('Admin Click on Delete User in View Tee Time Page, Confirmation Dialog Open', "info", { memberId: item?.id, slotId: slote?.id, guest: item?.guest });
         const confirmation = this._fuseConfirmationService.open({
             title: 'Delete member',
             message:
@@ -844,11 +867,16 @@ export class ViewTeeTimeComponent implements OnInit {
         // Subscribe to the confirmation dialog closed action
         confirmation.afterClosed().subscribe(async (result) => {
             // If the confirm button pressed...
+            if (result !== 'confirmed') {
+                this.logger.log('Admin cancelled Delete User in View Tee Time Page', "info", item?.id);
+            }
             if (result === 'confirmed') {
+                this.logger.log('Admin confirmed Delete User in View Tee Time Page', "info", item?.id);
                 const count = slote.joinedMembers - 1;
                 if (!item.guest) {
                     let result = await this.facadeService.DeleteFlightMembers(slote.flightId, item.id, count);
                     if (result) {
+                        this.logger.log('Member deleted from Tee Time Slot successfully', "info", { memberId: item.id, flightId: slote.flightId });
                         const slot = this.teeTimes.find((slots) => slots.id == slote.id);
                         slot.joinedMembers--;
                         const index = slote.members.data.findIndex(member => member.id === item.id);
@@ -862,6 +890,7 @@ export class ViewTeeTimeComponent implements OnInit {
                 } else {
                     let result = await this.facadeService.DeleteGuestMembers(slote.flightId, item.id, count);
                     if (result) {
+                        this.logger.log('Guest deleted from Tee Time Slot successfully', "info", { guestId: item.id, flightId: slote.flightId });
                         const slot = this.teeTimes.find((slots) => slots.id == slote.id);
                         slot.joinedMembers--;
                         const index = slote.members.data.findIndex(member => member.id === item.id);

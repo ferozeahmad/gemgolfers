@@ -56,7 +56,9 @@ export class SetPasswordDialogComponent implements OnInit, OnDestroy {
     }
 
     async savePasswords(): Promise<void> {
+        this._logsService.log('Admin Click on Save Passwords in Set Password Dialog', 'INFO', { usersCount: this.usersWithPasswords.length });
         if (this.passwordForm.invalid) {
+            this._logsService.log('Set Password Dialog form is invalid', 'WARN');
             this._snackBar.open('Please fill in all passwords with at least 6 characters.', 'Close', { duration: 3000 });
             return;
         }
@@ -74,6 +76,7 @@ export class SetPasswordDialogComponent implements OnInit, OnDestroy {
                 } catch (error) {
                     user.status = 'error';
                     user.message = `Failed to update password: ${error.message}`;
+                    this._logsService.log('Updating Player Password Failed in Set Password Dialog', 'ERROR', { playerId: user.id, error: error?.message });
                     console.error(`Error updating password for ${user.Email}:`, error);
                 }
             } else {
@@ -82,9 +85,11 @@ export class SetPasswordDialogComponent implements OnInit, OnDestroy {
             }
         }
         this.isLoading = false;
+        this._logsService.log('Set Passwords processing completed in Set Password Dialog', 'INFO', { usersCount: this.usersWithPasswords.length, failedCount: this.usersWithPasswords.filter(u => u.status === 'error').length });
     }
 
     onClose(): void {
+        this._logsService.log('Admin Click on Close in Set Password Dialog', 'INFO');
         this.dialogRef.close();
     }
 

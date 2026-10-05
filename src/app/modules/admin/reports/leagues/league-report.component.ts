@@ -29,6 +29,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FuseConfirmationDialogComponent } from '@fuse/services/confirmation/dialog/dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-league-report',
@@ -115,9 +116,11 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
         private _data: LeagueService, private _projectService: ProjectService,
         public dialog: MatDialog,
         public snackBar: MatSnackBar,
+        private logger: LogsService,
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Admin Come to League Report Page', "info");
         this.scheduleForm = this.fb.group({
             startDate: ['', [Validators.required]],
             endDate: ['', [Validators.required]],
@@ -134,6 +137,7 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((data: any) => {
                 this.data = data;
+                this.logger.log('Getting League Report Data Successfully', "info", data?.league?.length);
                 console.log(data);
                 let d = new Date();
                 d.setDate(1);
@@ -294,6 +298,7 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
         //console.log(this.dataMembers);
     }
     async toggleDetails(productId: string) {
+        this.logger.log('Admin Click on Details in League Report Page', "info", productId);
         let dailyRoundCount = 0;
         let tournamentCount = 0;
         let leagueCount = 0;
@@ -320,6 +325,7 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
         let count = await this.facadeService.getLeaguesMembers(
             productId
         );
+        this.logger.log('Getting League Members Data Successfully', "info", productId);
         console.log(count);
 
         for (let obj of count['league'][0]?.members) {
@@ -473,12 +479,14 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
                 },
                 events: {
                     dataPointSelection: (e, chart, options) => {
+                        this.logger.log('Admin Click on Chart Month in League Report Page', "info", this.labelsE[options.dataPointIndex]);
 
                         //console.log(options);
                         //console.log(this.labelsE[options.dataPointIndex]);
                         const { startDate, endDate } = General.getMonthDates(this.labelsE[options.dataPointIndex]);
                         this.facadeService.getLeaguesListByDate(startDate.toString(), endDate.toString()).
                             subscribe((res) => {
+                                this.logger.log('Getting Leagues List By Date Successfully', "info", res?.league?.length);
                                 console.log(res);
                                 let rows = [];
                                 let count = 0;
@@ -568,6 +576,7 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
     }
 
     Dailysetup(selectedValue) {
+        this.logger.log('Getting League Report Data By Dropdown', "info", selectedValue?.value);
         ////console.log(selectedValue)
         // this.lo.log('Getting Daily Round Data By Dropdown', "info", selectedValue.value.toString());
         if (selectedValue.value == Constants.DR_TODAY) {
@@ -618,6 +627,7 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
 
     onDatePick() {
         const result = this.scheduleForm.value.startDate + ',' + this.scheduleForm.value.endDate;
+        this.logger.log('Getting League Report Data By Dates', "info", result);
         // this.logger.log('Getting Daily Round Data By Dates', "info", result.toString());
         //console.log(this.scheduleForm.value.startDate);
         //console.log(this.scheduleForm.value.endDate);
@@ -671,6 +681,7 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
             } player ${row.firstName} ${row.lastName}`;
     }
     exportToExcel(): void {
+        this.logger.log('Admin Click on Export to Excel in League Report Page', "info", this.selection.selected.length);
 
         const data = this.selection.selected.map((item) => {
             // Create a new object without the 'Details' column
@@ -684,9 +695,11 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
 
         // Export the Excel file
         XLSX.writeFile(wb, 'Leagues_report.xlsx');
+        this.logger.log('Leagues exported to Excel successfully', "info");
         this.selection.clear();
     }
     exportToExcelPlayers(): void {
+        this.logger.log('Admin Click on Export League Players to Excel in League Report Page', "info", this.selectedPlayer);
 
         const data = this.dataSourcePlayer.data.map((item) => {
             // Create a new object without the 'Details' column
@@ -700,11 +713,13 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
 
         // Export the Excel file
         XLSX.writeFile(wb, 'League_Players_report.xlsx');
+        this.logger.log('League Players exported to Excel successfully', "info");
         this.selection.clear();
     }
 
     deleteLeagues(): void {
         const data = this.selection.selected;
+        this.logger.log('Admin Click on Delete Leagues in League Report Page', "info", data.map(element => element.id));
         const dialogRef = this.dialog.open(FuseConfirmationDialogComponent, {
             data: {
                 title: 'Delete League(s)',
@@ -732,6 +747,7 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
 
         dialogRef.afterClosed().subscribe(result => {
             // this.logger.info("Dialog for confirmation is close", result);
+            this.logger.log(result === 'confirmed' ? 'Delete Leagues Dialog Confirmed' : 'Delete Leagues Dialog Cancelled', "info");
             if (result === 'confirmed') {
                 const deleteLeagues = data.map(element => element.id);
                 this._data.deleteLeagues(deleteLeagues).then(res => {
@@ -749,12 +765,14 @@ export class LeagueReportComponent implements OnInit, AfterViewInit {
                                 );
                             }
                         }
+                        this.logger.log('Leagues deleted successfully', "info", deleteLeagues);
                         this.snackBar.open("Leagues have been deleted.", "x", {
                             duration: 3000,
                         });
                         this.dataSource._updateChangeSubscription();
                         this.selection.clear();
                     } else {
+                        this.logger.log('Deleting Leagues Failed', "error", deleteLeagues);
                         this.snackBar.open("Error!Please try again later.", "close", {
                             duration: 5 * 3000,
                         });

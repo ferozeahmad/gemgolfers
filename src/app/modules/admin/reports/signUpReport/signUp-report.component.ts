@@ -27,6 +27,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Constants, General } from 'app/shared/classes/general';
 import { SelectionModel } from '@angular/cdk/collections';
 import { DialogPlayersComponent } from '../../dialogs/dialog-report-player/dialog-uncomplete.component';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-signUp-report',
@@ -95,9 +96,11 @@ export class SignUpReportComponent implements OnInit, AfterViewInit {
         private apollo: Apollo,
         private _data: SignUpService, private _projectService: ProjectService,
         public dialog: MatDialog,
+        private logger: LogsService,
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Admin comes to SignUp Report Page', "info");
         this.scheduleForm = this.fb.group({
             startDate: ['', [Validators.required]],
             endDate: ['', [Validators.required]],
@@ -226,6 +229,7 @@ export class SignUpReportComponent implements OnInit, AfterViewInit {
         console.log("end-match");
     }
     async toggleDetails(productId: string) {
+        this.logger.log('Admin Click on Player Details in SignUp Report Page', "info", productId);
         let dailyRoundCount = 0;
         let tournamentCount = 0;
         let leagueCount = 0;
@@ -254,6 +258,7 @@ export class SignUpReportComponent implements OnInit, AfterViewInit {
             productId
         );
         console.log(count);
+        this.logger.log('Getting Player Flights Successfully in SignUp Report Page', "info", productId);
 
         this.flightCount = count['flight_member'];
         for (let obj of this.flightCount) {
@@ -311,6 +316,7 @@ export class SignUpReportComponent implements OnInit, AfterViewInit {
                 },
                 events: {
                     dataPointSelection: (e, chart, options) => {
+                        this.logger.log('Admin Click on Chart Month in SignUp Report Page', "info", this.labelsE[options.dataPointIndex]);
 
                         //console.log(options);
                         //console.log(this.labelsE[options.dataPointIndex]);
@@ -318,6 +324,7 @@ export class SignUpReportComponent implements OnInit, AfterViewInit {
                         this._projectService.getPlayerData(startDate.toString(), endDate.toString()).
                             subscribe((res) => {
                                 //console.log(res);
+                                this.logger.log('Getting Players Data By Month Successfully in SignUp Report Page', "info", this.labelsE[options.dataPointIndex]);
                                 const dialogRef = this.dialog.open(DialogPlayersComponent, {
                                     data: { players: res.data?.player, key: 'all', date: startDate },
                                 });
@@ -394,6 +401,7 @@ console.log('end');
     }
 
     Dailysetup(selectedValue) {
+        this.logger.log('Admin Select Date Filter in SignUp Report Page', "info", selectedValue.value);
         ////console.log(selectedValue)
         // this.lo.log('Getting Daily Round Data By Dropdown', "info", selectedValue.value.toString());
         if (selectedValue.value == Constants.DR_TODAY) {
@@ -452,6 +460,7 @@ console.log('end');
 
     onDatePick() {
         const result = this.scheduleForm.value.startDate + ',' + this.scheduleForm.value.endDate;
+        this.logger.log('Admin Click on Search By Dates in SignUp Report Page', "info", result);
         // this.logger.log('Getting Daily Round Data By Dates', "info", result.toString());
         //console.log(this.scheduleForm.value.startDate);
         //console.log(this.scheduleForm.value.endDate);
@@ -484,6 +493,7 @@ console.log('end');
 
     /** Selects all rows if they are not all selected; otherwise clear selection. */
     masterToggle() {
+        this.logger.log('Admin Click on Select All in SignUp Report Page', "info");
         //console.log(this.selection);
         //console.log(this.selection.selected.length);
         this.isAllSelected()
@@ -502,6 +512,7 @@ console.log('end');
             } player ${row.firstName} ${row.lastName}`;
     }
     exportToExcel(): void {
+        this.logger.log('Admin Click on Export to Excel in SignUp Report Page', "info", this.selection.selected.length);
 
         const data = this.selection.selected.map((item) => {
             // Create a new object without the 'Details' column
@@ -515,6 +526,7 @@ console.log('end');
 
         // Export the Excel file
         XLSX.writeFile(wb, 'Players_report.xlsx');
+        this.logger.log('Players exported to Excel successfully', "info");
         this.selection.clear();
     }
 }

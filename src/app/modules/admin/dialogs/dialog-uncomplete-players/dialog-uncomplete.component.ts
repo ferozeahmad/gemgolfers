@@ -12,6 +12,7 @@ import { TournamentMember } from 'app/shared/models/tournament.model';
 import { FacadeService } from 'app/shared/services/facade.service';
 import * as XLSX from 'xlsx';
 import { read, utils } from 'xlsx';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-uncompleted',
@@ -57,10 +58,12 @@ export class DialogUncompletedComponent implements OnInit {
         public dialogRef: MatDialogRef<DialogUncompletedComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any,
         private facadeService: FacadeService,
+        private logger: LogsService,
 
     ) { }
 
     ngOnInit() {
+        this.logger.log('Round Players Dialog Opened', "info", { key: this.data?.key, players: this.data?.players?.length });
         //console.log(this.data);
 
         this.playerList = this.data.players;
@@ -81,6 +84,7 @@ export class DialogUncompletedComponent implements OnInit {
     }
 
     public downloadAsPDF() {
+        this.logger.log('Admin Click on Download PDF in Round Players Dialog', "info", { key: this.data?.key, players: this.dataSource?.data?.length });
         const doc = new jsPDF();
 
         let dateObj = new Date(this.data.date);
@@ -125,19 +129,23 @@ export class DialogUncompletedComponent implements OnInit {
         });
 
         doc.save('players.pdf');
+        this.logger.log('Round Players PDF downloaded successfully', "info");
     }
 
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Round Players Dialog', "info");
         this.dialogRef.close();
     }
 
 
     close() {
+        this.logger.log('Admin Click on Close in Round Players Dialog', "info");
         this.dialogRef.close();
     }
 
     exportToExcel(): void {
+        this.logger.log('Admin Click on Export to Excel in Round Players Dialog', "info", { players: this.dataSource?.data?.length });
 
         const data = this.dataSource.data.map((item) => {
             // Create a new object without the 'Details' column
@@ -151,6 +159,7 @@ export class DialogUncompletedComponent implements OnInit {
 
         // Export the Excel file
         XLSX.writeFile(wb, 'Players_report.xlsx');
+        this.logger.log('Round Players exported to Excel successfully', "info");
         this.selection.clear();
     }
 }

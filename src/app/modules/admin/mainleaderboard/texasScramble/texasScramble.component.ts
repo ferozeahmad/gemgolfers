@@ -8,6 +8,7 @@ import { Score } from 'app/shared/classes/score';
 import { LeaderTypeValue } from 'app/shared/classes/leader';
 import { PlayersScoreLoader } from 'app/shared/helper/PlayersViewScore';
 import { FacadeService } from 'app/shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 import { matchFormat } from 'app/shared/models/tournament.model';
 
 
@@ -31,7 +32,7 @@ export class ScrambleComponent implements OnInit, OnChanges {
     LeaderboardPlayers: any[] = [];
 
     constructor(
-        public dialog: MatDialog, private facadeService: FacadeService
+        public dialog: MatDialog, private facadeService: FacadeService, private logger: LogsService
     ) { }
     ngOnInit(): void {
         //console.log('a');
@@ -66,6 +67,7 @@ export class ScrambleComponent implements OnInit, OnChanges {
     }
 
     selectionChanged(item) {
+        this.logger.log('User Changed Gross/Net Selection in Scramble Leaderboard', "info", item?.value);
 
         if (item.value == LeaderTypeValue.GROSS) {
             this.isGross = true;
@@ -381,6 +383,7 @@ export class ScrambleComponent implements OnInit, OnChanges {
         holeSetsInverted: string,
         scoreType: string
     ) {
+        this.logger.log('User Click on View Player Score in Scramble Leaderboard', "info", { name: name, playerId: playerId });
         let playerGrossScore: any[] = [];
         let playerNetScore: any[] = [];
         let playerPerTeam: any[];
@@ -402,6 +405,7 @@ export class ScrambleComponent implements OnInit, OnChanges {
         }
         //console.log(scoreResult);
 
+        this.logger.log('Player Score Loaded Successfully, Opening Score Dialog in Scramble Leaderboard', "info", playerId);
         const dialogRef = this.dialog.open(DialogPlayerScoreComponent, {
             data: {
                 name: name,

@@ -368,7 +368,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
             // Get the contact object
 
             const contact = this.contactForm.getRawValue();
-            this.logger.log(`Contact form values: ${JSON.stringify(contact)}`, 'INFO');
+            this.logger.log(`Contact form values: ${JSON.stringify({ ...contact, password: undefined, confirmPassword: undefined })}`, 'INFO');
             if (this.contactForm.valid) {
                 if (!this.editMode && contact.email)
                     checkEmail = <Player>(
@@ -384,6 +384,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
                     );
 
                     if (alreadyInClub) {
+                        this.logger.log('Saving Player blocked in Player Edit Page: duplicate email, player already exists in this club', "warn");
                         const confirmation = this._fuseConfirmationService.open({
                             title: 'Duplicate Email',
                             message: 'Player already exists in this club.',
@@ -408,6 +409,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
                             (m) => m.clubId === this.loggedInuser.adminClubId
                         );
                         if (alreadyInClub) {
+                            this.logger.log('Saving Player blocked in Player Edit Page: duplicate membership number, player already exists in this club', "warn");
                             const confirmation = this._fuseConfirmationService.open({
                                 title: 'Duplicate Membership Number',
                                 message: 'Player already exists in this club.',
@@ -571,6 +573,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
             if (!this.editMode) {
                 const confirmPwd = this.contactForm.get('confirmPassword').value;
                 if (password !== confirmPwd) {
+                    this.logger.log('Saving Player blocked in Player Edit Page: passwords do not match', "warn");
                     this.snackBar.open('Passwords do not match.', 'x', { duration: 3000 });
                     return;
                 }
@@ -587,6 +590,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
                             if (re) {
                                 const isSuccess = <boolean>(await this._facadeService.AddPlayer(player));
                                 if (isSuccess) {
+                                    this.logger.log('Player created successfully in Player Edit Page', "info", player.id);
                                     this._facadeService.sendTransactionalEmail(player.email, player.firstName, password).subscribe();
                                     this.save = true;
                                     this.snackBar.open('Player has been created.', 'x', {
@@ -595,11 +599,13 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
                                     this.reset();
                                     this._router.navigate(['/players']);
                                 } else {
+                                    this.logger.log('Creating Player in DB Failed in Player Edit Page', "error", player.id);
                                     this.snackBar.open('Error creating player in DB. Please try again.', 'x', {
                                         duration: 1000,
                                     });
                                 }
                             } else {
+                                this.logger.log('Creating Firebase account Failed in Player Edit Page', "error", player.id);
                                 this.snackBar.open('Error creating Firebase account. Please try again.', 'x', {
                                     duration: 1000,
                                 });
@@ -623,6 +629,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
                             await this._facadeService.AddTourPlayer(player, tourMember)
                         );
                         if (isSuccess) {
+                            this.logger.log('Tour Player created successfully in Player Edit Page', "info", tourMember);
                             this.save = true;
                             this.snackBar.open('Player has been created.', 'x', {
                                 duration: 1000,
@@ -639,6 +646,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
                             await this._facadeService.AddLeaguePlayer(player, leagueMember)
                         );
                         if (isSuccess) {
+                            this.logger.log('League Player created successfully in Player Edit Page', "info", leagueMember);
                             this.save = true;
                             this.snackBar.open('Player has been created.', 'x', {
                                 duration: 1000,
@@ -751,6 +759,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
 
                 ////console.log(isSuccess);
                 if (isSuccess) {
+                    this.logger.log('Player updated successfully in Player Edit Page', "info", this.playerID);
                     this.save = true;
                     this.snackBar.open('Player has been updated.', 'x', {
                         duration: 1000,
@@ -809,6 +818,7 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
         return item.id || index;
     }
     cancel() {
+        this.logger.log('Admin Click on Cancel in Player Edit Page', "info", this.playerID);
         //console.log(this.contactForm.value);
 
         // this._router.navigate(['/players'], {
@@ -938,9 +948,11 @@ export class ContactsDetailsComponent implements OnInit, OnDestroy {
             .adjustHandicapWHS(obj)
             .then((response) => {
                 //console.log(response);
+                this.logger.log('Adjusting WHS Handicap Successful in Player Edit Page', "info", this.playerID);
             })
             .catch((err) => {
                 //console.log('error' + err);
+                this.logger.log('Adjusting WHS Handicap Failed in Player Edit Page', "error", err?.toString());
                 this.snackBar.open('Error!.', 'x', {
                     duration: 5000,
                 });

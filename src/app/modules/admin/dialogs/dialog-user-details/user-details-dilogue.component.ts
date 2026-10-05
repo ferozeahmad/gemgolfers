@@ -14,6 +14,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { DatePipe, formatDate } from "@angular/common";
 import { Constants } from "app/shared/classes/general";
 import { LocalStorageService } from "app/shared/services/localStorage";
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
   standalone: false,
@@ -47,9 +48,11 @@ export class UserDetailsDilogueComponent implements OnInit {
     private facadeService: FacadeService,
     private datePipe: DatePipe,
     private _localStorage: LocalStorageService,
+    private logger: LogsService,
   ) { }
 
   async ngOnInit() {
+    this.logger.log('User Details Dialog Opened', "info", { playerId: this.data?.id });
     this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
     //console.log(this.data);
     this.playerId = this.data.id;
@@ -98,6 +101,7 @@ export class UserDetailsDilogueComponent implements OnInit {
     });
 
     console.log(this.playerHandicapList);
+    this.logger.log('Getting Player Rounds in User Details Dialog Successful', "info", { playerId: this.playerId, rounds: this.playerHandicapList?.length });
     this.dataSource = new MatTableDataSource(this.playerHandicapList);
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
@@ -118,9 +122,11 @@ export class UserDetailsDilogueComponent implements OnInit {
   }
 
   onNoClick(): void {
+    this.logger.log('Admin Click on Close in User Details Dialog', "info");
     this.dialogRef.close();
   }
   public downloadAsPDFCongu() {
+    this.logger.log('Admin Click on Download PDF in User Details Dialog', "info", { playerId: this.playerId });
     var doc = new jsPDF();
     doc.setFontSize(15);
     doc.text(

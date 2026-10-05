@@ -10,6 +10,7 @@ import 'jspdf-autotable';
 import { SelectionModel } from '@angular/cdk/collections';
 import { TournamentMember } from 'app/shared/models/tournament.model';
 import { FacadeService } from 'app/shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-leagues-dailog',
@@ -29,10 +30,12 @@ export class DialogLeaguesComponent implements OnInit {
         public dialogRef: MatDialogRef<DialogLeaguesComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any,
         private facadeService: FacadeService,
-      
+        private logger: LogsService,
+
     ) {}
 
     ngOnInit() {
+        this.logger.log('Leagues Dialog Opened', "info", { tournaments: this.data?.tournaments?.length });
         //console.log(this.data);
 
         this.playerList = this.data.tournaments;
@@ -87,11 +90,13 @@ export class DialogLeaguesComponent implements OnInit {
     // }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Leagues Dialog', "info");
         this.dialogRef.close();
     }
 
-   
+
     close() {
+        this.logger.log('Admin Click on Close in Leagues Dialog', "info");
         this.dialogRef.close();
     }
 }

@@ -150,6 +150,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     selectedPlayers: { flightIndex: number, playerIndex: number }[] = [];
     showSwapFlightsButton: boolean = false;
     showSwapPlayersButton: boolean = false;
+    showMovePlayerButton: boolean = false;
     constructor(
         private _localStorage: LocalStorageService,
         private logger: LogsService,
@@ -298,11 +299,14 @@ export class FlightManagementComponent implements OnInit, OnChanges {
 
 
     createAutoFlights() {
+        this.logger.log('Admin Click on Create Auto-Groups in Flight Management Page', "info", this.tournamentID);
         let allowCat: boolean = false;
         //  let flights = this.dataFullTournament['TournamentQL'][0].FlightsQL;
         let startDate = this.tournamentInfo[0].startDate;
         startDate = new Date(startDate);
-        startDate.setDate(startDate.getDate());
+        // Round 1 uses the tournament start date as-is; round 2 adds a day, round 3 adds two days, etc.
+        let roundOffset = this.flightRound > 0 ? this.flightRound - 1 : 0;
+        startDate.setDate(startDate.getDate() + roundOffset);
         //console.log(startDate);
 
         let newstartDate = startDate.getDate();
@@ -384,6 +388,11 @@ export class FlightManagementComponent implements OnInit, OnChanges {
             //console.log(result);
             // console.log(allowCat);
 
+            if (result && result.category) {
+                this.logger.log('Create Auto-Groups dialog confirmed in Flight Management Page', "info", this.tournamentID);
+            } else {
+                this.logger.log('Create Auto-Groups dialog cancelled in Flight Management Page', "info", this.tournamentID);
+            }
             if (result && result.category) {
                 let teeBox: number;
 
@@ -621,6 +630,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     }
 
     public downloadAsPDFCat(noOfRounds) {
+        this.logger.log('Admin Click on Download Flights PDF (Category Wise) in Flight Management Page', "info", this.tournamentID);
         const doc = new jsPDF('portrait');
         const pageHeight = (doc as any).internal.pageSize.height;
         const pageWidth = (doc as any).internal.pageSize.width;
@@ -713,8 +723,10 @@ export class FlightManagementComponent implements OnInit, OnChanges {
         });
 
         doc.save('Golf_Draws.pdf');
+        this.logger.log('Flights PDF (Category Wise) downloaded successfully', "info", this.tournamentID);
     }
     public downloadAsPDF(noOfRounds) {
+        this.logger.log('Admin Click on Download Flights PDF in Flight Management Page', "info", this.tournamentID);
         const doc = new jsPDF('portrait');
         const pageHeight = (doc as any).internal.pageSize.height;
         const pageWidth = (doc as any).internal.pageSize.width;
@@ -789,6 +801,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
         }
 
         doc.save('Golf_Draws.pdf');
+        this.logger.log('Flights PDF downloaded successfully', "info", this.tournamentID);
     }
 
     // **Reusable Function to Draw Flight Block**
@@ -956,6 +969,10 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     }
 
     drop(event: CdkDragDrop<string[]>) {
+        this.logger.log('Admin Drag and Drop Player in Flight Management Page', "info", { previousIndex: event.previousIndex, currentIndex: event.currentIndex, sameGroup: event.previousContainer === event.container });
+        this.selectedFlights = [];
+        this.selectedPlayers = [];
+        this.updateSwapButtonVisibility();
         if (event.previousContainer === event.container) {
             moveItemInArray(
                 event.container.data,
@@ -1042,6 +1059,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
         }
     }
     changeRound(item) {
+        this.logger.log('Admin Click on Change Round in Flight Management Page', "info", item.round);
         // console.log("Selected value: " + item.value);
 
         this.flightRound = item.round;
@@ -1124,6 +1142,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     }
 
     toggleFlightSelection(flightIndex: number) {
+        this.logger.log('Admin Click on Select Flight checkbox in Flight Management Page', "info", flightIndex);
         const indexInSelected = this.selectedFlights.indexOf(flightIndex);
         if (indexInSelected > -1) {
             this.selectedFlights.splice(indexInSelected, 1);
@@ -1146,6 +1165,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     }
 
     togglePlayerSelection(flightIndex: number, playerIndex: number) {
+        this.logger.log('Admin Click on Select Player checkbox in Flight Management Page', "info", { flightIndex: flightIndex, playerIndex: playerIndex });
         const playerIdentifier = { flightIndex, playerIndex };
         const indexInSelected = this.selectedPlayers.findIndex(p =>
             p.flightIndex === playerIdentifier.flightIndex && p.playerIndex === playerIdentifier.playerIndex
@@ -1167,9 +1187,22 @@ export class FlightManagementComponent implements OnInit, OnChanges {
         this.showSwapFlightsButton = this.selectedFlights.length === 2;
         this.showSwapPlayersButton = this.selectedPlayers.length === 2 &&
             this.selectedPlayers[0].flightIndex !== this.selectedPlayers[1].flightIndex;
+        this.showMovePlayerButton = this.selectedFlights.length === 0 &&
+            this.selectedPlayers.length === 1;
+    }
+
+    moveSelectedPlayer() {
+        this.logger.log('Admin Click on Move Player button in Flight Management Page', "info", { selectedPlayersCount: this.selectedPlayers.length });
+        if (this.selectedPlayers.length !== 1) {
+            this.snackBar.open('Please select exactly one player to move.', 'x', { duration: 3000 });
+            return;
+        }
+        const { flightIndex, playerIndex } = this.selectedPlayers[0];
+        this.movePlayer(flightIndex, playerIndex);
     }
 
     swapSelectedFlights() {
+        this.logger.log('Admin Click on Swap Selected Flights in Flight Management Page', "info", { selectedFlights: this.selectedFlights });
         if (this.selectedFlights.length === 2) {
             const [idx1, idx2] = this.selectedFlights;
             const tempFlight = this.selectedMembers[idx1];
@@ -1196,6 +1229,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     }
 
     swapSelectedPlayers() {
+        this.logger.log('Admin Click on Swap Selected Players in Flight Management Page', "info", { selectedPlayers: this.selectedPlayers });
         if (this.selectedPlayers.length === 2 &&
             this.selectedPlayers[0].flightIndex !== this.selectedPlayers[1].flightIndex) {
 
@@ -1222,6 +1256,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     }
 
     async deleteSelectedFlights() {
+        this.logger.log('Admin Click on Delete Selected Flights in Flight Management Page', "info", { selectedFlightsCount: this.selectedFlights.length });
         if (this.selectedFlights.length === 0) {
             this.snackBar.open('Please select at least one flight to delete.', 'x', { duration: 3000 });
             return;
@@ -1234,6 +1269,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
 
         dialogRef.afterClosed().subscribe(async (result) => {
             if (result) {
+                this.logger.log('Delete Selected Flights confirmed in Flight Management Page', "info");
                 const flightsToDeleteIds: string[] = [];
                 const membersFromFlightsToRemove: string[] = [];
                 const playersToRemove: string[] = [];
@@ -1261,6 +1297,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
                     );
 
                     if (success) {
+                        this.logger.log('Selected flights deleted successfully', "info", flightsToDeleteIds);
                         this.snackBar.open('Selected flight(s) and their members have been deleted successfully.', 'x', { duration: 5000 });
                         this.selectedFlights = [];
                         this.selectedPlayers = [];
@@ -1268,6 +1305,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
                         // this.getSelectedPlayers(); // Refresh the flights
                         flightsToDeleteIds.forEach((id) => this.deleteEmptyFlight(id, 1));
                     } else {
+                        this.logger.log('Deleting selected flights failed', "error", flightsToDeleteIds);
                         this.snackBar.open('Failed to delete selected flight(s).', 'x', { duration: 5000 });
                     }
                 } catch (error) {
@@ -1275,6 +1313,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
                     this.snackBar.open('An error occurred while deleting flights.', 'x', { duration: 5000 });
                 }
             } else {
+                this.logger.log('Delete Selected Flights cancelled in Flight Management Page', "info");
                 this.snackBar.open('Flight deletion cancelled.', 'x', { duration: 3000 });
             }
         });
@@ -1762,6 +1801,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
             //console.log(update);
 
             if (save && update) {
+                this.logger.log('Tournament Flights saved and updated successfully', "info", this.tournamentID);
                 this.snackBar.open(
                     'Flights have been saved and updated successfully.',
                     'x',
@@ -1770,10 +1810,12 @@ export class FlightManagementComponent implements OnInit, OnChanges {
                     }
                 );
             } else if (save && !update) {
+                this.logger.log('Saving Tournament Flights Failed', "error", this.tournamentID);
                 this.snackBar.open('Something Went Wrong.', 'x', {
                     duration: 5000,
                 });
             } else {
+                this.logger.log('Saving Tournament Flights Failed', "error", this.tournamentID);
                 this.snackBar.open('Something Went Wrong.', 'x', {
                     duration: 5000,
                 });
@@ -2196,6 +2238,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
         return boolean;
     }
     deleteEmptyFlight(id, index) {
+        this.logger.log('Admin Delete Flight in Flight Management Page', "info", id);
         //console.log(id);
         //console.log(index);
         //console.log(this.selectedMembers);
@@ -2245,6 +2288,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
             });
 
             dialogRef.afterClosed().subscribe((result) => {
+                this.logger.log('Add Registered Golfer dialog closed in Flight Management Page', "info", { flightId: id, selectedCount: result ? result.length : 0 });
                 if (result.length > 0) {
                     for (let obj of result) {
                         this.exist = this.selectedMembers.find((item) =>
@@ -2336,6 +2380,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     }
 
     saveFlight(index: number) {
+        this.logger.log('Admin Click on Save Group in Flight Management Page', "info", index);
         ////console.log(index);
         const dialogRef = this.dialog.open(DialogOverviewComponent, {
             width: '350px',
@@ -2344,6 +2389,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
 
         dialogRef.afterClosed().subscribe((result) => {
             if (result) {
+                this.logger.log('Save Group confirmed in Flight Management Page', "info", index);
                 ////console.log(this.selectedMembers[index]);
                 let singleFlight: any[] = [];
                 singleFlight.push(this.selectedMembers[index]);
@@ -2356,6 +2402,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     }
 
     addExistingPlayer() {
+        this.logger.log('Admin Click on Add Existing Player in Flight Management Page', "info", this.tournamentID);
         let tournamentMember: TournamentMember[] = [];
         const dialogRef = this.dialog.open(DialogPlayerComponent, {
             width: '900px',
@@ -2564,6 +2611,7 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     }
 
     addPlayer(id, index) {
+        this.logger.log('Admin Click on Add New Golfer in Flight Management Page', "info", id);
         const dialogRef = this.dialog.open(DialogAddPlayerComponent, {
             data: {
                 flights: this.selectedMembers.length,
@@ -2573,16 +2621,19 @@ export class FlightManagementComponent implements OnInit, OnChanges {
 
         dialogRef.afterClosed().subscribe((result) => {
             if (result) {
+                this.logger.log('New Golfer added to flight in Flight Management Page', "info", { flightId: id, playerId: result.id });
                 ////console.log("record deleted.");
                 console.log(result);
                 this.selectedMembers[index].push(result);
             } else {
+                this.logger.log('Add New Golfer dialog cancelled in Flight Management Page', "info", id);
                 ////console.log("cancel delete action");
             }
         });
     }
 
     removePlayer(flight: number, player: number) {
+        this.logger.log('Admin Click on Remove Player from Group in Flight Management Page', "info", { flightIndex: flight, playerIndex: player });
         ////console.log(flight + "<- ->" + player);
         const dialogRef = this.dialog.open(DialogOverviewComponent, {
             width: '350px',
@@ -2591,15 +2642,18 @@ export class FlightManagementComponent implements OnInit, OnChanges {
 
         dialogRef.afterClosed().subscribe((result) => {
             if (result) {
+                this.logger.log('Remove Player from Group confirmed in Flight Management Page', "info", { flightIndex: flight, playerIndex: player });
                 ////console.log("record deleted.");
                 this.selectedMembers[flight].splice(player, 1);
             } else {
+                this.logger.log('Remove Player from Group cancelled in Flight Management Page', "info");
                 ////console.log("cancel delete action");
             }
         });
     }
 
     movePlayer(flight: number, cplayer: number) {
+        this.logger.log('Admin Click on Move Player to Another Group in Flight Management Page', "info", { flightIndex: flight, playerIndex: cplayer });
         //console.log(flight + '<- ->' + cplayer);
         let player: Player = this.selectedMembers[flight][cplayer];
         const dialogRef = this.dialog.open(DialogMoveFlightComponent, {
@@ -2614,17 +2668,19 @@ export class FlightManagementComponent implements OnInit, OnChanges {
 
         dialogRef.afterClosed().subscribe((result) => {
             if (result) {
-                //console.log(result);
-                //let player: Player = this.selectedMembers[flight][cplayer];
-                ////console.log(player);
+                if (result - 1 === flight) {
+                    this.snackBar.open('Player is already in this group.', 'x', { duration: 3000 });
+                    return;
+                }
                 this.selectedMembers[flight].splice(cplayer, 1);
-                ////console.log(this.selectedMembers);
-                this.selectedMembers[result - 1].splice(
-                    this.selectedMembers[result - 1].length - 3,
-                    0,
-                    player
-                );
+                this.selectedMembers[result - 1].push(player);
+                this.logger.log('Player moved to another group successfully', "info", { fromFlightIndex: flight, toFlightNo: result, playerId: player.id });
+                this.snackBar.open('Player moved successfully.', 'x', { duration: 3000 });
+                this.selectedFlights = [];
+                this.selectedPlayers = [];
+                this.updateSwapButtonVisibility();
             } else {
+                this.logger.log('Move Player dialog cancelled in Flight Management Page', "info");
                 ////console.log("cancel delete action");
             }
         });
@@ -3055,13 +3111,16 @@ export class FlightManagementComponent implements OnInit, OnChanges {
     }
 
     redirectToScores() {
+        this.logger.log('Admin Click on Scores in Flight Management Page', "info", this.tournamentID);
         this.router.navigate(['/matchplay/' + this.tournamentID]);
     }
 
     redirectToDetail() {
+        this.logger.log('Admin Click on Tournament Detail in Flight Management Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/view/' + this.tournamentID]);
     }
     redirectToAttendance() {
+        this.logger.log('Admin Click on Attendance in Flight Management Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/attendance/' + this.tournamentID]);
     }
 }

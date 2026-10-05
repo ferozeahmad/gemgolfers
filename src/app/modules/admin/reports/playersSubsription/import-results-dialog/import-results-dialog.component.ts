@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { LogsService } from 'app/shared/services/logs.service';
 
 export interface ImportResult {
     row: number;
@@ -19,12 +20,14 @@ export class ImportResultsDialogComponent implements OnInit {
 
     constructor(
         public dialogRef: MatDialogRef<ImportResultsDialogComponent>,
-        @Inject(MAT_DIALOG_DATA) public data: ImportResult[]
+        @Inject(MAT_DIALOG_DATA) public data: ImportResult[],
+        private logger: LogsService
     ) { }
 
     ngOnInit(): void { }
 
     onClose(): void {
+        this.logger.log('Admin Click on Close in Import Results Dialog', "info");
         this.dialogRef.close();
     }
 }

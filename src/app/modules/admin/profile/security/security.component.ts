@@ -33,6 +33,7 @@ export class SettingsSecurityComponent implements OnInit {
      * On init
      */
     ngOnInit(): void {
+        this.logger.log('Admin comes to Profile Security Page', "info");
         // Create the form
         // this.logger.info("User landed on user security page");
         this.securityForm = this._formBuilder.group({
@@ -41,6 +42,7 @@ export class SettingsSecurityComponent implements OnInit {
         });
     }
     async changePassword() {
+        this.logger.log('Admin Click on Change Password in Profile Security Page', "info");
         try {
 
             const user = await this.afAuth.currentUser;
@@ -56,21 +58,25 @@ export class SettingsSecurityComponent implements OnInit {
 
                 if (credential) {
                     await user.updatePassword(_formValue.newPassword);
+                    this.logger.log('Password changed successfully in Profile Security Page', "info");
                     // this.logger.info("User password updated successfully", credential);
                     this._snackBar.open("Password changed successfully.", "x", {
                         duration: 5 * 3000,
                     });
 
                 } else {
+                    this.logger.log('Changing Password Failed in Profile Security Page: incorrect current password', "warn");
                     // this.logger.error("User firebase crendentials are not correct", credential);
                     this._snackBar.open("Incorrect current password.", "x", {
                         duration: 5 * 3000,
                     });
                 }
             } else {
+                this.logger.log('Changing Password Failed in Profile Security Page: user session is not available', "warn");
                 // this.logger.error("User firebase session is not available");
             }
         } catch (error) {
+            this.logger.log('Changing Password Failed in Profile Security Page', "error", error?.code || error?.message);
             // this.logger.error("Error in changing password", error);
             // console.error('Error changing password:', error);
             this._snackBar.open("Error changing password.", "x", {

@@ -28,6 +28,7 @@ import { Constants, General } from 'app/shared/classes/general';
 import { SelectionModel } from '@angular/cdk/collections';
 import { DialogPlayersComponent } from '../../dialogs/dialog-report-player/dialog-uncomplete.component';
 import { DialogUserActivityComponent } from '../../dialogs/dialog-user-activity/dialog-user-activity.component';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'userActivityReport',
@@ -97,9 +98,11 @@ export class UserActivityReport implements OnInit, AfterViewInit {
         private apollo: Apollo,
         private _data: UserActivityService, private _projectService: ProjectService,
         public dialog: MatDialog,
+        private logger: LogsService,
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Admin comes to User Activity Report Page', "info");
         this.scheduleForm = this.fb.group({
             startDate: ['', [Validators.required]],
             endDate: ['', [Validators.required]],
@@ -291,6 +294,7 @@ export class UserActivityReport implements OnInit, AfterViewInit {
     // }
 
     Dailysetup(selectedValue) {
+        this.logger.log('Admin Select Date Filter in User Activity Report Page', "info", selectedValue.value);
         ////console.log(selectedValue)
         // this.lo.log('Getting Daily Round Data By Dropdown', "info", selectedValue.value.toString());
         if (selectedValue.value == Constants.DR_TODAY) {
@@ -349,6 +353,7 @@ export class UserActivityReport implements OnInit, AfterViewInit {
 
     onDatePick() {
         const result = this.scheduleForm.value.startDate + ',' + this.scheduleForm.value.endDate;
+        this.logger.log('Admin Click on Search By Dates in User Activity Report Page', "info", result);
         // this.logger.log('Getting Daily Round Data By Dates', "info", result.toString());
         //console.log(this.scheduleForm.value.startDate);
         //console.log(this.scheduleForm.value.endDate);
@@ -373,6 +378,7 @@ export class UserActivityReport implements OnInit, AfterViewInit {
     }
 
     openDetailDialogs(userId: string) {
+        this.logger.log('Admin Click on View Details in User Activity Report Page', "info", userId);
         let user = this.copyPlayers.filter((play) => { return play.userId == userId });
 
         const dialogRef = this.dialog.open(DialogUserActivityComponent, {

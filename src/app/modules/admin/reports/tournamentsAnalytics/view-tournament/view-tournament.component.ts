@@ -462,6 +462,7 @@ export class ViewTournamentComponent implements OnInit {
                 this.getRoundStats();
                 this.calculateStatistics();
                 this.getTournamentMembers();
+                this.logger.log('Getting Tournament Data Successfully', "info", this.tournamentID);
                 this.rounds = [];
 
                 for (let i = 1; i <= this.noOfRounds; i++) {
@@ -673,12 +674,14 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     public onChangeGross(event) {
+        this.logger.log('Admin Change Gross Category Tab in View Tournament Page', "info", event.index);
         //console.log(event);
         this.selectedCategory = this.tournamentCategories[event.index].category;
         //console.log(this.selectedCategory);
         if (this.showSummary) this.GrossData(this.selectedCategory);
     }
     public onChangeNet(event) {
+        this.logger.log('Admin Change Net Category Tab in View Tournament Page', "info", event.index);
         //console.log(event);
         this.selectedCategory = this.tournamentCategories[event.index].category;
         //console.log(this.selectedCategory);
@@ -688,6 +691,7 @@ export class ViewTournamentComponent implements OnInit {
     tabClicked(tab: any) {
 
         try {
+            this.logger.log('Admin Click on Round Tab in View Tournament Page', "info", tab.round);
             this.activeRound = tab.round;
             this.calculateStatistics(tab.round);
             this.getRoundStats(tab.round);
@@ -726,6 +730,7 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     setPrimaryTab(tab: string) {
+        this.logger.log('Admin Click on Primary Tab in View Tournament Page', "info", tab);
         this.activeTab = tab;
         this.calculateStatistics(this.activeRound);
         this.getRoundStats(this.activeRound);
@@ -995,9 +1000,11 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     copyLink(): void {
+        this.logger.log('Admin Click on Copy Joining Code in View Tournament Page', "info", this.tournamentID);
         if (navigator.clipboard) {
             navigator.clipboard.writeText(this.joiningCode).then(() => {
                 this.copied = true;
+                this.logger.log('Joining Code copied successfully in View Tournament Page', "info");
                 setTimeout(() => this.copied = false, 2000);
             });
         }
@@ -1129,6 +1136,7 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     downloadResultSheetGross() {
+        this.logger.log('Admin Click on Download Gross Result Sheet in View Tournament Page', "info", this.tournamentID);
         let doc = new jsPDF();
         let col = General.createClmGross(this.noOfRounds);
 
@@ -1234,6 +1242,7 @@ export class ViewTournamentComponent implements OnInit {
         //doc.save('flights.pdf');
     }
     downloadResultSheetNet() {
+        this.logger.log('Admin Click on Download Net Result Sheet in View Tournament Page', "info", this.tournamentID);
         let doc = new jsPDF();
         let col = General.createClmNet(this.noOfRounds);
 
@@ -1388,6 +1397,7 @@ export class ViewTournamentComponent implements OnInit {
 
 
     redirectToLeaderboard() {
+        this.logger.log('Admin Click on Leaderboard in View Tournament Page', "info", this.tournamentID);
         //this.router.navigate(['/leaderboard/' + this.tournamentID]);
 
         let tournament: string = '';
@@ -1399,9 +1409,11 @@ export class ViewTournamentComponent implements OnInit {
         window.open(url.toString(), '_blank');
     }
     redirectToScores() {
+        this.logger.log('Admin Click on Scores in View Tournament Page', "info", this.tournamentID);
         this.router.navigate(['/matchplay/' + this.tournamentID]);
     }
     viewsignupform() {
+        this.logger.log('Admin Click on View SignUp Form in View Tournament Page', "info", this.tournamentID);
         let url = this.router.createUrlTree([
             '/signUpForm/' + this.tournamentID,
         ]);
@@ -1409,20 +1421,25 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     redirectToflightManagement() {
+        this.logger.log('Admin Click on Flight Management in View Tournament Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/manage/' + this.tournamentID]);
     }
     redirectToAttendance() {
+        this.logger.log('Admin Click on Attendance in View Tournament Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/attendance/' + this.tournamentID]);
     }
 
     redirectToTournamentSetup() {
+        this.logger.log('Admin Click on Tournament Setup in View Tournament Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/add/' + this.tournamentID]);
     }
 
     addTournamentPlayers() {
+        this.logger.log('Admin Click on Add Tournament Players in View Tournament Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/players/' + this.tournamentID]);
     }
     copy() {
+        this.logger.log('Admin Click on Copy Leaderboard Url in View Tournament Page', "info", this.tournamentID);
         let selBox = document.createElement('textarea');
 
         selBox.style.position = 'fixed';
@@ -1440,6 +1457,7 @@ export class ViewTournamentComponent implements OnInit {
         document.body.removeChild(selBox);
     }
     viewProfile(s) {
+        this.logger.log('Admin Click on View Player Profile in View Tournament Page', "info", s.id);
         //console.log(s);
 
         this.router.navigate(['/players/view/' + s.id]);
@@ -2314,6 +2332,7 @@ export class ViewTournamentComponent implements OnInit {
         this.flight.startingHole = event;
     }
     async getFlightId(id: string) {
+        this.logger.log('Getting Flight Data in View Tournament Page', "info", id);
         this.flightid = id;
         let SelectedFLight: any = [];
         let flightPlayers: any[] = [];
@@ -2322,6 +2341,7 @@ export class ViewTournamentComponent implements OnInit {
             this.flightid
         );
         this.flight = SelectedFLight.FlightsQL[0];
+        this.logger.log('Getting Flight Data Successfully in View Tournament Page', "info", id);
         this.flight.MembersQL.forEach((element) => {
             flightPlayers.push(element['PlayerQL']);
         });
@@ -2395,6 +2415,7 @@ export class ViewTournamentComponent implements OnInit {
         return leaderList;
     }
     async getnewFlightId(id: string) {
+        this.logger.log('Getting New Flight Data in View Tournament Page', "info", id);
         this.newFlightID = id;
         let SelectedFLight: any = [];
         let flightPlayers: any[] = [];
@@ -2403,6 +2424,7 @@ export class ViewTournamentComponent implements OnInit {
             this.newFlightID
         );
         this.flight = SelectedFLight.FlightsQL[0];
+        this.logger.log('Getting Flight Data Successfully in View Tournament Page', "info", id);
         this.flight.MembersQL.forEach((element) => {
             flightPlayers.push(element['PlayerQL']);
         });
@@ -2414,6 +2436,7 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     async removeFlightMembers(playerId) {
+        this.logger.log('Admin Click on Remove Flight Member in View Tournament Page', "info", { flightId: this.flightid, playerId: playerId });
         //console.log(playerId);
         let count = 0;
         // this.flight.MembersQL.forEach((element) => {
@@ -2430,6 +2453,7 @@ export class ViewTournamentComponent implements OnInit {
         );
         //console.log(result);
         if (result) {
+            this.logger.log('Flight Member removed successfully in View Tournament Page', "info", { flightId: this.flightid, playerId: playerId });
             this.snackBar.open('Flights members have been removed.', 'x', {
                 duration: 5000,
             });
@@ -2458,6 +2482,7 @@ export class ViewTournamentComponent implements OnInit {
         return flightTime;
     }
     createFlight(index: any) {
+        this.logger.log('Admin Click on Create Flight in View Tournament Page', "info", index);
         this.flightRound = index;
         this.flight.startingHole = 1;
         this.flight.tee = 'AMATEURS';
@@ -2465,6 +2490,7 @@ export class ViewTournamentComponent implements OnInit {
         this.newFlightID = UniqueIdGenerator.generate();
     }
     async saveTournamentPlayer(player: any) {
+        this.logger.log('Admin Click on Save Flight Member in View Tournament Page', "info", player.id);
         let flightMembersToSave: any[] = [];
         //console.log(player);
         let roundTeeId: any = General.getPlayersTe(
@@ -2518,6 +2544,7 @@ export class ViewTournamentComponent implements OnInit {
         }
 
         if (save && this.flightid) {
+            this.logger.log('Flight Member saved successfully in View Tournament Page', "info", { flightId: this.flightid, playerId: player.id });
             this.getFlightId(this.flightid);
             this.snackBar.open(
                 'Flights Member have been saved and updated successfully.',
@@ -2547,6 +2574,7 @@ export class ViewTournamentComponent implements OnInit {
         // }
     }
     async saveFlight() {
+        this.logger.log('Admin Click on Save Flight in View Tournament Page', "info", this.flightid ? this.flightid : this.newFlightID);
         //console.log('flight saved');
         let flight: any;
         if (this.flightid) {
@@ -2593,6 +2621,7 @@ export class ViewTournamentComponent implements OnInit {
         }
         let save = <boolean>await this.facadeService.SaveRoundFlight(flight);
         if (save) {
+            this.logger.log('Flight saved successfully in View Tournament Page', "info", flight.id);
             this.getFlightId(this.flightid);
             this.snackBar.open(
                 'Flights have been saved and updated successfully.',

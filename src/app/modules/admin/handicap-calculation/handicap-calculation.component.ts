@@ -10,6 +10,7 @@ import { UserSessionModel } from 'app/shared/models/player.model';
 import { FacadeService } from 'app/shared/services/facade.service';
 import { HandicapService } from 'app/shared/services/handicap.service';
 import { LocalStorageService } from 'app/shared/services/localStorage';
+import { LogsService } from 'app/shared/services/logs.service';
 import { DialogMergeComponent } from '../dialogs/dialog-merge-profile/dialog-merge.component';
 
 @Component({
@@ -36,9 +37,11 @@ export class HandicapCalculationComponent implements OnInit {
         public snackBar: MatSnackBar,
         public dialog: MatDialog,
         private _localStorage: LocalStorageService,
+        private logger: LogsService,
     ) {}
 
     async ngOnInit() {
+        this.logger.log('Admin comes to Handicap Calculation Page', "info");
         this.loggedInUser = this._localStorage.get(Constants.LOGGED_IN_USER);
         this.dataSource = new MatTableDataSource([]);
         await this.loadPlayersPage(0, this.pageSize);
@@ -54,6 +57,7 @@ export class HandicapCalculationComponent implements OnInit {
     }
 
     async onPageChange(event: PageEvent) {
+        this.logger.log('Admin changed page in Handicap Calculation Page', "info", { pageIndex: event.pageIndex, pageSize: event.pageSize });
         this.pageIndex = event.pageIndex;
         this.pageSize = event.pageSize;
         await this.loadPlayersPage(this.pageIndex, this.pageSize);
@@ -110,6 +114,7 @@ export class HandicapCalculationComponent implements OnInit {
     private openConfirmAndCalculate(calcFn: (obj: { playerId: string; count: any }) => Promise<any>) {
         const player = this.selection.selected[0];
         if (!player) {
+            this.logger.log('No player selected for handicap calculation in Handicap Calculation Page', "warn");
             this.snackBar.open('Please! Select Player.', 'x', { duration: 5000 });
             return;
         }
@@ -119,23 +124,30 @@ export class HandicapCalculationComponent implements OnInit {
         });
         dialogRef.afterClosed().subscribe(async (result) => {
             if (result != undefined && result !== '') {
+                this.logger.log('Admin confirmed handicap calculation in Handicap Calculation Page', "info", { playerId: player.id, count: result });
                 await calcFn({ playerId: player.id, count: result })
                     .then(() => {
+                        this.logger.log('Handicap calculated successfully in Handicap Calculation Page', "info", { playerId: player.id });
                         this.selection.clear();
                         this.snackBar.open('Handicap Calculated Successfully.', 'x', { duration: 5000 });
                     })
                     .catch(() => {
+                        this.logger.log('Handicap calculation Failed in Handicap Calculation Page', "error", { playerId: player.id });
                         this.snackBar.open('Error!.', 'x', { duration: 5000 });
                     });
+            } else {
+                this.logger.log('Admin cancelled handicap calculation dialog in Handicap Calculation Page', "info", { playerId: player.id });
             }
         });
     }
 
     calculateHandicapCONGU() {
+        this.logger.log('Admin Click on Calculate Handicap CONGU in Handicap Calculation Page', "info", this.selection.selected[0]?.id);
         this.openConfirmAndCalculate((obj) => this.handicapService.calculateHandicap(obj));
     }
 
     calculateHandicapWHS() {
+        this.logger.log('Admin Click on Calculate Handicap WHS in Handicap Calculation Page', "info", this.selection.selected[0]?.id);
         this.openConfirmAndCalculate((obj) => this.handicapService.calculateHandicapWHS(obj));
     }
 }

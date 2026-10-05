@@ -2,6 +2,7 @@ import { Component, ViewEncapsulation } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular'
 import { FacadeService } from "../../../shared/services/facade.service";
 import { Constants, General } from "../../../shared/classes/general";
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -14,7 +15,7 @@ export class ExampleComponent
     /**
      * Constructor
      */
-    constructor(private apollo: Apollo, private facadeService: FacadeService)
+    constructor(private apollo: Apollo, private facadeService: FacadeService, private logger: LogsService)
     {
         // this.apollo
         // .watchQuery({
@@ -35,6 +36,7 @@ export class ExampleComponent
     }
 
     async getTournaments() {
+        this.logger.log('Getting Tournaments Data', "info");
         let today: Date = new Date();
         var dd = String(today.getDate()).padStart(2, "0");
         var mm = String(today.getMonth() + 1).padStart(2, "0"); //January is 0!
@@ -44,6 +46,7 @@ export class ExampleComponent
         
         let dataTournamentsForCompleted = await this.facadeService.getTournamentsListForCompleted(todayDate);
         let RecentTournaments = dataTournamentsForCompleted.CompletedRecently;
+        this.logger.log('Getting Tournaments Data Successful', "info", RecentTournaments?.length);
         //console.log(RecentTournaments);
     }
 }

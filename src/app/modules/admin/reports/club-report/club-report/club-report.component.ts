@@ -8,6 +8,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { ApexOptions } from 'ng-apexcharts';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-club-report',
@@ -56,17 +57,21 @@ export class ClubReportComponent implements OnInit {
         private location: Router,
         private facadeService: FacadeService,
         private route: ActivatedRoute,
-        private apollo: Apollo
+        private apollo: Apollo,
+        private logger: LogsService
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Admin Come to Club Report Page', "info");
         this.fecthData();
     }
 
     async fecthData() {
         let dataMembers: any[] = [];
         let clubName: any[] = [];
+        this.logger.log('Getting Club Report Data', "info");
         let clubs = await this.facadeService.getClubList();
+        this.logger.log('Getting Club Report Data Successfully', "info", clubs?.club?.length);
         console.log(clubs);
         this.clubs = clubs.club;
         this.dataSource = new MatTableDataSource(clubs.club);
@@ -144,6 +149,7 @@ export class ClubReportComponent implements OnInit {
         }
     }
     goToClub(clubId: string | number) {
+        this.logger.log('Admin Click on View Club Members in Club Report Page', "info", clubId);
         this.location.navigate([`/reports/club/${clubId}`]);
     }
     chart() {

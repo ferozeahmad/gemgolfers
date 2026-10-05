@@ -7,6 +7,7 @@ import { FacadeService } from 'app/shared/services/facade.service';
 import { Constants, UniqueIdGenerator } from 'app/shared/classes/general';
 import { Player, UserSessionModel } from 'app/shared/models/player.model';
 import { LocalStorageService } from 'app/shared/services/localStorage';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -26,9 +27,11 @@ export class TourComponent implements OnInit {
     public dialog: MatDialog,
     private facadeService: FacadeService,
     public _localStorage: LocalStorageService,
+    private logger: LogsService,
   ) { }
 
   ngOnInit(): void {
+    this.logger.log('Admin comes to Tours Page', "info");
     this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
     this._tourService.data$.pipe(takeUntil(this._unsubscribeAll))
       .subscribe((res) => {
@@ -52,9 +55,11 @@ export class TourComponent implements OnInit {
   }
 
   async addnewTour() {
+    this.logger.log('Admin Click on Add New Tour in Tours Page', "info");
     const dialogRef = this.dialog.open(DialogAddTourComponent);
     dialogRef.afterClosed().subscribe(async (result) => {
       //console.log(result);
+      this.logger.log(result ? 'Add Tour Dialog Confirmed in Tours Page' : 'Add Tour Dialog Cancelled in Tours Page', "info", result ? result.title : undefined);
       if (result) {
         let tour = {
           id: UniqueIdGenerator.generate(),
@@ -67,6 +72,7 @@ export class TourComponent implements OnInit {
         }
         this.facadeService.addTour(tour, result.file).subscribe((result) => {
           //console.log(result);
+          this.logger.log(result ? 'Tour Added Successfully' : 'Adding Tour Failed', result ? "info" : "error", { id: tour.id, name: tour.name });
           if (result) {
             this.tours.push({
               id: tour.id,

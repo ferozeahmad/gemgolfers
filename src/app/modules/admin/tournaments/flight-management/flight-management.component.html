@@ -39,12 +39,16 @@
             <button *ngIf="showSwapPlayersButton" (click)="swapSelectedPlayers()"
                 class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-blue-700 transition-colors">
                 Swap Selected Players</button>
+            <button *ngIf="showMovePlayerButton" (click)="moveSelectedPlayer()"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-blue-700 transition-colors">
+                Move Player</button>
             <button *ngIf="selectedFlights.length > 0" (click)="deleteSelectedFlights()"
                 class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-700 transition-colors">
                 Delete Selected Flight(s)</button>
 
         </div>
-        <div *ngIf="selectedMembers.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngIf="selectedMembers.length > 0" cdkDropListGroup
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
             <div *ngFor="let items of selectedMembers;
                         let i = index;
@@ -71,12 +75,14 @@
 
                     </span>
                 </div>
-                <div class=" divide-y divide-gray-200">
+                <div cdkDropList [cdkDropListData]="items" (cdkDropListDropped)="drop($event)"
+                    class="divide-y divide-gray-200 min-h-[3rem]">
                     <div *ngFor="
                                                     let item of items;
                                                     let j = index
                                                 "
-                        class="flex justify-between  items-center text-sm p-4 rounded-md bg-white" [class.selected-player]="isPlayerSelected(i, j)">
+                        cdkDrag [cdkDragData]="item"
+                        class="flex cursor-move justify-between  items-center text-sm p-4 rounded-md bg-white" [class.selected-player]="isPlayerSelected(i, j)">
 
                         <span class="flex gap-x-2 items-center" [class.selected-player]="isPlayerSelected(i, j)">
                             <mat-checkbox (change)="togglePlayerSelection(i, j)"
@@ -91,23 +97,22 @@
                             <span class="text-gray-500">HC: {{ item.handicap }}</span>
                             <mat-icon aria-hidden="false" class="cursor-pointer"
                                 (click)="removePlayer(i,j)">delete_forever</mat-icon>
-                            <!-- <mat-icon aria-hidden="false" class="cursor-pointer"
+                            <mat-icon aria-hidden="false" class="cursor-pointer"
                                 matTooltip="Move Player to Another Group"
-                                (click)="movePlayer(i, j)">arrow_right_alt</mat-icon> -->
+                                (click)="movePlayer(i, j)">arrow_right_alt</mat-icon>
                         </span>
                     </div>
+                </div>
 
-                    <div class="flex justify-end gap-2 p-4">
-                        <button *ngIf="!isClubAdmin" (click)="addPlayer(items.id, i)" class="bg-emerald-600 text-white px-2 py-1 rounded-lg flex items-center text-sm
+                <div class="flex justify-end gap-2 p-4">
+                    <button *ngIf="!isClubAdmin" (click)="addPlayer(items.id, i)" class="bg-emerald-600 text-white px-2 py-1 rounded-lg flex items-center text-sm
                                 font-semibold
                                 shadow-sm hover:bg-emerald-700 transition-colors">
-                            Add New Golfer</button>
-                        <button (click)="editFlight(items.id, i)" class="bg-emerald-600 text-white px-2 py-1 rounded-lg flex items-center text-sm
+                        Add New Golfer</button>
+                    <button (click)="editFlight(items.id, i)" class="bg-emerald-600 text-white px-2 py-1 rounded-lg flex items-center text-sm
                                 font-semibold
                                 shadow-sm hover:bg-emerald-700 transition-colors">
-                            Add Registred Golfer</button>
-                    </div>
-
+                        Add Registred Golfer</button>
                 </div>
             </div>
 

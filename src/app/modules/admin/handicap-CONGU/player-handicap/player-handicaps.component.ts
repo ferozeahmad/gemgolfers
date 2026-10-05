@@ -150,6 +150,7 @@ export class PlayerHandicapComponent implements OnInit {
             this.dataSource.paginator = this.paginator;
             this.dataSource.sort = this.sort;
             let newScores: any[] = [];
+            this.logger.log('Getting Player Wise Congu Handicap Data Successful', "info", this.playerID);
             this.showTable = Promise.resolve(true);
         } else {
             this.location.back();
@@ -258,6 +259,7 @@ export class PlayerHandicapComponent implements OnInit {
 
             // Open PDF document in new tab
             doc.output('dataurlnewwindow');
+            this.logger.log('Player Congu Handicap PDF generated successfully', "info", this.playerID);
 
             // Download PDF document
             //doc.save('flights.pdf');
@@ -267,6 +269,7 @@ export class PlayerHandicapComponent implements OnInit {
         }
     }
     pageEvents(event) {
+        this.logger.log('Admin changed page in Player Congu Handicap', "info", { pageIndex: event?.pageIndex, pageSize: event?.pageSize });
         //console.log(event);
         this.pageSize = event.pageSize;
     }

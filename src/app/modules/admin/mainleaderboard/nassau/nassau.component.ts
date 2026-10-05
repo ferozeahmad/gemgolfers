@@ -8,6 +8,7 @@ import { Score } from 'app/shared/classes/score';
 import { LeaderTypeValue } from 'app/shared/classes/leader';
 import { PlayersScoreLoader } from 'app/shared/helper/PlayersViewScore';
 import { FacadeService } from 'app/shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-nassau', // This is the selector for the component
@@ -37,7 +38,7 @@ export class NassauComponent implements OnInit, OnChanges {
     tRounds: any[] = [];
 
     constructor(
-        public dialog: MatDialog, private facadeService: FacadeService
+        public dialog: MatDialog, private facadeService: FacadeService, private logger: LogsService
     ) { }
 
     ngOnInit(): void {
@@ -308,6 +309,7 @@ export class NassauComponent implements OnInit, OnChanges {
     }
 
     selectionChanged(item) {
+        this.logger.log('User Changed Selection in Nassau Leaderboard', "info", item?.value);
 
         if (item.value == '1') {
             this.isFront9 = true;
@@ -344,6 +346,7 @@ export class NassauComponent implements OnInit, OnChanges {
         courseHoleSets: string,
         holeSetsInverted: string,
     ) {
+        this.logger.log('User Click on View Player Score in Nassau Leaderboard', "info", { name: playerName, playerId: playerId, opponentId: opponentId });
         let playerGrossScore: any[] = [];
         let playerNetScore: any[] = [];
         let playerPerTeam: any[];
@@ -359,6 +362,7 @@ export class NassauComponent implements OnInit, OnChanges {
         console.log(scoreResultOpponent);
         scoreResult.netScore.push(scoreResultOpponent.netScore[0])
 
+        this.logger.log('Player Score Loaded Successfully, Opening Score Dialog in Nassau Leaderboard', "info", playerId);
         const dialogRef = this.dialog.open(DialogPlayerScoreComponent, {
             data: {
                 name: name,
@@ -387,6 +391,7 @@ export class NassauComponent implements OnInit, OnChanges {
         holeSetsInverted: string,
         scoreType: string
     ) {
+        this.logger.log('User Click on View Team Score in Nassau Leaderboard', "info", { name: name, playerId: playerId });
         let playerGrossScore: any[] = [];
         let playerNetScore: any[] = [];
         let playerPerTeam: any[];
@@ -399,6 +404,7 @@ export class NassauComponent implements OnInit, OnChanges {
         let scoreResult = ScoreLoader.getMatchPlayTeamScore(playerId);
         //console.log(scoreResult);
 
+        this.logger.log('Player Score Loaded Successfully, Opening Score Dialog in Nassau Leaderboard', "info", playerId);
         const dialogRef = this.dialog.open(DialogPlayerScoreComponent, {
             data: {
                 name: name,

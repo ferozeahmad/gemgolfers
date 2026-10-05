@@ -8,6 +8,7 @@ import { Score } from 'app/shared/classes/score';
 import { LeaderTypeValue } from 'app/shared/classes/leader';
 import { PlayersScoreLoader } from 'app/shared/helper/PlayersViewScore';
 import { FacadeService } from 'app/shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 
 
 
@@ -49,7 +50,7 @@ export class StableFordComponent implements OnInit, OnChanges {
     tRounds: any[] = [];
     categoryLimit: number;
     constructor(
-        public dialog: MatDialog, public facadeService: FacadeService
+        public dialog: MatDialog, public facadeService: FacadeService, private logger: LogsService
     ) { }
 
     ngOnInit(): void {
@@ -196,6 +197,7 @@ export class StableFordComponent implements OnInit, OnChanges {
         return item.pointsRound1 + item.pointsRound2 + item.pointsRound3 + item.pointsRound4;
     }
     changeRound(item) {
+        this.logger.log('User Changed Round in Stableford Leaderboard', "info", item?.value);
         this.flightRound = item.value;
         if (item.value == '0') {
             this.isNet = false;
@@ -210,6 +212,7 @@ export class StableFordComponent implements OnInit, OnChanges {
         }
     }
     selectionChanged(item) {
+        this.logger.log('User Changed Selection in Stableford Leaderboard', "info", item?.value);
         this.activeRound = this.Leaderboard.activeRound;
         if (this.flightRound == 0) {
             if (item.value == LeaderTypeValue.GROSS) {
@@ -311,6 +314,7 @@ export class StableFordComponent implements OnInit, OnChanges {
         holeSetsInverted: string,
         scoreType: string
     ) {
+        this.logger.log('User Click on View Player Score in Stableford Leaderboard', "info", { name: name, playerId: playerId });
         let playerGrossScore: any[] = [];
         let playerNetScore: any[] = [];
         let playerPerTeam: any[];
@@ -323,6 +327,7 @@ export class StableFordComponent implements OnInit, OnChanges {
         let scoreResult = ScoreLoader.getStrokePlayScore(playerId, this.flightRound);
         console.log(scoreResult);
 
+        this.logger.log('Player Score Loaded Successfully, Opening Score Dialog in Stableford Leaderboard', "info", playerId);
         const dialogRef = this.dialog.open(DialogPlayerScoreComponent, {
             data: {
                 name: name,

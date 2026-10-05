@@ -228,6 +228,7 @@ export class ViewDailyRoundComponent implements OnInit {
                     (error) => (this.isLoading = false)
                 );
         } catch (error) {
+            this.logger.log('Getting View Daily Rounds Data Failed', "error", error.toString());
 
         }
     }
@@ -265,6 +266,7 @@ export class ViewDailyRoundComponent implements OnInit {
         );
         //console.log(this.matchPlayData);
 
+        this.logger.log('Getting View Daily Rounds Data Successfull', "info", { date: date, rounds: this.lenght });
         this.parseSubscriptionResponse(this.routeDate, false);
     }
 
@@ -1371,6 +1373,7 @@ export class ViewDailyRoundComponent implements OnInit {
     }
 
     async saveFlightScore(flightId: string) {
+        this.logger.log('Admin click Save All Score on Daily Round Page', "info", flightId);
         //var startingHole1 = parseFloat((<HTMLInputElement>document.getElementById("hole_1_-L613n4gp3nF0QiXiCt1")).value);
         ////console.log(flightId);
 
@@ -1506,6 +1509,7 @@ export class ViewDailyRoundComponent implements OnInit {
         }
 
         if (result) {
+            this.logger.log('Flight Score saved on Daily Round Page Successfully', "info", { flightId: flightId, scores: playerScores.length, deleted: deleteIds.length });
             this.snackBar.open('Score has been submitted.', 'x', {
                 duration: 5000,
             });
@@ -1524,6 +1528,7 @@ export class ViewDailyRoundComponent implements OnInit {
     }
 
     async savePlayerScore(flightId: string, playerId: string) {
+        this.logger.log('Admin click Save Player Score on Daily Round Page', "info", { flightId: flightId, playerId: playerId });
         //var startingHole1 = parseFloat((<HTMLInputElement>document.getElementById("hole_1_-L613n4gp3nF0QiXiCt1")).value);
         ////console.log(this.flightPlayers);
         let deleteIds: string[] = [];
@@ -1657,6 +1662,7 @@ export class ViewDailyRoundComponent implements OnInit {
         }
 
         if (result) {
+            this.logger.log('Player Score saved on Daily Round Page Successfully', "info", { flightId: flightId, playerId: playerId, scores: playerScores.length, deleted: deleteIds.length });
             this.snackBar.open('Score has been submitted.', 'x', {
                 duration: 5000,
             });
@@ -1675,7 +1681,11 @@ export class ViewDailyRoundComponent implements OnInit {
                     data: 'Do you want to Re-Calculate Handicap?',
                 });
                 dialogRef.afterClosed().subscribe(async (result) => {
+                    if (!result) {
+                        this.logger.log('Re-Calculate Handicap Dialog cancelled on Daily Round Page', "info", playerId);
+                    }
                     if (result) {
+                        this.logger.log('Re-Calculate Handicap Dialog confirmed on Daily Round Page', "info", { flightId: flightId, playerId: playerId });
                         for (let player of selectedFlight) {
                             ////console.log(player.playerId);
 
@@ -1719,6 +1729,7 @@ export class ViewDailyRoundComponent implements OnInit {
                                         //console.log(response);
                                     })
                                     .catch((err) => {
+                                        this.logger.log('Handicap Calculation on Daily Round Page Failed', "error", err?.toString());
                                         //console.log('error' + err);
                                         this.snackBar.open('Error!.', 'x', {
                                             duration: 5000,
@@ -1730,11 +1741,13 @@ export class ViewDailyRoundComponent implements OnInit {
                                         //console.log(response);
                                     })
                                     .catch((err) => {
+                                        this.logger.log('Handicap Calculation on Daily Round Page Failed', "error", err?.toString());
                                         //console.log('error' + err);
                                         this.snackBar.open('Error!.', 'x', {
                                             duration: 5000,
                                         });
                                     });
+                                this.logger.log('Handicap Re-Calculated on Daily Round Page', "info", playerId);
                                 this.snackBar.open(
                                     'Handicap Re-Calculated',
                                     'x',
@@ -1901,6 +1914,7 @@ export class ViewDailyRoundComponent implements OnInit {
     }
 
     hideResult() {
+        this.logger.log('Admin Click on Back to list in View Daily Round Page', "info");
         if (this.routeDate) {
             this.router.navigate(['/dailyRounds']);
         } else {
@@ -1981,6 +1995,7 @@ export class ViewDailyRoundComponent implements OnInit {
             });
             dialogRef.afterClosed().subscribe(async (result) => {
                 if (result) {
+                    this.logger.log('Calculate Handicap Dialog confirmed on Daily Round Page', "info", id);
                     if (selectedFlight.categoryRound == 2) {
                         flag = false;
                     }
@@ -2001,6 +2016,7 @@ export class ViewDailyRoundComponent implements OnInit {
                             await this.facadeService.singleRoundFlightQuery(id)
                         );
                         if (isSuccess) {
+                            this.logger.log('Handicap Calculated on Daily Round Page Successfully', "info", id);
                             selectedFlight.ended = true;
                             this.snackBar.open('Handicap Calculated', 'x', {
                                 duration: 5000,
@@ -2042,6 +2058,7 @@ export class ViewDailyRoundComponent implements OnInit {
                                                 //console.log(response);
                                             })
                                             .catch((err) => {
+                                                this.logger.log('Handicap Calculation on Daily Round Page Failed', "error", err?.toString());
                                                 //console.log('error' + err);
                                                 this.snackBar.open('Error!.', 'x', {
                                                     duration: 5000,
@@ -2053,12 +2070,14 @@ export class ViewDailyRoundComponent implements OnInit {
                                                 //console.log(response);
                                             })
                                             .catch((err) => {
+                                                this.logger.log('Handicap Calculation on Daily Round Page Failed', "error", err?.toString());
                                                 //console.log('error' + err);
                                                 this.snackBar.open('Error!.', 'x', {
                                                     duration: 5000,
                                                 });
                                             });
                                     }
+                                    this.logger.log('Handicap Calculated on Daily Round Page Successfully', "info", id);
                                     this.snackBar.open('Handicap Calculated', 'x', {
                                         duration: 5000,
                                     });
@@ -2067,11 +2086,14 @@ export class ViewDailyRoundComponent implements OnInit {
                                 }
                             }, 5000);
                         } else {
+                            this.logger.log('Handicap Not Calculated on Daily Round Page', "error", id);
                             this.snackBar.open('Handicap Not Calculated', 'x', {
                                 duration: 5000,
                             });
                         }
                     }
+                } else {
+                    this.logger.log('Calculate Handicap Dialog cancelled on Daily Round Page', "info", id);
                 }
             });
         } catch (error) {
@@ -2098,6 +2120,7 @@ export class ViewDailyRoundComponent implements OnInit {
                         )
                     );
                     if (isSuccess) {
+                        this.logger.log('Undo Player Handicap on Daily Round Page Successfully', "info", { flightId: flightId, playerId: playerId });
                         for (let i = 0; i < this.flightPlayers.length; i++) {
                             let obj = this.flightPlayers[i];
                             if (obj.flightId == flightId) {
@@ -2116,6 +2139,8 @@ export class ViewDailyRoundComponent implements OnInit {
                             duration: 2000,
                         });
                     }
+                } else {
+                    this.logger.log('Undo Handicap Dialog cancelled on Daily Round Page', "info", flightId);
                 }
             });
         } catch (error) {
@@ -2140,6 +2165,7 @@ export class ViewDailyRoundComponent implements OnInit {
                         )
                     );
                     if (isSuccess) {
+                        this.logger.log('Undo Flight Handicap on Daily Round Page Successfully', "info", flightId);
                         for (let i = 0; i < this.flightPlayers.length; i++) {
                             let obj = this.flightPlayers[i];
                             if (obj.flightId == flightId) {
@@ -2158,6 +2184,8 @@ export class ViewDailyRoundComponent implements OnInit {
                             duration: 2000,
                         });
                     }
+                } else {
+                    this.logger.log('Undo Handicap Dialog cancelled on Daily Round Page', "info", flightId);
                 }
             });
         } catch (error) {
@@ -2252,6 +2280,7 @@ export class ViewDailyRoundComponent implements OnInit {
                     ////console.log(result);
                     // console.log(result);
                     const resultString = JSON.stringify(result);
+                    this.logger.log('Change Hole Set Dialog confirmed on Daily Round Page', "info", { flightId: flightId, holeSets: result.holeSets, roundTee: result.roundTee, startingTime: result.startingTime });
                     // this.logger.log('Rsult from Dailog change Hole Set on Daily Round Page', "info", resultString);
 
                     //console.log(this.flightPlayers);
@@ -2646,6 +2675,7 @@ export class ViewDailyRoundComponent implements OnInit {
                     //this.flightPlayers = this.flightPlayers.sort(this.flightComparator);
                     //console.log(this.flightPlayers);
                 } else {
+                    this.logger.log('Change Hole Set Dialog cancelled on Daily Round Page', "info", flightId);
                     //console.log('else executed');
                 }
             });
@@ -2737,6 +2767,7 @@ export class ViewDailyRoundComponent implements OnInit {
     }
 
     changeHoleSet(event: any, flightId: string, type: boolean) {
+        this.logger.log('Admin change Course Hole Set dropdown on Daily Round Page', "info", { flightId: flightId, value: event?.value, holeSet: type });
         let currentFlight: any = this.flightCourseHoleSets.get(flightId);
 
         if (!currentFlight) {
@@ -2772,6 +2803,7 @@ export class ViewDailyRoundComponent implements OnInit {
     }
 
     async saveFlightChanges(flightId) {
+        this.logger.log('Admin click Save Flight Changes on Daily Round Page', "info", flightId);
         let currentFlight: any = this.flightCourseHoleSets.get(flightId);
         let flight;
         //console.log(currentFlight);
@@ -3131,6 +3163,7 @@ export class ViewDailyRoundComponent implements OnInit {
     }
 
     paneltToggle(tournamentId, flightId, playerId, event) {
+        this.logger.log('Admin toggle Player Penalty on Daily Round Page', "info", { flightId: flightId, playerId: playerId, checked: event?.checked });
         if (event.checked) {
             const dialogRef = this.dialog.open(DialogOverviewComponent, {
                 width: '350px',
@@ -3138,6 +3171,7 @@ export class ViewDailyRoundComponent implements OnInit {
             });
             dialogRef.afterClosed().subscribe(async (result) => {
                 if (result) {
+                    this.logger.log('Penalize Player Dialog confirmed on Daily Round Page', "info", { flightId: flightId, playerId: playerId });
                     let result = await this.facadeService.markPlayerPanelty(
                         tournamentId,
                         flightId,
@@ -3154,11 +3188,13 @@ export class ViewDailyRoundComponent implements OnInit {
                                 element.panelty = true;
                             }
                         });
+                        this.logger.log('Player Penalty Marked on Daily Round Page Successfully', "info", { flightId: flightId, playerId: playerId });
                         this.snackBar.open('Panelty Marked.', 'x', {
                             duration: 5000,
                         });
                     }
                 } else {
+                    this.logger.log('Penalize Player Dialog cancelled on Daily Round Page', "info", playerId);
                     event.source.checked = false;
                 }
             });
@@ -3174,6 +3210,7 @@ export class ViewDailyRoundComponent implements OnInit {
         }
     }
     movetoNewRound(player) {
+        this.logger.log('Admin click Move Player to separate round on Daily Round Page', "info", { flightId: player?.flightId, playerId: player?.playerId });
         //console.log(player);
         this.createNewRound(player);
     }
@@ -3185,6 +3222,7 @@ export class ViewDailyRoundComponent implements OnInit {
         });
         dialogRef.afterClosed().subscribe(async (result) => {
             if (result) {
+                this.logger.log('Move Player to new round Dialog confirmed on Daily Round Page', "info", { flightId: player.flightId, playerId: player.playerId });
                 let selectedFlight: any = this.flightPlayers.find((a) => {
                     return a.flightId == player.flightId;
                 });
@@ -3374,6 +3412,7 @@ export class ViewDailyRoundComponent implements OnInit {
                             0,
                             newFlightData
                         );
+                        this.logger.log('Player moved to a new round on Daily Round Page Successfully', "info", { playerId: player.playerId, newFlightId: newFlightId, newTournamentId: newTournamentId });
                         this.snackBar.open(
                             'Player has been moved to a new round.',
                             'x',
@@ -3385,6 +3424,7 @@ export class ViewDailyRoundComponent implements OnInit {
                     //this.router.navigate(['/daily-rounds/']);
                 }
             } else {
+                this.logger.log('Move Player to new round Dialog cancelled on Daily Round Page', "info", player?.playerId);
                 ////console.log("cancel delete action");
             }
         });
@@ -3404,6 +3444,7 @@ export class ViewDailyRoundComponent implements OnInit {
             });
             dialogRef.afterClosed().subscribe(async (result) => {
                 if (result) {
+                    this.logger.log('Delete player Dialog confirmed on Daily Round Page', "info", combinedData);
                     let response = await this.facadeService.DeleteFlightMembers(
                         flightId,
                         playerId
@@ -3441,6 +3482,7 @@ export class ViewDailyRoundComponent implements OnInit {
                                         });
                                     })
                                     .catch((err) => {
+                                        this.logger.log('Handicap Calculation on Daily Round Page Failed', "error", err?.toString());
                                         //console.log('error' + err);
                                         this.snackBar.open('Congu-Handicap Error!.', 'x', {
                                             duration: 1000,
@@ -3455,6 +3497,7 @@ export class ViewDailyRoundComponent implements OnInit {
                                         });
                                     })
                                     .catch((err) => {
+                                        this.logger.log('Handicap Calculation on Daily Round Page Failed', "error", err?.toString());
                                         //console.log('error' + err);
                                         this.snackBar.open('WHS-Handicap Error!.', 'x', {
                                             duration: 1000,

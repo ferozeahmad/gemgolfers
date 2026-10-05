@@ -141,6 +141,7 @@ export class DailyStarterReportComponent implements OnInit {
     }
 
     onClubFilterChange(selectedClub: string) {
+        this.logger.log('Admin Change Club Filter in Daily Tee Time Report', "info", selectedClub);
         this.selectedClub = selectedClub;
         
         if (selectedClub === '' || selectedClub === 'All') {
@@ -175,6 +176,7 @@ export class DailyStarterReportComponent implements OnInit {
                 this.datePipe.transform(toDate.toString(), 'yyyy-MM-dd')
             );
         }
+        this.logger.log('Getting Daily Tee Time Report Data Successfully', "info", dataPlayers?.TournamentsQL?.length);
         console.log(dataPlayers.TournamentsQL);
         //console.log(dataPlayers.TournamentsQL.length);
         if (dataPlayers.TournamentsQL) {
@@ -351,6 +353,7 @@ export class DailyStarterReportComponent implements OnInit {
     }
 
     public downloadAsPDF(data: any) {
+        this.logger.log('Admin Click Download Pdf Daily Tee Time Report', "info", data?.date);
         const doc = new jsPDF('portrait');
         const pageHeight = (doc as any).internal.pageSize.height;
         const pageWidth = (doc as any).internal.pageSize.width;

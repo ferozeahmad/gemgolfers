@@ -12,6 +12,7 @@ import { User } from 'app/core/user/user.types';
 import { UserService } from 'app/core/user/user.service';
 import { Constants } from 'app/shared/classes/general';
 import { LocalStorageService } from 'app/shared/services/localStorage';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -37,7 +38,8 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
         private _userService: UserService,
         private _fuseMediaWatcherService: FuseMediaWatcherService,
         private _fuseNavigationService: FuseNavigationService,
-        private _localStorage: LocalStorageService
+        private _localStorage: LocalStorageService,
+        private logger: LogsService
     ) { }
 
     // -----------------------------------------------------------------------------------------------------
@@ -133,6 +135,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
      * @param name
      */
     toggleNavigation(name: string): void {
+        this.logger.log('User Click on Toggle Navigation', "info", name);
         // Get the navigation
         const navigation =
             this._fuseNavigationService.getComponent<FuseVerticalNavigationComponent>(

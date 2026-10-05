@@ -5,6 +5,7 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LogsService } from "app/shared/services/logs.service";
 
 @Component({
     standalone: false,
@@ -19,11 +20,13 @@ export class CoursesRequestComponent implements OnInit {
   coursesRequest: any[] = [];
   displayedColumns = ["id", "name", "country","state", "city","createdAt", "admin"];
   courseData: any;
-  constructor(private facadeService: FacadeService, public dialog: MatDialog) {}
+  constructor(private facadeService: FacadeService, public dialog: MatDialog, private logger: LogsService) {}
 
   async ngOnInit() {
+    this.logger.log('Admin comes to Courses Request Page', "info");
     let coursesRequests = await this.facadeService.getAllCoursesRequest();
     this.coursesRequest = coursesRequests.course_request;
+    this.logger.log('Getting Courses Request Data Successful', "info", this.coursesRequest?.length);
     console.log(this.coursesRequest);
     this.dataSource = new MatTableDataSource(this.coursesRequest);
     this.dataSource.paginator = this.paginator;

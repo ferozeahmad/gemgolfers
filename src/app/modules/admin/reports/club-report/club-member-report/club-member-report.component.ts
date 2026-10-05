@@ -8,6 +8,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { ApexOptions } from 'ng-apexcharts';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-club--member-report',
@@ -47,10 +48,12 @@ export class ClubMemberComponent implements OnInit {
         private location: Router,
         private facadeService: FacadeService,
         private route: ActivatedRoute,
-        private apollo: Apollo
+        private apollo: Apollo,
+        private logger: LogsService
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Admin Come to Club Members Report Page', "info");
         this.fecthData();
     }
 
@@ -60,9 +63,11 @@ export class ClubMemberComponent implements OnInit {
         this.route.paramMap.subscribe((params) => {
             this.clubId = params.get('id');
         });
+        this.logger.log('Getting Club Members Report Data', "info", this.clubId);
         data = await this.facadeService.getPlayersListByClub(
             this.clubId
         );
+        this.logger.log('Getting Club Members Report Data Successfully', "info", data?.player?.length);
         this.count = data.player.length;
         this.Players = data.player;
         //console.log(data);

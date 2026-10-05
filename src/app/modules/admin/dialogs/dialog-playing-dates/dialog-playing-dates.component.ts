@@ -5,6 +5,7 @@ import {
 
 } from "@angular/material/dialog";
 import { MatCheckboxModule } from "@angular/material/checkbox";
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
   selector: "app-dialog-playing-dates",
@@ -18,10 +19,12 @@ export class DialogPlayingDatesComponent implements OnInit {
   category: any[] = [];
   constructor(
     public dialogRef: MatDialogRef<DialogPlayingDatesComponent>,
+    private logger: LogsService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 
   ngOnInit() {
+    this.logger.log('Playing Dates Dialog Opened', "info", { categoryId: this.data?.category?.id, categoryName: this.data?.category?.name });
     //console.log(this.data);
     for (let i of this.data.dates) {
       //console.log(i);
@@ -49,6 +52,7 @@ export class DialogPlayingDatesComponent implements OnInit {
   }
 
   dateChange(event, t) {
+    this.logger.log('Admin Selects Date in Playing Dates Dialog', "info", { categoryId: this.data?.category?.id, checked: event?.checked });
     ////console.log(this.category[0]["cat"].id);
     ////console.log(this.category["cat"].id);
 
@@ -66,6 +70,7 @@ export class DialogPlayingDatesComponent implements OnInit {
     //console.log(this.playingDates);
   }
   onNoClick(): void {
+    this.logger.log('Admin Click on Cancel in Playing Dates Dialog', "info");
     this.dialogRef.close();
   }
 }

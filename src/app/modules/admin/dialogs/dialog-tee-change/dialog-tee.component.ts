@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FacadeService } from 'app/shared/services/facade.service';
 import { HandicapService } from 'app/shared/services/handicap.service';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -19,8 +20,10 @@ export class DialogTeeComponent implements OnInit {
     constructor(
         public dialogRef: MatDialogRef<DialogTeeComponent>, private handicapService: HandicapService, public snackBar: MatSnackBar,
         @Inject(MAT_DIALOG_DATA) public data: any, public facadeService: FacadeService,
+        private logger: LogsService,
     ) { }
     async ngOnInit() {
+        this.logger.log('Change Tee Dialog Opened', "info", { playerId: this.data?.player?.playerId, tournamentId: this.data?.player?.tournamentId });
         this.form = new FormGroup({
             tee: new FormControl('', [Validators.required]),
         });
@@ -35,9 +38,11 @@ export class DialogTeeComponent implements OnInit {
 
     }
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Change Tee Dialog', "info");
         this.dialogRef.close();
     }
     async changeTee() {
+        this.logger.log('Admin Click on Change Tee in Change Tee Dialog', "info", { playerId: this.data?.player?.playerId, tournamentId: this.data?.player?.tournamentId, teeId: this.form?.value?.tee?.tee_id });
         console.log(this.form.getRawValue());
         try {
             let formValue = this.form.getRawValue();
@@ -51,6 +56,7 @@ export class DialogTeeComponent implements OnInit {
                     .updatePlayerHandicapTee(newObj)
                     .then(async (response) => {
                         await this.handicapService.calculateHandicapWHS({ playerId: this.data.player.playerId, count: 1 }).then((res) => {
+                            this.logger.log('Player Tee Changed Successfully', "info", { playerId: this.data?.player?.playerId, tournamentId: this.data?.player?.tournamentId });
                             this.snackBar.open('Tees Changed successfully!.', 'x', {
                                 duration: 2000,
                             });
@@ -59,12 +65,14 @@ export class DialogTeeComponent implements OnInit {
                     })
                     .catch((err) => {
                         //console.log('error' + err);
+                        this.logger.log('Updating Player Handicap After Tee Change Failed', "error", err?.toString());
                         this.snackBar.open('Error!.', 'x', {
                             duration: 5000,
                         });
                     });
             }
         } catch (error) {
+            this.logger.log('Changing Player Tee Failed', "error", error?.toString());
             this.snackBar.open('Error!.', 'x', {
                 duration: 5000,
             });

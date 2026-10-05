@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { FacadeService } from 'app/shared/services/facade.service';
 import { generate, map, Observable, startWith } from 'rxjs';
 import { FuseAlertType } from '@fuse/components/alert';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -37,7 +38,8 @@ export class SignUpFormComponent implements OnInit {
     constructor(
         private _facadeService: FacadeService,
         private route: ActivatedRoute,
-        public snackBar: MatSnackBar
+        public snackBar: MatSnackBar,
+        private logger: LogsService
     ) { }
 
     async ngOnInit() {
@@ -45,6 +47,7 @@ export class SignUpFormComponent implements OnInit {
             this.tournamentID = params.get('id');
         });
 
+        this.logger.log('User comes to Tournament Sign Up Form Page', "info", this.tournamentID);
         this.createForm();
         let data = await this._facadeService.getTournamentByIDForSignUpUsers(
             this.tournamentID
@@ -114,6 +117,7 @@ export class SignUpFormComponent implements OnInit {
         return this.signUpForm.controls[controlName].hasError(errorName);
     };
     async signUp() {
+        this.logger.log('User Click on Sign Up btn in Tournament Sign Up Form Page', "info", this.tournamentID);
         let exist: any = [];
         let clubMember: any[] = [];
         let signUpPerson = this.signUpForm.getRawValue();
@@ -159,6 +163,7 @@ export class SignUpFormComponent implements OnInit {
                 };
                 this.saveMembers(member);
             } else {
+                this.logger.log('Sign Up skipped, Player is already a Tournament Member', "warn", { tournamentId: this.tournamentID, playerId: exist[0].id });
                 this.alert = {
                     type: 'warn',
                     message:
@@ -214,6 +219,7 @@ export class SignUpFormComponent implements OnInit {
                     this._facadeService.sendTransactionalEmail(player.email, player.firstName, password).subscribe();
                     let status = await this._facadeService.AddPlayer(player);
                     if (status) {
+                        this.logger.log('New Player added from Tournament Sign Up Form successfully', "info", { tournamentId: this.tournamentID, playerId: player.id });
                         let member: any = {
                             tournamentId: this.tournamentID,
                             playerId: player.id,
@@ -233,6 +239,7 @@ export class SignUpFormComponent implements OnInit {
                         };
                         this.showAlert = true;
                     } else {
+                        this.logger.log('Adding New Player from Tournament Sign Up Form Failed', "error", { tournamentId: this.tournamentID, playerId: player.id });
                         this.snackBar.open('Something went wrong!', 'x', {
                             duration: 5000,
                         });
@@ -256,6 +263,7 @@ export class SignUpFormComponent implements OnInit {
         );
 
         if (result) {
+            this.logger.log('Tournament Member added from Sign Up Form successfully', "info", this.tournamentID);
             // Set the alert
             this.alert = {
                 type: 'success',

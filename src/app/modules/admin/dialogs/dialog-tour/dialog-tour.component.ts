@@ -10,6 +10,7 @@ import 'jspdf-autotable';
 import { SelectionModel } from '@angular/cdk/collections';
 import { TournamentMember } from 'app/shared/models/tournament.model';
 import { FacadeService } from 'app/shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-tour-dailog',
@@ -38,10 +39,12 @@ export class DialogTourComponent implements OnInit {
         public dialogRef: MatDialogRef<DialogTourComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any,
         private facadeService: FacadeService,
-      
+        private logger: LogsService,
+
     ) {}
 
     ngOnInit() {
+        this.logger.log('Tour Dialog Opened', "info", { tournaments: this.data?.tournaments?.length });
         //console.log(this.data);
 
         this.playerList = this.data.tournaments;
@@ -62,6 +65,7 @@ export class DialogTourComponent implements OnInit {
     }
 
     public downloadAsPDF() {
+        this.logger.log('Admin Click on Download PDF in Tour Dialog', "info", this.data?.key);
         var doc = new jsPDF();
         let date=new Date(this.data.date).getDate() +'/'+(new Date(this.data.date).getMonth()+1) +'/'+new Date(this.data.date).getFullYear(); 
         var day=new Date(this.data.date).getDay()-1;
@@ -96,11 +100,13 @@ export class DialogTourComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Tour Dialog', "info");
         this.dialogRef.close();
     }
 
-   
+
     close() {
+        this.logger.log('Admin Click on Close in Tour Dialog', "info");
         this.dialogRef.close();
     }
 }

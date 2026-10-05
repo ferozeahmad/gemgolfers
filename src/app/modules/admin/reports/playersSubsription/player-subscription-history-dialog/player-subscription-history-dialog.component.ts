@@ -5,6 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import gql from 'graphql-tag';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -23,10 +24,12 @@ export class PlayerSubscriptionHistoryDialogComponent implements OnInit {
     constructor(
         public dialogRef: MatDialogRef<PlayerSubscriptionHistoryDialogComponent>,
         @Inject(MAT_DIALOG_DATA) public data: { player: any },
-        private apollo: Apollo
+        private apollo: Apollo,
+        private logger: LogsService
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Admin Open Player Subscription History Dialog', "info", this.data?.player?.id);
         this.fetchSubscriptionHistory();
     }
 
@@ -59,6 +62,7 @@ export class PlayerSubscriptionHistoryDialogComponent implements OnInit {
                 ({ data, loading }) => {
                     this.isLoading = loading;
                     if (!loading && data) {
+                        this.logger.log('Getting Player Subscription History Successfully', "info", data.club_member_subscription?.length);
                         console.log(data);
                         //loop the data and add player detials in it
                         let dat = data.club_member_subscription.map((subscription: any) => ({
@@ -72,6 +76,7 @@ export class PlayerSubscriptionHistoryDialogComponent implements OnInit {
                     }
                 },
                 (error) => {
+                    this.logger.log('Getting Player Subscription History Failed', "error", error?.toString());
                     console.error('Error fetching subscription history:', error);
                     this.isLoading = false;
                 }
@@ -79,6 +84,7 @@ export class PlayerSubscriptionHistoryDialogComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Close in Player Subscription History Dialog', "info");
         this.dialogRef.close();
     }
 }

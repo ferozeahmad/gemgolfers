@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatDrawer } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FacadeService } from '../../../../shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -34,18 +35,22 @@ export class DialogAddExisitingPlayerComponent implements OnInit {
     constructor(
         public dialogRef: MatDialogRef<DialogAddExisitingPlayerComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any,
-        public facadeService: FacadeService
+        public facadeService: FacadeService,
+        private logger: LogsService
     ) {}
 
     ngOnInit() {
+      this.logger.log('Add Existing Player Dialog Opened', "info", { players: this.data?.players?.length });
       this.setDataSource(this.data.players);
     }
 
     async getPlayerInformationByGEMID() {
-      let GEMID : string = (<HTMLInputElement>document.getElementById("gemid")).value; 
-      
+      let GEMID : string = (<HTMLInputElement>document.getElementById("gemid")).value;
+      this.logger.log('Admin Search Player by GEM ID in Add Existing Player Dialog', "info", GEMID);
+
       if(GEMID) {
         this.player = <Player[]>await this.facadeService.getPlayerByGEMID(GEMID);
+        this.logger.log('Search Player by GEM ID in Add Existing Player Dialog Successful', "info", { found: this.player?.length });
 
         this.setDataSource(this.player);
 
@@ -65,10 +70,12 @@ export class DialogAddExisitingPlayerComponent implements OnInit {
 
 
     async getPlayerInformationByMembershipNumber() {
-      let membershipNumber : string = (<HTMLInputElement>document.getElementById("membershipNumber")).value; 
-      
+      let membershipNumber : string = (<HTMLInputElement>document.getElementById("membershipNumber")).value;
+      this.logger.log('Admin Search Player by Membership Number in Add Existing Player Dialog', "info", membershipNumber);
+
       if(membershipNumber) {
         this.player = <Player[]>await this.facadeService.getPlayerByMembershipNumber(membershipNumber);
+        this.logger.log('Search Player by Membership Number in Add Existing Player Dialog Successful', "info", { found: this.player?.length });
 
         this.setDataSource(this.player);
         
@@ -91,7 +98,8 @@ export class DialogAddExisitingPlayerComponent implements OnInit {
       let firstName : string = (<HTMLInputElement>document.getElementById("firstName")).value;
       let lastName : string = (<HTMLInputElement>document.getElementById("lastName")).value;
       let handicap : string = (<HTMLInputElement>document.getElementById("handicap")).value;
-      
+      this.logger.log('Admin Search Player by Name in Add Existing Player Dialog', "info", { firstName: firstName, lastName: lastName, handicap: handicap });
+
       if(firstName || lastName) {
 
         if(!firstName) firstName = "NOTHING";
@@ -105,6 +113,7 @@ export class DialogAddExisitingPlayerComponent implements OnInit {
 
         let matchingList = <Player>await this.facadeService.searchPlayer(firstName, lastName, "NOTHING", lowerHandicap, upperHandicap);
         this.player = this.getMatchingPlayers(matchingList);
+        this.logger.log('Search Player by Name in Add Existing Player Dialog Successful', "info", { found: this.player?.length });
 
         this.setDataSource(this.player);
         
@@ -165,7 +174,8 @@ export class DialogAddExisitingPlayerComponent implements OnInit {
     }
 
     selectPlayer(player) {
-      
+      this.logger.log('Admin Selects Player in Add Existing Player Dialog', "info", player?.id);
+
       this.response = {
         player: player,
         flight: Number(this.selectedFlight) - 1
@@ -177,14 +187,16 @@ export class DialogAddExisitingPlayerComponent implements OnInit {
 
 
     changeFlight(item) {
+      this.logger.log('Admin Changes Flight in Add Existing Player Dialog', "info", item?.value);
       //console.log("Selected value: " + item.value);
       this.selectedFlight = item.value;
-      
+
       if(this.response)
         this.response.flight = Number(this.selectedFlight) - 1;
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Add Existing Player Dialog', "info");
         this.dialogRef.close();
     }
 

@@ -166,6 +166,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
 
     async ngOnInit() {
         // this.logger.log('ViewCourseComponent initialized', 'INFO');
+        this.logger.log('Admin comes to Course Details Page', "info");
         // this.addNewTee()
         // this.setHoles(18);
         // this.googleMapsApiLoaded$ = this.googleMapsApiSerivce.loadApi().pipe(shareReplay());
@@ -205,9 +206,11 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
         ];
 
         if (this.courseID) {
+            this.logger.log('Getting Course Data', "info", this.courseID);
             this.courseData = await this.facadeService.getCourseByID(
                 this.courseID
             );
+            this.logger.log('Getting Course Data Successful', "info", this.courseID);
             //console.log(this.courseData);
             this.courseTitle = this.courseData['course'][0].name;
             this.countryName = this.courseData['course'][0].country;
@@ -350,6 +353,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
     ////*******************************************************************COURSE CREATE**************************************************************************************** */
     countrySelected(event) {
         // this.logger.log('countrySelected called', 'INFO', event);
+        this.logger.log('Country selected in Course Details Page', "info", event?.name || event);
         // let obj = Country.getCity(event);
 
         const city = new getCity().getCity(event?.name || event);
@@ -530,6 +534,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
 
     public createCourse = async () => {
         // this.logger.log('createCourse called', 'INFO');
+        this.logger.log('Admin Click on Save Course in Course Details Page', "info", this.courseID);
         let playerFormValue = this.courseForm.getRawValue();
         let course = {
             id: UniqueIdGenerator.generate(),
@@ -564,6 +569,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
                 await this.facadeService.updateCourse(courses, []));
             if (isSuccess) {
                 // this.logger.log('Course updated successfully', 'INFO', courses);
+                this.logger.log('Course updated successfully', "info", { id: courses.id, name: courses.name });
                 this.saveTees();
                 this.goToPanel('1');
             } else {
@@ -571,11 +577,13 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
                     duration: 5000,
                 });
                 // this.logger.log('Course update failed', 'ERROR', courses);
+                this.logger.log('Course update Failed', "error", { id: courses.id, name: courses.name });
             }
         } else {
             const isSuccess = <boolean>await this.facadeService.AddCourse(course);
             if (isSuccess) {
                 // this.logger.log('Course created successfully', 'INFO', course);
+                this.logger.log('Course created successfully', "info", { id: course.id, name: course.name });
                 this.courseID = course.id;
                 this.saveTees();
                 this.NoOfHoles = Number(course.noOfHoles);
@@ -585,6 +593,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
                     duration: 5000,
                 });
                 // this.logger.log('Course creation failed', 'ERROR', course);
+                this.logger.log('Course creation Failed', "error", { id: course.id, name: course.name });
             }
         }
         // }
@@ -661,6 +670,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      */
     addNewTee() {
         // this.logger.log('addNewTee called', 'INFO');
+        this.logger.log('Adding New Tee in Course Details Page', "info");
         let tee: any = General.getCourseTee(this.Tee.length);
         this.Tee[this.Tee.length] = [];
         this.Tee[this.Tee.length - 1]['id'] = UniqueIdGenerator.generate();
@@ -739,6 +749,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      */
     public deleteTee(teeID) {
         // this.logger.log(`deleteTee called for teeID: ${teeID}`, 'INFO');
+        this.logger.log('Admin Click on Delete Tee in Course Details Page', "info", teeID);
         this.deleteTsee = this.Tee.filter((a) => a.id != teeID);
         let deletedTee = this.Tee.filter((a) => a.id == teeID);
         this.teeRemove.push(deletedTee[0]);
@@ -753,6 +764,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
      */
     public saveTees = async () => {
         // this.logger.log('saveTees called', 'INFO');
+        this.logger.log('Saving Course Tees', "info", this.courseID);
         let today: Date = new Date();
         let teeObj = [];
         let teeObjtoDelete = [];
@@ -805,9 +817,11 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
                     )
                 );
                 // this.logger.log('Tee colors deleted successfully', 'INFO', teeObjtoDelete);
+                this.logger.log('Course Tees deleted successfully', "info", teeObjtoDelete);
             }
             if (saveTeeColor) {
                 // this.logger.log('Tee colors saved successfully', 'INFO');
+                this.logger.log('Course Tees saved successfully', "info", this.courseID);
                 this.goToPanel('2');
                 this.saveHoles();
             } else {
@@ -815,9 +829,11 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
                     duration: 5000,
                 });
                 // this.logger.log('Tee colors failed to save', 'ERROR');
+                this.logger.log('Saving Course Tees Failed', "error", this.courseID);
             }
         } catch (error) {
             // this.logger.log('Error saving tees', 'ERROR', error);
+            this.logger.log('Saving Course Tees Failed', "error", error);
             this.snackBar.open('Error saving tees!', 'x', {
                 duration: 5000,
             });
@@ -829,6 +845,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
 
     holesChange(event: any) {
         // this.logger.log('holesChange called', 'INFO', event);
+        this.logger.log('Admin changes Number of Holes in Course Details Page', "info", event.value);
         const noOfHoles = Number(event.value);
         this.NoOfHoles = noOfHoles;
         if (noOfHoles == 9) {
@@ -1431,6 +1448,7 @@ export class ViewCourseComponent implements OnInit, OnDestroy {
 event   */
     public addLadiesIndex() {
         // this.logger.log('addLadiesIndex called', 'INFO');
+        this.logger.log('Admin Click on Add Ladies Index in Course Details Page', "info");
         this.showholeindexforWomen = !this.showholeindexforWomen;
         if (this.showholeindexforWomen) {
             this.holeSetfor9.forEach(function (element) {
@@ -1464,6 +1482,7 @@ event   */
 
     removeLadiesIndex() {
         // this.logger.log('removeLadiesIndex called', 'INFO');
+        this.logger.log('Admin Click on Remove Ladies Index in Course Details Page', "info");
         this.showholeindexforWomen = !this.showholeindexforWomen;
         this.holeSetfor9.forEach(function (element) {
             delete element['indexForW'];
@@ -1505,6 +1524,7 @@ event   */
      */
     public saveHoles = async () => {
         // this.logger.log('saveHoles called', 'INFO');
+        this.logger.log('Saving Course Holes', "info", this.courseID);
         let holeObj = [];
         let holesToSave = [];
         let holesYardageToSave = [];
@@ -1661,6 +1681,7 @@ event   */
                 );
                 if (succees) {
                     // this.logger.log('Course holes saved successfully', 'INFO');
+                    this.logger.log('Course Holes saved successfully', "info", this.courseID);
                     this.initializeHoleSet();
                     this.saveHoleSets();
                 } else {
@@ -1668,9 +1689,11 @@ event   */
                         duration: 5000,
                     });
                     // this.logger.log('Course holes failed to save', 'ERROR');
+                    this.logger.log('Saving Course Holes Failed', "error", this.courseID);
                 }
             } catch (error) {
                 // this.logger.log('Error saving course holes', 'ERROR', error);
+                this.logger.log('Saving Course Holes Failed', "error", error);
                 this.snackBar.open('Error saving course holes!', 'x', {
                     duration: 5000,
                 });
@@ -1680,6 +1703,7 @@ event   */
                 duration: 5000,
             });
             // this.logger.log('Index duplicates detected, preventing save', 'WARN');
+            this.logger.log('Course Holes not saved, Index duplicates', "warn", this.courseID);
         }
     };
     ///*******************************************************************TEE HOLES SAVE**************************************************************************************** */
@@ -1801,6 +1825,7 @@ event   */
     async saveHoleSets(
     ) {
         // this.logger.log('saveHoleSets called', 'INFO');
+        this.logger.log('Saving Course Hole Sets', "info", this.courseID);
         //console.log(this.Hole);
         let HoleSetObj = [];
         for (let obj of this.Hole) {
@@ -1823,6 +1848,7 @@ event   */
             );
             if (saveTeeColor) {
                 // this.logger.log('Course hole sets saved successfully', 'INFO', HoleSetObj);
+                this.logger.log('Course Hole Sets saved successfully', "info", this.courseID);
                 this.savecoureRating();
                 this.goToPanel('4');
             } else {
@@ -1830,9 +1856,11 @@ event   */
                     duration: 5000,
                 });
                 // this.logger.log('Course hole sets failed to save', 'ERROR', HoleSetObj);
+                this.logger.log('Saving Course Hole Sets Failed', "error", this.courseID);
             }
         } catch (error) {
             // this.logger.log('Error saving course hole sets', 'ERROR', error);
+            this.logger.log('Saving Course Hole Sets Failed', "error", error);
             this.snackBar.open('Error saving course hole sets!', 'x', {
                 duration: 5000,
             });
@@ -2194,6 +2222,7 @@ event   */
 
     async savecoureRating() {
         // this.logger.log('savecoureRating called', 'INFO');
+        this.logger.log('Saving Course Ratings', "info", this.courseID);
         let teeObj = [];
         //console.log(this.coursRating);
         for (let obj of this.coursRating) {
@@ -2216,6 +2245,7 @@ event   */
             );
             if (saveCourseRating) {
                 // this.logger.log('Course ratings saved successfully', 'INFO', teeObj);
+                this.logger.log('Course Ratings saved successfully', "info", this.courseID);
                 // this.snackBar.open('Course-Rating has been Saved!', 'x', {
                 //     duration: 5000,
                 // });
@@ -2237,6 +2267,7 @@ event   */
                             },
                         },
                     }).afterClosed().subscribe(() => {
+                        this.logger.log('Admin closes Course Saved dialog', "info", this.courseID);
                         this.router.navigateByUrl('/courses2');
                     })
                 } else {
@@ -2257,6 +2288,7 @@ event   */
                                 },
                             },
                         }).afterClosed().subscribe(() => {
+                            this.logger.log('Admin closes Course Saved dialog', "info", this.courseID);
                             location.reload();
                         })
 
@@ -2277,6 +2309,7 @@ event   */
                                 },
                             },
                         }).afterClosed().subscribe(() => {
+                            this.logger.log('Admin closes Course Updated dialog', "info", this.courseID);
                             location.reload();
                         })
                     }
@@ -2286,9 +2319,11 @@ event   */
                     duration: 5000,
                 });
                 // this.logger.log('Course ratings failed to save', 'ERROR', teeObj);
+                this.logger.log('Saving Course Ratings Failed', "error", this.courseID);
             }
         } catch (error) {
             // this.logger.log('Error saving course ratings', 'ERROR', error);
+            this.logger.log('Saving Course Ratings Failed', "error", error);
             this.snackBar.open('Error saving course ratings!', 'x', {
                 duration: 5000,
             });

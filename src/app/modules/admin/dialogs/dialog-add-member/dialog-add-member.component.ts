@@ -25,6 +25,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatSort } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-dialog-add-member',
@@ -48,10 +49,12 @@ export class DialogAddMemberComponent implements OnInit {
     selection = new SelectionModel<Player>(true, []);
     constructor(
         @Inject(MAT_DIALOG_DATA) public data: any,
-        public dialogRef: MatDialogRef<DialogAddMemberComponent>
+        public dialogRef: MatDialogRef<DialogAddMemberComponent>,
+        private logger: LogsService
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Add Member Dialog Opened', "info", { members: this.data?.members?.length });
         //console.log(this.data);
 
         this.dataSource = new MatTableDataSource(this.data.members);
@@ -91,6 +94,7 @@ export class DialogAddMemberComponent implements OnInit {
 
     /** Selects all rows if they are not all selected; otherwise clear selection. */
     masterToggle() {
+        this.logger.log('Admin Toggles Select All in Add Member Dialog', "info");
         //console.log(this.selection);
         //console.log(this.selection.selected.length);
         this.isAllSelected()
@@ -108,9 +112,11 @@ export class DialogAddMemberComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Add Member Dialog', "info");
         this.dialogRef.close();
     }
     onSubmit() {
+        this.logger.log('Admin Click on Add Members in Add Member Dialog', "info", { selected: this.selection?.selected?.length });
         let selectionArray = Object.assign({}, this.selection.selected);
         for (var index in selectionArray) {
             if (selectionArray[index]) {

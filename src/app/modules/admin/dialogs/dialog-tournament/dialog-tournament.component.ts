@@ -10,6 +10,7 @@ import 'jspdf-autotable';
 import { SelectionModel } from '@angular/cdk/collections';
 import { TournamentMember } from 'app/shared/models/tournament.model';
 import { FacadeService } from 'app/shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-tournament-dailog',
@@ -39,10 +40,12 @@ export class DialogTournamentComponent implements OnInit {
         public dialogRef: MatDialogRef<DialogTournamentComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any,
         private facadeService: FacadeService,
+        private logger: LogsService,
 
     ) { }
 
     ngOnInit() {
+        this.logger.log('Tournament Dialog Opened', "info", { tournaments: this.data?.tournaments?.length });
         //console.log(this.data);
 
         this.playerList = this.data.tournaments;
@@ -63,6 +66,7 @@ export class DialogTournamentComponent implements OnInit {
     }
 
     public downloadAsPDF() {
+        this.logger.log('Admin Click on Download PDF in Tournament Dialog', "info", this.data?.key);
         var doc = new jsPDF();
         let date = new Date(this.data.date).getDate() + '/' + (new Date(this.data.date).getMonth() + 1) + '/' + new Date(this.data.date).getFullYear();
         var day = new Date(this.data.date).getDay() - 1;
@@ -97,11 +101,13 @@ export class DialogTournamentComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Tournament Dialog', "info");
         this.dialogRef.close();
     }
 
 
     close() {
+        this.logger.log('Admin Click on Close in Tournament Dialog', "info");
         this.dialogRef.close();
     }
 
@@ -128,11 +134,13 @@ export class DialogTournamentComponent implements OnInit {
 
     // Function to handle single selection
     selectSingle(row: any): void {
+        this.logger.log('Admin Selects Tournament in Tournament Dialog', "info", row?.id);
         this.selection.clear(); // Deselect any previously selected row
         this.selection.select(row); // Select the current row
     }
 
     save() {
+        this.logger.log('Admin Click on Save in Tournament Dialog', "info", { selected: this.selection?.selected?.length, id: (this.selection?.selected?.[0] as any)?.id });
         this.dialogRef.close(this.selection.selected);
     }
 }

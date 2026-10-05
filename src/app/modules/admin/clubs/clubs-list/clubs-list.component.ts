@@ -11,6 +11,7 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { FacadeService } from 'app/shared/services/facade.service';
 import { LocalStorageService } from 'app/shared/services/localStorage';
 import { DialogOverviewComponent } from '../../dialogs/dialog-overview/dialog-overview.component';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -41,9 +42,11 @@ export class ClubsListComponent implements OnInit, OnDestroy {
         private snackBar: MatSnackBar,
         private dialog: MatDialog,
         private cdr: ChangeDetectorRef,
+        private logger: LogsService,
     ) {}
 
     ngOnInit(): void {
+        this.logger.log('Admin comes to Clubs Page', "info");
         this.loadClubs();
         this.searchControl.valueChanges
             .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
@@ -59,6 +62,7 @@ export class ClubsListComponent implements OnInit, OnDestroy {
     }
 
     async loadClubs(): Promise<void> {
+        this.logger.log('Getting Clubs Data', "info", { pageIndex: this.pageIndex, pageSize: this.pageSize, search: this.searchControl.value });
         this.isLoading = true;
         const search = (this.searchControl.value || '').trim();
         try {
@@ -70,7 +74,9 @@ export class ClubsListComponent implements OnInit, OnDestroy {
             const clubs = result?.club || [];
             this.totalCount = result?.club_aggregate?.aggregate?.count || 0;
             this.dataSource = new MatTableDataSource(clubs);
+            this.logger.log('Getting Clubs Data Successful', "info", this.totalCount);
         } catch (err) {
+            this.logger.log('Getting Clubs Data Failed', "error", err);
             this.snackBar.open('Failed to load clubs.', 'x', { duration: 3000 });
         } finally {
             this.isLoading = false;
@@ -79,6 +85,7 @@ export class ClubsListComponent implements OnInit, OnDestroy {
     }
 
     onPageChange(event: PageEvent): void {
+        this.logger.log('Admin changes page in Clubs Page', "info", { pageIndex: event.pageIndex, pageSize: event.pageSize });
         this.pageIndex = event.pageIndex;
         this.pageSize = event.pageSize;
         this.loadClubs();
@@ -94,30 +101,37 @@ export class ClubsListComponent implements OnInit, OnDestroy {
     }
 
     addClub(): void {
+        this.logger.log('Admin Click on Add Club in Clubs Page', "info");
         this.router.navigate(['/clubs/add']);
     }
 
     viewClub(club: any): void {
+        this.logger.log('Admin Click on View in Clubs Page', "info", club?.id);
         this.router.navigate(['/clubs/view', club.id]);
     }
 
     editClub(club: any): void {
+        this.logger.log('Admin Click on Edit in Clubs Page', "info", club?.id);
         this.router.navigate(['/clubs/edit', club.id]);
     }
 
     deleteClub(club: any): void {
+        this.logger.log('Admin Click on Delete in Clubs Page', "info", { id: club?.id, name: club?.name });
         const dialogRef = this.dialog.open(DialogOverviewComponent, {
             width: '400px',
             data: `Are you sure you want to delete club "${club.name}"? This action cannot be undone.`,
         });
 
         dialogRef.afterClosed().subscribe(async (confirmed) => {
+            this.logger.log(confirmed ? 'Admin confirmed Delete Club' : 'Admin cancelled Delete Club', "info", club.id);
             if (confirmed) {
                 const success = await this.facadeService.deleteClub(club.id);
                 if (success) {
+                    this.logger.log('Club deleted successfully', "info", club.id);
                     this.snackBar.open('Club deleted successfully.', 'x', { duration: 3000 });
                     this.loadClubs();
                 } else {
+                    this.logger.log('Deleting Club Failed', "error", club.id);
                     this.snackBar.open('Failed to delete club. It may have associated data.', 'x', { duration: 4000 });
                 }
             }

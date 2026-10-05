@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { LogsService } from 'app/shared/services/logs.service';
 
 export interface RemoveMemberResult {
     row: number;
@@ -19,12 +20,16 @@ export class RemoveMembersResultsDialogComponent implements OnInit {
 
     constructor(
         public dialogRef: MatDialogRef<RemoveMembersResultsDialogComponent>,
-        @Inject(MAT_DIALOG_DATA) public data: RemoveMemberResult[]
+        @Inject(MAT_DIALOG_DATA) public data: RemoveMemberResult[],
+        private logger: LogsService
     ) {}
 
-    ngOnInit(): void {}
+    ngOnInit(): void {
+        this.logger.log('Admin comes to Remove Members Results Dialog', "info", { resultsCount: this.data?.length });
+    }
 
     onClose(): void {
+        this.logger.log('Admin Click on Close in Remove Members Results Dialog', "info");
         this.dialogRef.close();
     }
 }

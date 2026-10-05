@@ -8,6 +8,7 @@ import { Score } from 'app/shared/classes/score';
 import { LeaderTypeValue } from 'app/shared/classes/leader';
 import { PlayersScoreLoader } from 'app/shared/helper/PlayersViewScore';
 import { FacadeService } from 'app/shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-match-play', // This is the selector for the component
@@ -34,7 +35,7 @@ export class MatchPlayComponent implements OnInit, OnChanges {
     tRounds: any[] = [];
 
     constructor(
-        public dialog: MatDialog, private facadeService: FacadeService
+        public dialog: MatDialog, private facadeService: FacadeService, private logger: LogsService
     ) { }
 
     ngOnInit(): void {
@@ -444,6 +445,7 @@ export class MatchPlayComponent implements OnInit, OnChanges {
     }
 
     changeRound(item) {
+        this.logger.log('User Changed Round in Match Play Leaderboard', "info", item?.value);
         this.team1PointD = 0;
         this.team2PointD = 0;
         this.flightRound = item.value;
@@ -456,6 +458,7 @@ export class MatchPlayComponent implements OnInit, OnChanges {
     }
 
     selectionChanged(item) {
+        this.logger.log('User Changed Selection in Match Play Leaderboard', "info", item?.value);
 
         if (item.value == '1') {
             this.isDoubles = true;
@@ -488,6 +491,7 @@ export class MatchPlayComponent implements OnInit, OnChanges {
         courseHoleSets: string,
         holeSetsInverted: string,
     ) {
+        this.logger.log('User Click on View Player Score in Match Play Leaderboard', "info", { name: playerName, playerId: playerId, opponentId: opponentId });
         let playerGrossScore: any[] = [];
         let playerNetScore: any[] = [];
         let playerPerTeam: any[];
@@ -503,6 +507,7 @@ export class MatchPlayComponent implements OnInit, OnChanges {
         console.log(scoreResultOpponent);
         scoreResult.netScore.push(scoreResultOpponent.netScore[0])
 
+        this.logger.log('Player Score Loaded Successfully, Opening Score Dialog in Match Play Leaderboard', "info", playerId);
         const dialogRef = this.dialog.open(DialogPlayerScoreComponent, {
             data: {
                 name: name,
@@ -531,6 +536,7 @@ export class MatchPlayComponent implements OnInit, OnChanges {
         holeSetsInverted: string,
         scoreType: string
     ) {
+        this.logger.log('User Click on View Team Score in Match Play Leaderboard', "info", { name: name, playerId: playerId });
         let playerGrossScore: any[] = [];
         let playerNetScore: any[] = [];
         let playerPerTeam: any[];
@@ -543,6 +549,7 @@ export class MatchPlayComponent implements OnInit, OnChanges {
         let scoreResult = ScoreLoader.getMatchPlayTeamScore(playerId);
         //console.log(scoreResult);
 
+        this.logger.log('Player Score Loaded Successfully, Opening Score Dialog in Match Play Leaderboard', "info", playerId);
         const dialogRef = this.dialog.open(DialogPlayerScoreComponent, {
             data: {
                 name: name,

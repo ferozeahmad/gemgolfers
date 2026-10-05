@@ -4,6 +4,7 @@ import { finalize } from 'rxjs';
 import { fuseAnimations } from '@fuse/animations';
 import { FuseAlertType } from '@fuse/components/alert';
 import { AuthService } from 'app/core/auth/auth.service';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -28,7 +29,8 @@ export class AuthForgotPasswordComponent implements OnInit
      */
     constructor(
         private _authService: AuthService,
-        private _formBuilder: UntypedFormBuilder
+        private _formBuilder: UntypedFormBuilder,
+        private logger: LogsService
     )
     {
     }
@@ -42,6 +44,7 @@ export class AuthForgotPasswordComponent implements OnInit
      */
     ngOnInit(): void
     {
+        this.logger.log('User comes to Forgot Password Page', "info");
         // Create the form
         this.forgotPasswordForm = this._formBuilder.group({
             email: ['', [Validators.required, Validators.email]]
@@ -57,6 +60,7 @@ export class AuthForgotPasswordComponent implements OnInit
      */
     sendResetLink(): void
     {
+        this.logger.log('User Click on Send Reset Link in Forgot Password Page', "info", this.forgotPasswordForm.get('email').value);
         // Return if the form is invalid
         if ( this.forgotPasswordForm.invalid )
         {
@@ -92,6 +96,7 @@ export class AuthForgotPasswordComponent implements OnInit
                         type   : 'success',
                         message: 'Password reset sent! You\'ll receive an email if you are registered on our system.'
                     };
+                    this.logger.log('Password Reset Link Sent Successfully', "info");
                 },
                 (response) => {
 
@@ -100,6 +105,7 @@ export class AuthForgotPasswordComponent implements OnInit
                         type   : 'error',
                         message: 'Email does not found! Are you sure you are already a member?'
                     };
+                    this.logger.log('Sending Password Reset Link Failed', "error");
                 }
             );
     }

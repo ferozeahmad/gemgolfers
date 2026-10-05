@@ -5,6 +5,7 @@ import { fuseAnimations } from '@fuse/animations';
 import { AuthService } from 'app/core/auth/auth.service';
 import { UserService } from 'app/core/user/user.service';
 import { FuseAlertType } from '@fuse/components/alert';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -34,7 +35,8 @@ export class AuthUnlockSessionComponent implements OnInit
         private _authService: AuthService,
         private _formBuilder: UntypedFormBuilder,
         private _router: Router,
-        private _userService: UserService
+        private _userService: UserService,
+        private logger: LogsService
     )
     {
     }
@@ -48,6 +50,7 @@ export class AuthUnlockSessionComponent implements OnInit
      */
     ngOnInit(): void
     {
+        this.logger.log('User comes to Unlock Session Page', "info");
         // Get the user's name
         this._userService.user$.subscribe((user) => {
             this.name = user.name;
@@ -75,6 +78,7 @@ export class AuthUnlockSessionComponent implements OnInit
      */
     unlock(): void
     {
+        this.logger.log('User Click on Unlock in Unlock Session Page', "info", this._email);
         // Return if the form is invalid
         if ( this.unlockSessionForm.invalid )
         {
@@ -97,6 +101,7 @@ export class AuthUnlockSessionComponent implements OnInit
                 // The '/signed-in-redirect' is a dummy url to catch the request and redirect the user
                 // to the correct page after a successful sign in. This way, that url can be set via
                 // routing file and we don't have to touch here.
+                this.logger.log('Session Unlocked Successfully', "info", this._email);
                 const redirectURL = this._activatedRoute.snapshot.queryParamMap.get('redirectURL') || '/signed-in-redirect';
 
                 // Navigate to the redirect url
@@ -121,6 +126,7 @@ export class AuthUnlockSessionComponent implements OnInit
                     type   : 'error',
                     message: 'Invalid password'
                 };
+                this.logger.log('Unlock Session Failed', "error", this._email);
 
                 // Show the alert
                 this.showAlert = true;

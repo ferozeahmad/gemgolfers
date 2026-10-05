@@ -48,6 +48,7 @@ export class AuthSignInComponent implements OnInit {
      * On init
      */
     ngOnInit(): void {
+        this.logger.log('User comes to Sign In Page', "info");
         // Create the form
         this.signInForm = this._formBuilder.group({
             email: ['', [Validators.required, Validators.email]],
@@ -64,6 +65,7 @@ export class AuthSignInComponent implements OnInit {
      * Sign in
      */
     signIn(): void {
+        this.logger.log('User Click on Sign In in Sign In Page', "info", this.signInForm.get('email').value);
         // Return if the form is invalid
         if (this.signInForm.invalid) {
             return;

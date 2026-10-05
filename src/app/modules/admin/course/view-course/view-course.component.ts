@@ -17,6 +17,7 @@ import { Observable, map, shareReplay, startWith } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { read, utils } from 'xlsx';
 import { UserSessionModel } from 'app/shared/models/player.model';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -119,12 +120,13 @@ export class ViewCourseComponent implements OnInit {
         private _cityService: HandicapService,
         public snackBar: MatSnackBar,
         public dialog: MatDialog,
-        public facadeService: FacadeService // private storage: AngularFireStorage
+        public facadeService: FacadeService, private logger: LogsService // private storage: AngularFireStorage
     ) {
 
     }
 
     async ngOnInit() {
+        this.logger.log('Admin comes to Course Details Page', "info");
         // this.googleMapsApiLoaded$ = this.googleMapsApiSerivce.loadApi().pipe(shareReplay());
         this.countries = countries;
         //console.log(this.listCountries);
@@ -162,9 +164,11 @@ export class ViewCourseComponent implements OnInit {
         ];
 
         if (this.courseID) {
+            this.logger.log('Getting Course Data', "info", this.courseID);
             this.courseData = await this.facadeService.getCourseByID(
                 this.courseID
             );
+            this.logger.log('Getting Course Data Successful', "info", this.courseID);
             //console.log(this.courseData);
             this.courseTitle = this.courseData['course'][0].name;
             this.countryName = this.courseData['course'][0].country;
@@ -293,6 +297,7 @@ export class ViewCourseComponent implements OnInit {
     }
     ////*******************************************************************COURSE CREATE**************************************************************************************** */
     countrySelected(event) {
+        this.logger.log('Country selected in Course Details Page', "info", event?.name || event);
         // let obj = Country.getCity(event);
 
         const city = new getCity().getCity(event?.name || event);
@@ -317,6 +322,7 @@ export class ViewCourseComponent implements OnInit {
     }
 
     onMapClick(event: any) {
+        this.logger.log('Admin Click on Map in Course Details Page', "info", this.currentHoleNo);
         //  console.log(event);
         if (event.latLng != null) {
             // this.center = event.latLng.toJSON();
@@ -371,6 +377,7 @@ export class ViewCourseComponent implements OnInit {
     }
 
     onGreenStartLat(holeNo: number, latLong): void {
+        this.logger.log('Admin Click on Green Start Lat Long in Course Details Page', "info", holeNo);
         this.currentHoleNo = holeNo;
         this.currentGreen = 1;
         this.currentLatLong = true;
@@ -383,6 +390,7 @@ export class ViewCourseComponent implements OnInit {
         // this.focusMap();
     }
     onGreenCenterLat(holeNo: number, latLong): void {
+        this.logger.log('Admin Click on Green Center Lat Long in Course Details Page', "info", holeNo);
         this.currentHoleNo = holeNo;
         this.currentGreen = 2;
         if (typeof (latLong) == 'string') {
@@ -394,6 +402,7 @@ export class ViewCourseComponent implements OnInit {
         // this.focusMap();
     }
     onGreenEndLat(holeNo: number, latLong): void {
+        this.logger.log('Admin Click on Green End Lat Long in Course Details Page', "info", holeNo);
         this.currentHoleNo = holeNo;
         this.currentGreen = 3;
         if (typeof (latLong) == 'string') {
@@ -415,6 +424,7 @@ export class ViewCourseComponent implements OnInit {
     //     }
     // }
     filterByHole(holeNo) {
+        this.logger.log('Admin Click on Hole in Course Details Page', "info", holeNo);
         this.currentHoleNo = holeNo;
         let greenStartLatLong;
         if (this.currentHoleNo < 10) {
@@ -463,6 +473,7 @@ export class ViewCourseComponent implements OnInit {
     }
 
     public createCourse = async (playerFormValue: any) => {
+        this.logger.log('Admin Click on Save Course in Course Details Page', "info", this.courseID);
         let course = {
             id: UniqueIdGenerator.generate(),
             clubId: this._localStorage.isClubAdmin() ? this.loggedInuser.adminClubId : null,
@@ -495,11 +506,13 @@ export class ViewCourseComponent implements OnInit {
             const isSuccess = <boolean>(
                 await this.facadeService.updateCourse(courses, []));
             if (isSuccess) {
+                this.logger.log('Course updated successfully', "info", { id: courses.id, name: courses.name });
                 this.snackBar.open("Course has been Updated.", "x", {
                     duration: 5000,
                 });
                 this.goToPanel('1');
             } else {
+                this.logger.log('Course update Failed', "error", { id: courses.id, name: courses.name });
                 this.snackBar.open("Course Not Updated!", "x", {
                     duration: 5000,
                 });
@@ -507,6 +520,7 @@ export class ViewCourseComponent implements OnInit {
         } else {
             const isSuccess = <boolean>await this.facadeService.AddCourse(course);
             if (isSuccess) {
+                this.logger.log('Course created successfully', "info", { id: course.id, name: course.name });
                 this.courseID = course.id;
                 this.snackBar.open("Course has been created.", "x", {
                     duration: 5000,
@@ -520,6 +534,7 @@ export class ViewCourseComponent implements OnInit {
                 this.goToPanel('1');
                 // this.router.navigate(["/courses/view/" + this.courseID]);
             } else {
+                this.logger.log('Course creation Failed', "error", { id: course.id, name: course.name });
                 this.snackBar.open("Error! Please try again later.", "x", {
                     duration: 5000,
                 });
@@ -587,6 +602,7 @@ export class ViewCourseComponent implements OnInit {
      * onTeeAddChange
      */
     addNewTee() {
+        this.logger.log('Admin Click on Add New Tee in Course Details Page', "info");
         this.Tee[this.Tee.length] = [];
         this.Tee[this.Tee.length - 1]['id'] = UniqueIdGenerator.generate();
         this.Tee[this.Tee.length - 1]['tee_id'] = General.addNewTee(this.Tee);
@@ -622,6 +638,7 @@ export class ViewCourseComponent implements OnInit {
      * onTeeSelectionChange
      */
     public teeChange(event, teeID) {
+        this.logger.log('Admin changes Tee in Course Details Page', "info", { teeID: teeID, value: event?.value });
         let index = 0;
         for (let obj of this.Tee) {
             if (obj.id == teeID) {
@@ -634,6 +651,7 @@ export class ViewCourseComponent implements OnInit {
      * deleteTee
      */
     public deleteTee(teeID) {
+        this.logger.log('Admin Click on Delete Tee in Course Details Page', "info", teeID);
         this.deleteTsee = this.Tee.filter((a) => a.id != teeID);
         let deletedTee = this.Tee.filter((a) => a.id == teeID);
         this.teeRemove.push(deletedTee[0]);
@@ -647,6 +665,7 @@ export class ViewCourseComponent implements OnInit {
      * SaveAllTees
      */
     public saveTees = async (control: FormControl, state: boolean) => {
+        this.logger.log('Admin Click on Save Tees in Course Details Page', "info", this.courseID);
         let today: Date = new Date();
         let teeObj = [];
         let teeObjtoDelete = [];
@@ -699,6 +718,7 @@ export class ViewCourseComponent implements OnInit {
             );
         }
         if (saveTeeColor) {
+            this.logger.log('Course Tees saved successfully', "info", this.courseID);
             this.snackBar.open('Tees Color has been Saved!', 'x', {
                 duration: 5000,
             });
@@ -709,6 +729,7 @@ export class ViewCourseComponent implements OnInit {
             //     control.reset();
             // }
         } else {
+            this.logger.log('Saving Course Tees Failed', "error", this.courseID);
             this.snackBar.open('Tees Color has not Saved!', 'x', {
                 duration: 5000,
             });
@@ -1028,6 +1049,7 @@ export class ViewCourseComponent implements OnInit {
      * onTeeInput
      */
     public onTeeLatLong(dist: any, tee_id: any, hole_id: any, holeSet: any) {
+        this.logger.log('Admin Click on Tee Lat Long in Course Details Page', "info", { holeNo: hole_id?.holeNo, tee: tee_id });
         this.currentHoleNo = hole_id.holeNo;
         this.currentLatLong = false;
         this.currentTee = tee_id;
@@ -1057,6 +1079,7 @@ export class ViewCourseComponent implements OnInit {
     }
 
     addHazards(holeSet: any, holeNo: any) {
+        this.logger.log('Admin Click on Add Hazard in Course Details Page', "info", holeNo);
         console.log(holeSet);
         let holeHazards;
         if (holeNo < 10) {
@@ -1091,6 +1114,7 @@ export class ViewCourseComponent implements OnInit {
         return updatedHoles;
     }
     public onHazardsChange(val: any, hzrd: any) {
+        this.logger.log('Admin Click on Hazard Lat Long in Course Details Page', "info", hzrd?.hazardId);
         console.log(val);
         console.log(hzrd);
         this.currentHzd = hzrd;
@@ -1213,6 +1237,7 @@ export class ViewCourseComponent implements OnInit {
    * selectionChange
 event   */
     public selectionChange(event) {
+        this.logger.log('Admin changes Index For Genders option in Course Details Page', "info", event);
         if (event == 1) {
             this.showholeindexforWomen = true;
             this.holeSetfor9.forEach(function (element) {
@@ -1267,6 +1292,7 @@ event   */
      * saveHoles
      */
     public saveHoles = async (control: FormControl, state: boolean, panelNo: number) => {
+        this.logger.log('Admin Click on Save Holes in Course Details Page', "info", this.courseID);
         let holeObj = [];
         let holesToSave = [];
         let holesYardageToSave = [];
@@ -1421,6 +1447,7 @@ event   */
                 await this.facadeService.saveCourseHoles(holesToSave, holesSet, mergedArray, mergedHazards)
             );
             if (succees) {
+                this.logger.log('Course Holes saved successfully', "info", this.courseID);
                 this.snackBar.open('Course Holes are Saves!', 'x', {
                     duration: 2000,
                 });
@@ -1433,11 +1460,13 @@ event   */
                 //     this.goToPanel('3')
                 // }
             } else {
+                this.logger.log('Saving Course Holes Failed', "error", this.courseID);
                 this.snackBar.open('Course Holes has not Saved!', 'x', {
                     duration: 5000,
                 });
             }
         } else {
+            this.logger.log('Course Holes not saved, Index duplicates', "warn", this.courseID);
             this.snackBar.open('Index duplicates!', 'x', {
                 duration: 5000,
             });
@@ -1502,6 +1531,7 @@ event   */
      * onTeeAddChange
      */
     addNewHoleSet() {
+        this.logger.log('Admin Click on Add New Hole Set in Course Details Page', "info");
         this.Hole[this.Hole.length] = [];
         this.Hole[this.Hole.length - 1]['id'] = UniqueIdGenerator.generate();
         this.Hole[this.Hole.length - 1]['displayName'] = '';
@@ -1533,6 +1563,7 @@ event   */
      * onfrontID
      */
     public onfrontID(event, id) {
+        this.logger.log('Admin changes Front Hole Set in Course Details Page', "info", { id: id, value: event?.value });
         let index = 0;
         for (let obj of this.Hole) {
             if (obj.id == id) {
@@ -1545,6 +1576,7 @@ event   */
      * onbackID
      */
     public onbackID(event, id) {
+        this.logger.log('Admin changes Back Hole Set in Course Details Page', "info", { id: id, value: event?.value });
         let index = 0;
         for (let obj of this.Hole) {
             if (obj.id == id) {
@@ -1559,6 +1591,7 @@ event   */
         control2: FormControl,
         state: boolean
     ) {
+        this.logger.log('Admin Click on Save Hole Sets in Course Details Page', "info", this.courseID);
         //console.log(this.Hole);
         let HoleSetObj = [];
         for (let obj of this.Hole) {
@@ -1579,12 +1612,14 @@ event   */
             await this.facadeService.saveCourseHolesSet(HoleSetObj)
         );
         if (saveTeeColor) {
+            this.logger.log('Course Hole Sets saved successfully', "info", this.courseID);
             this.snackBar.open('Course HoleSets has been Saved!', 'x', {
                 duration: 5000,
             });
             // 
             this.goToPanel('4');
         } else {
+            this.logger.log('Saving Course Hole Sets Failed', "error", this.courseID);
             this.snackBar.open('Course HolesSet has not Saved!', 'x', {
                 duration: 5000,
             });
@@ -1711,6 +1746,7 @@ event   */
     ///*******************************************************************TEE HOLES-Rating SAVE**************************************************************************************** */
 
     addNewCourseRating() {
+        this.logger.log('Admin Click on Add New Course Rating in Course Details Page', "info");
         this.coursRating[this.coursRating.length] = [];
         this.coursRating[this.coursRating.length - 1]['id'] =
             UniqueIdGenerator.generate();
@@ -1725,6 +1761,7 @@ event   */
     }
 
     deleteRating(id) {
+        this.logger.log('Admin Click on Delete Rating in Course Details Page', "info", id);
         this.coursRating = this.coursRating.filter((rating) => rating.id !== id);
     }
 
@@ -1738,6 +1775,7 @@ event   */
         }
     }
     public teechange(val, teeID) {
+        this.logger.log('Admin changes Rating Tee in Course Details Page', "info", { id: teeID, value: val?.value });
         let index = 0;
         for (let obj of this.coursRating) {
             if (obj.id == teeID) {
@@ -1781,6 +1819,7 @@ event   */
      * onTeeSelectionChange
      */
     public courseHoleSets(event, teeID) {
+        this.logger.log('Admin changes Rating Hole Set in Course Details Page', "info", event?.value);
         let index = 0;
         for (let obj of this.coursRating) {
             if (obj.id == teeID) {
@@ -1793,6 +1832,7 @@ event   */
      * onTeeSelectionChange
      */
     public gender_id(event, teeID) {
+        this.logger.log('Admin changes Rating Gender in Course Details Page', "info", { id: teeID, value: event?.value });
         //console.log(event);
 
         let index = 0;
@@ -1856,6 +1896,7 @@ event   */
     }
 
     async savecoureRating() {
+        this.logger.log('Admin Click on Save Course Rating in Course Details Page', "info", this.courseID);
         let teeObj = [];
         //console.log(this.coursRating);
         for (let obj of this.coursRating) {
@@ -1877,6 +1918,7 @@ event   */
             await this.facadeService.saveCourseRating(teeObj)
         );
         if (saveCourseRating) {
+            this.logger.log('Course Ratings saved successfully', "info", this.courseID);
             this.snackBar.open('Course-Rating has been Saved!', 'x', {
                 duration: 5000,
             });
@@ -1886,6 +1928,7 @@ event   */
                 this.router.navigateByUrl('/courses');
             }
         } else {
+            this.logger.log('Saving Course Ratings Failed', "error", this.courseID);
             this.snackBar.open('Course-Rating has not Saved!', 'x', {
                 duration: 5000,
             });
@@ -1956,6 +1999,7 @@ event   */
    * @param panel
    */
     goToPanel(panel: string): void {
+        this.logger.log('Going to Panel in Course Details Page', "info", panel);
         this.nineHoleTotalPar = 0
         this.eighteenHoleTotalPar = 0
         this.twentysevenHoleTotalPar = 0
@@ -2005,6 +2049,7 @@ event   */
     // }
 
     downloadSample() {
+        this.logger.log('Admin Click on Download Sample in Course Details Page', "info");
         // Create sample data
 
         const data = [
@@ -2026,6 +2071,7 @@ event   */
     }
 
     parseFlightsData(event) {
+        this.logger.log('Admin selects Coordinates file in Course Details Page', "info", event?.target?.files?.[0]?.name);
         let fileReader = new FileReader();
         this.cordinatesData = [];
         if (event.target.files.length > 0) {

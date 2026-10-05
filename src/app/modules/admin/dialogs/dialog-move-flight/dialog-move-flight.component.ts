@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -13,10 +14,12 @@ export class DialogMoveFlightComponent implements OnInit {
 
   constructor(
     public dialogRef: MatDialogRef<DialogMoveFlightComponent>,
+    private logger: LogsService,
       @Inject(MAT_DIALOG_DATA) public data: any
     ) {}
 
     ngOnInit() {
+      this.logger.log('Move Flight Dialog Opened', "info", { flights: this.data?.flights });
       for(let flight=1; flight <= this.data.flights; flight++)
       {
         let r: any = {
@@ -31,11 +34,13 @@ export class DialogMoveFlightComponent implements OnInit {
   }
 
   changeFlight(item) {
+    this.logger.log('Admin Changes Flight in Move Flight Dialog', "info", item?.value);
     //console.log("Selected value: " + item.value);
     this.selectedFlight = item.value;
   }
 
   onNoClick(): void {
+    this.logger.log('Admin Click on Cancel in Move Flight Dialog', "info");
     this.dialogRef.close();
 }
 

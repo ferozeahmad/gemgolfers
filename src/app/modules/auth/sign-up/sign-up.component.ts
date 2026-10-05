@@ -5,6 +5,7 @@ import { fuseAnimations } from '@fuse/animations';
 import { FuseAlertType } from '@fuse/components/alert';
 import { AuthService } from 'app/core/auth/auth.service';
 import { UniqueIdGenerator } from 'app/shared/classes/general';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -30,7 +31,8 @@ export class AuthSignUpComponent implements OnInit {
     constructor(
         private _authService: AuthService,
         private _formBuilder: UntypedFormBuilder,
-        private _router: Router
+        private _router: Router,
+        private logger: LogsService
     ) {
     }
 
@@ -42,6 +44,7 @@ export class AuthSignUpComponent implements OnInit {
      * On init
      */
     ngOnInit(): void {
+        this.logger.log('User comes to Sign Up Page', "info");
         // Create the form
         this.signUpForm = this._formBuilder.group({
             firstName: ['', Validators.required],
@@ -62,6 +65,7 @@ export class AuthSignUpComponent implements OnInit {
      * Sign up
      */
     signUp(): void {
+        this.logger.log('User Click on Sign Up in Sign Up Page', "info", this.signUpForm.get('email').value);
         // Do nothing if the form is invalid
         if (this.signUpForm.invalid) {
             return;
@@ -85,6 +89,7 @@ export class AuthSignUpComponent implements OnInit {
                         type   : 'success',
                         message: 'Welcome! Your account has been created. Please proceed to log in.'
                     };
+                    this.logger.log('User Signed Up Successfully', "info");
                     setTimeout(() => {
                         // Hide alert after 2 seconds
                         this.showAlert = false;
@@ -108,6 +113,7 @@ export class AuthSignUpComponent implements OnInit {
                         type: 'error',
                         message: 'Something went wrong, please try again.'
                     };
+                    this.logger.log('User Sign Up Failed', "error");
 
                     // Show the alert
                     this.showAlert = true;

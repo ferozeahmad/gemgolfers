@@ -12,6 +12,7 @@ import { Player } from 'app/shared/models/player.model';
 import { Flight, FlightMembers } from 'app/shared/models/flight.model';
 import { AddDailyRound, Tournament } from 'app/shared/models/tournament.model';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -46,10 +47,12 @@ export class DialogTeeTimeSlotComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private facadeService: FacadeService,
     public dialog: MatDialog, private _fuseConfirmationService: FuseConfirmationService,
+    private logger: LogsService,
     public snackBar?: MatSnackBar,
   ) { }
 
   ngOnInit() {
+    this.logger.log('Tee Time Slot Dialog Opened', "info", { date: this.data?.date, slots: this.data?.slots?.length });
     this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
     console.log(this.data);
     this.slotList = this.data.slots;
@@ -65,6 +68,7 @@ export class DialogTeeTimeSlotComponent implements OnInit {
     return this.openedPanel === item;
   }
   onPanelOpened(item: any) {
+    this.logger.log('Admin Opens Slot Panel in Tee Time Slot Dialog', "info", { slotId: item?.id, slotTime: item?.slotTime });
     // Set the openedPanel to the currently opened panel
     let members = [];
     this.dataSource = null;
@@ -99,9 +103,11 @@ export class DialogTeeTimeSlotComponent implements OnInit {
   }
 
   onNoClick(): void {
+    this.logger.log('Admin Click on Close in Tee Time Slot Dialog', "info");
     this.dialogRef.close();
   }
   async openAddPlayersDialog(item: any) {
+    this.logger.log('Admin Click on Add Players in Tee Time Slot Dialog', "info", { slotId: item?.id, slotTime: item?.slotTime });
     console.log(item);
 
     let datas = await this.facadeService.getPlayersListForTournament(
@@ -114,6 +120,7 @@ export class DialogTeeTimeSlotComponent implements OnInit {
     // Handle dialog close or dismiss if needed
     dialogRef.afterClosed().subscribe(result => {
       console.log(result);
+      this.logger.log(result ? 'Add Players Dialog Confirmed in Tee Time Slot Dialog' : 'Add Players Dialog Cancelled in Tee Time Slot Dialog', "info", { slotId: item?.id, players: result?.length });
       if (result) {
         for (var index in result) {
           let member: any = {
@@ -294,6 +301,7 @@ export class DialogTeeTimeSlotComponent implements OnInit {
     let count = item.joinedMembers + this.flightMembers.length;
     let result = <any>await this.facadeService.addTournament(tournament, flight.id, item.id, count);
     if (result) {
+      this.logger.log('Round Created for Slot in Tee Time Slot Dialog Successfully', "info", { tournamentId: tournament.id, flightId: flight.id, slotId: item?.id, members: count });
       let members = [];
       item.joinedMembers = Number(count);
       for (var index in players) {
@@ -346,6 +354,7 @@ export class DialogTeeTimeSlotComponent implements OnInit {
     let result = <any>await this.facadeService.insertFlightMembers(item.id, roundMembers, count);
     console.log(result);
     if (result) {
+      this.logger.log('Flight Members Added to Slot in Tee Time Slot Dialog Successfully', "info", { slotId: item?.id, flightId: item?.flightId, members: count });
       let members = [];
       item.joinedMembers = Number(count);
       for (var index in players) {
@@ -367,6 +376,7 @@ export class DialogTeeTimeSlotComponent implements OnInit {
     }
   }
   deleteUser(id: string, slote: any) {
+    this.logger.log('Admin Click on Delete Member in Tee Time Slot Dialog', "info", { playerId: id, slotId: slote?.id });
     const confirmation = this._fuseConfirmationService.open({
       title: 'Delete member',
       message:
@@ -380,11 +390,13 @@ export class DialogTeeTimeSlotComponent implements OnInit {
 
     // Subscribe to the confirmation dialog closed action
     confirmation.afterClosed().subscribe(async (result) => {
+      this.logger.log(result === 'confirmed' ? 'Delete Member Confirmed in Tee Time Slot Dialog' : 'Delete Member Cancelled in Tee Time Slot Dialog', "info", { playerId: id, slotId: slote?.id });
       // If the confirm button pressed...
       if (result === 'confirmed') {
         const count = slote.joinedMembers - 1;
         let result = await this.facadeService.DeleteFlightMembers(slote.flightId, id, count);
         if (result) {
+          this.logger.log('Flight Member Deleted in Tee Time Slot Dialog Successfully', "info", { playerId: id, flightId: slote?.flightId });
           const slot = this.slotList.find((slots) => slots.id == slote.id);
           slot.joinedMembers--;
           const index = this.dataSource.data.findIndex(member => member.id === id);

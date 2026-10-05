@@ -90,8 +90,10 @@ export class SettingsAccountComponent implements OnInit {
                 })
                 this.pictureUrl = this.currentPlayer.player[0].picture
             }
+            this.logger.log("Fetching user profile data successful", 'info');
 
         } catch (error) {
+            this.logger.log("Fetching user profile data failed", 'error', error?.toString());
             // this.logger.error("Fetching user profile data failed", error);
         }
     }
@@ -137,9 +139,11 @@ export class SettingsAccountComponent implements OnInit {
     * Update the contact
     */
     async updateContact(): Promise<void> {
+        this.logger.log("User click on Save in user profile page", 'info');
         try {
 
             if (this.phoneValidator) {
+                this.logger.log("User profile update blocked: phone number already exists", 'warn');
                 this._fuseConfirmationService.open({
                     title: 'Duplicate Number',
                     message: 'Phone number already exist!.',
@@ -150,6 +154,7 @@ export class SettingsAccountComponent implements OnInit {
                     },
                 })
             } else if (this.emailValidator) {
+                this.logger.log("User profile update blocked: email already exists", 'warn');
                 this._fuseConfirmationService.open({
                     title: 'Duplicate Email',
                     message: 'Email already exist!.',
@@ -189,6 +194,7 @@ export class SettingsAccountComponent implements OnInit {
                     homeClubId: null,
                 };
 
+                this.logger.log("Updating user profile", 'info', { playerId: player.id, hasNewPicture: !!this.file });
                 this._facadeService.updatePlayerProfile(player, this.file).subscribe((res) => {
                     // if(res){
                     //     this.
@@ -209,6 +215,7 @@ export class SettingsAccountComponent implements OnInit {
             }
 
         } catch (error) {
+            this.logger.log("User profile updating failed", 'error', error?.toString());
             // this.logger.error("User profile updating failed", error);
 
         }
@@ -221,6 +228,7 @@ export class SettingsAccountComponent implements OnInit {
     * @param fileList
     */
     uploadAvatar(fileList: FileList): void {
+        this.logger.log("User selected a profile picture in user profile page", 'info', fileList?.[0]?.name);
         // Return if no file is selected
         if (!fileList || fileList.length === 0) {
             this.pictureUrl = null;
@@ -232,6 +240,7 @@ export class SettingsAccountComponent implements OnInit {
 
         // Validate the file type
         if (!allowedTypes.includes(file.type)) {
+            this.logger.log("Invalid profile picture file type in user profile page", 'warn', file.type);
             console.error('Invalid file type');
             return;
         }
@@ -251,6 +260,7 @@ export class SettingsAccountComponent implements OnInit {
      * Remove the avatar
      */
     removeAvatar(): void {
+        this.logger.log("User click on Remove profile picture in user profile page", 'info');
         // Get the form control for 'avatar'
         // const avatarFormControl = this.personnelForm.get('avatar');
         // // Set the avatar as null

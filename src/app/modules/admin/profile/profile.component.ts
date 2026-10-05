@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { MatDrawer } from '@angular/material/sidenav';
 import { Subject, takeUntil } from 'rxjs';
 import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -24,7 +25,8 @@ export class ProfileComponent implements OnInit, OnDestroy
      */
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
-        private _fuseMediaWatcherService: FuseMediaWatcherService
+        private _fuseMediaWatcherService: FuseMediaWatcherService,
+        private logger: LogsService
     )
     {
     }
@@ -38,6 +40,7 @@ export class ProfileComponent implements OnInit, OnDestroy
      */
     ngOnInit(): void
     {
+        this.logger.log('Admin comes to Profile Page', "info");
         // Setup available panels
         this.panels = [
             {
@@ -91,6 +94,7 @@ export class ProfileComponent implements OnInit, OnDestroy
      */
     goToPanel(panel: string): void
     {
+        this.logger.log('Admin Click on Panel in Profile Page', "info", panel);
         this.selectedPanel = panel;
 
         // Close the drawer on 'over' mode

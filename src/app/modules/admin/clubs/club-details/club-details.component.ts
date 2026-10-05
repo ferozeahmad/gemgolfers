@@ -5,6 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { FacadeService } from 'app/shared/services/facade.service';
 import { UniqueIdGenerator } from 'app/shared/classes/general';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -51,6 +52,7 @@ export class ClubDetailsComponent implements OnInit {
         private snackBar: MatSnackBar,
         private facadeService: FacadeService,
         private cdr: ChangeDetectorRef,
+        private logger: LogsService,
     ) {}
 
     ngOnInit(): void {
@@ -62,6 +64,7 @@ export class ClubDetailsComponent implements OnInit {
         });
 
         this.clubId = this.route.snapshot.paramMap.get('id');
+        this.logger.log('Admin comes to Club Details Page', "info", this.clubId);
         if (this.clubId) {
             this.isEditMode = true;
             this.loadClub();
@@ -85,6 +88,7 @@ export class ClubDetailsComponent implements OnInit {
     // ── Club form ─────────────────────────────────────────────────────────────
 
     async loadClub(): Promise<void> {
+        this.logger.log('Getting Club Data', "info", this.clubId);
         this.isLoading = true;
         try {
             const result = await this.facadeService.getClubList();
@@ -97,11 +101,14 @@ export class ClubDetailsComponent implements OnInit {
                     phone:   club.phone,
                     address: club.address,
                 });
+                this.logger.log('Getting Club Data Successful', "info", this.clubId);
             } else {
+                this.logger.log('Club not found in Club Details Page', "warn", this.clubId);
                 this.snackBar.open('Club not found.', 'x', { duration: 3000 });
                 this.goBack();
             }
         } catch {
+            this.logger.log('Getting Club Data Failed', "error", this.clubId);
             this.snackBar.open('Failed to load club details.', 'x', { duration: 3000 });
         } finally {
             this.isLoading = false;
@@ -109,7 +116,9 @@ export class ClubDetailsComponent implements OnInit {
     }
 
     async save(): Promise<void> {
+        this.logger.log('Admin Click on Save in Club Details Page', "info", { id: this.clubId, isEditMode: this.isEditMode });
         if (this.clubForm.invalid) {
+            this.logger.log('Club form is invalid, Save not performed', "warn", this.clubId);
             this.clubForm.markAllAsTouched();
             return;
         }
@@ -128,9 +137,11 @@ export class ClubDetailsComponent implements OnInit {
                     address: val.address,
                 });
                 if (success) {
+                    this.logger.log('Club updated successfully', "info", this.clubId);
                     this.snackBar.open('Club updated successfully.', 'x', { duration: 3000 });
                     this.goBack();
                 } else {
+                    this.logger.log('Club update Failed', "error", this.clubId);
                     this.snackBar.open('Failed to update club.', 'x', { duration: 3000 });
                 }
             } else {
@@ -142,13 +153,16 @@ export class ClubDetailsComponent implements OnInit {
                     address: val.address,
                 });
                 if (success) {
+                    this.logger.log('Club created successfully', "info", val.name);
                     this.snackBar.open('Club created successfully.', 'x', { duration: 3000 });
                     this.goBack();
                 } else {
+                    this.logger.log('Club creation Failed', "error", val.name);
                     this.snackBar.open('Failed to create club.', 'x', { duration: 3000 });
                 }
             }
         } catch {
+            this.logger.log('Saving Club Failed', "error", this.clubId);
             this.snackBar.open('An error occurred. Please try again.', 'x', { duration: 3000 });
         } finally {
             this.isSaving = false;
@@ -158,6 +172,7 @@ export class ClubDetailsComponent implements OnInit {
     // ── Admin management ──────────────────────────────────────────────────────
 
     async loadAdmins(): Promise<void> {
+        this.logger.log('Getting Club Admins Data', "info", this.clubId);
         this.adminsLoading = true;
         try {
             const result = await this.facadeService.getClubAdmins(this.clubId);
@@ -166,7 +181,9 @@ export class ClubDetailsComponent implements OnInit {
                 name: ((p.firstName || '') + ' ' + (p.lastName || '')).trim() || p.fullName || p.email,
                 roleList: (p.roles || []).map((r: any) => r.role?.name).filter(Boolean),
             }));
+            this.logger.log('Getting Club Admins Data Successful', "info", this.admins.length);
         } catch (err) {
+            this.logger.log('Getting Club Admins Data Failed', "error", err);
             console.error(err);
         } finally {
             this.adminsLoading = false;
@@ -175,15 +192,19 @@ export class ClubDetailsComponent implements OnInit {
     }
 
     async loadRoles(): Promise<void> {
+        this.logger.log('Getting Roles Data', "info");
         try {
             const result = await this.facadeService.getAllRoles();
             this.availableRoles = result?.role || [];
+            this.logger.log('Getting Roles Data Successful', "info", this.availableRoles.length);
         } catch (err) {
+            this.logger.log('Getting Roles Data Failed', "error", err);
             console.error(err);
         }
     }
 
     toggleAddAdmin(): void {
+        this.logger.log('Admin Click on Add Admin toggle in Club Details Page', "info", this.clubId);
         this.showAddAdmin = !this.showAddAdmin;
         if (!this.showAddAdmin) {
             this.resetAddAdminForm();
@@ -191,6 +212,7 @@ export class ClubDetailsComponent implements OnInit {
     }
 
     async doSearch(email: string): Promise<void> {
+        this.logger.log('Admin searches Player in Club Details Page', "info", email);
         this.isSearching = true;
         try {
             const result = await this.facadeService.searchPlayerByEmail(email);
@@ -201,7 +223,9 @@ export class ClubDetailsComponent implements OnInit {
                 isCurrentAdmin: p.adminClubId === this.clubId,
                 hasOtherClub: p.adminClubId && p.adminClubId !== this.clubId,
             }));
+            this.logger.log('Searching Player Successful', "info", this.searchResults.length);
         } catch {
+            this.logger.log('Searching Player Failed', "error", email);
             this.searchResults = [];
         } finally {
             this.isSearching = false;
@@ -210,6 +234,7 @@ export class ClubDetailsComponent implements OnInit {
     }
 
     selectPlayer(player: any): void {
+        this.logger.log('Admin selects Player in Club Details Page', "info", player?.id);
         this.selectedPlayer = player;
         this.searchResults = [];
         this.searchControl.setValue(player.email, { emitEvent: false });
@@ -220,6 +245,7 @@ export class ClubDetailsComponent implements OnInit {
     }
 
     async addAdmin(): Promise<void> {
+        this.logger.log('Admin Click on Add Admin in Club Details Page', "info", { clubId: this.clubId, playerId: this.selectedPlayer?.id, roleId: this.selectedRoleId });
         if (!this.selectedPlayer || !this.selectedRoleId) {
             this.snackBar.open('Please select a player and a role.', 'x', { duration: 3000 });
             return;
@@ -235,14 +261,17 @@ export class ClubDetailsComponent implements OnInit {
             await this.facadeService.removeUserRoles(this.selectedPlayer.id);
             const assignRole = await this.facadeService.insertUserRole(this.selectedPlayer.id, this.selectedRoleId);
             if (!assignRole) {
+                this.logger.log('Club Admin added but role assignment Failed', "error", this.clubId);
                 this.snackBar.open('Admin added but role assignment failed.', 'x', { duration: 4000 });
             } else {
+                this.logger.log('Club Admin added successfully', "info", this.clubId);
                 this.snackBar.open('Admin added successfully.', 'x', { duration: 3000 });
             }
 
             this.resetAddAdminForm();
             this.loadAdmins();
         } catch (err) {
+            this.logger.log('Adding Club Admin Failed', "error", err);
             console.error(err);
             this.snackBar.open('Failed to add admin. Please try again.', 'x', { duration: 3000 });
         } finally {
@@ -252,16 +281,20 @@ export class ClubDetailsComponent implements OnInit {
     }
 
     async removeAdmin(admin: any): Promise<void> {
+        this.logger.log('Admin Click on Remove Admin in Club Details Page', "info", admin?.id);
         if (!confirm(`Remove "${admin.name}" as admin of this club?`)) return;
+        this.logger.log('Admin confirmed Remove Admin in Club Details Page', "info", admin.id);
 
         try {
             await Promise.all([
                 this.facadeService.setPlayerAdminClub(admin.id, null),
                 this.facadeService.removeUserRoles(admin.id),
             ]);
+            this.logger.log('Club Admin removed successfully', "info", admin.id);
             this.snackBar.open('Admin removed successfully.', 'x', { duration: 3000 });
             this.loadAdmins();
         } catch {
+            this.logger.log('Removing Club Admin Failed', "error", admin.id);
             this.snackBar.open('Failed to remove admin.', 'x', { duration: 3000 });
         }
     }
@@ -281,6 +314,7 @@ export class ClubDetailsComponent implements OnInit {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     goBack(): void {
+        this.logger.log('Navigating back to Clubs Page from Club Details Page', "info");
         this.router.navigate(['/clubs']);
     }
 

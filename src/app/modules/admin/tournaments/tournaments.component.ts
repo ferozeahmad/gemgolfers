@@ -246,6 +246,7 @@ export class TournamentsComponent implements OnInit {
     filterByCategory($event) {
         //console.log($event);
         try {
+            this.logger.log('Admin change Category filter in Tournament Page', "info", $event.value);
 
 
             if (this._localStorage.isClubAdmin()) {
@@ -303,6 +304,7 @@ export class TournamentsComponent implements OnInit {
         }
     }
     addNewRound() {
+        this.logger.log('Admin Click on Add Tournament btn in Tournament Page', "info");
         this.location.navigate(['/tournaments/add']);
     }
     async getTournamentCompeleted() {
@@ -318,6 +320,7 @@ export class TournamentsComponent implements OnInit {
                     todayDate,
                     this.loggedInuser.adminClubId
                 );
+            this.logger.log('Getting Compeleted Tournaments Sucessfully', "info");
             ////console.log(dataTournaments);
             this.isIncompletedLoading = false;
             this.isLoadingUpComing = false;
@@ -399,6 +402,7 @@ export class TournamentsComponent implements OnInit {
                     todayDate,
                     this.loggedInuser.adminClubId
                 );
+            this.logger.log('Getting Incompelete Tournaments Sucessfully', "info");
             this.Tournaments = this.sortByDateDesc(dataTournamentsLive.Incomplete);
             this.copiedTournamentsIncomplete = this.Tournaments;
         } catch (error) {
@@ -534,6 +538,7 @@ export class TournamentsComponent implements OnInit {
     };
 
     redirectToUpdate = (id: string) => {
+        this.logger.log('Admin Click on Update in Tournament Page', "info", id);
         this.location.navigate(['/clubs/update/' + id]);
     };
 
@@ -542,6 +547,7 @@ export class TournamentsComponent implements OnInit {
         listWhs: IPlayerHandicapWhs[],
         Whs: boolean
     ): void {
+        this.logger.log('Admin Click on Handicap List in Tournament Page', "info", { Whs: Whs });
         let listView;
         if (Whs) listView = listWhs;
         else listView = list;
@@ -567,6 +573,7 @@ export class TournamentsComponent implements OnInit {
     }
 
     menuChange(a) {
+        this.logger.log('Admin change Menu in Tournament Page', "info");
         this.selectedProject = 'Live';
         //console.log(a);
     }

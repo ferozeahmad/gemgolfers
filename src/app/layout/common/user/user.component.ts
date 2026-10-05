@@ -6,6 +6,7 @@ import { User } from 'app/core/user/user.types';
 import { UserService } from 'app/core/user/user.service';
 import { LocalStorageService } from 'app/shared/services/localStorage';
 import { UserSessionModel } from 'app/shared/models/player.model';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -36,6 +37,7 @@ export class UserComponent implements OnInit, OnDestroy {
         private _router: Router,
         private _userService: UserService,
         private _localStorage: LocalStorageService,
+        private logger: LogsService,
     ) {
     }
 
@@ -83,6 +85,7 @@ export class UserComponent implements OnInit, OnDestroy {
      * @param status
      */
     updateUserStatus(status: string): void {
+        this.logger.log('User Click on Update Status in User Menu', "info", status);
         // Return if user is not available
         if (!this.user) {
             return;
@@ -99,6 +102,7 @@ export class UserComponent implements OnInit, OnDestroy {
      * Sign out
      */
     signOut(): void {
+        this.logger.log('User Click on Sign Out in User Menu', "info");
         this._router.navigate(['/sign-out']);
     }
 
@@ -106,6 +110,7 @@ export class UserComponent implements OnInit, OnDestroy {
      * Sign out
      */
     profileChange(): void {
+        this.logger.log('User Click on Profile in User Menu', "info", this.user?.id);
         ////console.log(this.user);
 
         this._router.navigate(['/profile/', this.user.id]);

@@ -160,6 +160,7 @@ export class HandicapsComponent implements OnInit {
                     this.syncHandicapCongu();
                 }
             }
+            this.logger.log('Getting Congu Handicap Data Successful', "info", { count: this.dataPlayers?.player?.length });
             this.showTable = Promise.resolve(true);
             // Subscribe to MatDrawer opened change
             this.matDrawer.openedChange.subscribe((opened) => {
@@ -197,6 +198,7 @@ export class HandicapsComponent implements OnInit {
     }
 
     onBackdropClicked(): void {
+        this.logger.log('BackDrop click on Congu Handicap Page', "info");
         // Go back to the list
         this.location.navigate(['./'], { relativeTo: this._activatedRoute });
 
@@ -261,6 +263,7 @@ export class HandicapsComponent implements OnInit {
     }
 
     public onSortChanged(e) {
+        this.logger.log('Admin changed sorting in Congu Handicap Page', "info", { active: e?.active, direction: e?.direction });
         if (e.active == 'handicap') {
             this.sorting = e.direction;
         }
@@ -387,6 +390,7 @@ export class HandicapsComponent implements OnInit {
 
             // **Save PDF**
             doc.save("Congu_Handicap_List.pdf");
+            this.logger.log('Congu Handicap List downloaded as PDF successfully', "info");
         } catch (error) {
             this.logger.log('Downloading Congu Handicap Data Failed', "error", error.toString());
         }
@@ -623,6 +627,7 @@ export class HandicapsComponent implements OnInit {
     // }
 
     redirectToDetails = (id: string) => {
+        this.logger.log('Admin Click on View Player in Congu Handicap Page', "info", id);
         //console.log(id);
 
         this.location.navigate(['/players/view/' + id]);

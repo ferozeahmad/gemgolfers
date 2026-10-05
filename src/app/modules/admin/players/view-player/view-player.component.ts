@@ -735,8 +735,9 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
                 }
                 this.activityGroups = Object.values(grouped);
                 this.activityLoading = false;
+                this.logger.log('Getting Player Activity Data Successfully', "info", { playerId: this.playerID, count: logs?.length });
             },
-            error: () => { this.activityLoading = false; }
+            error: () => { this.logger.log('Getting Player Activity Data Failed', "error", this.playerID); this.activityLoading = false; }
         });
     }
 
@@ -768,10 +769,12 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
     }
 
     public onCancel = () => {
+        this.logger.log('Admin Click on Back in Player Profile Page', "info", this.playerID);
         this.router.navigate(['/players']);
     };
 
     redirectToUpdate = (id: string) => {
+        this.logger.log('Admin Click on Edit in Player Profile Page', "info", id);
         this.router.navigate(['/players/update/' + id]);
     };
 
@@ -784,6 +787,7 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
     }
     onPageFired(event) { }
     deletePlayer(playerId: string): void {
+        this.logger.log('Admin Click on Delete in Player Profile Page', "info", playerId);
         const dialogRef = this.dialog.open(DialogOverviewComponent, {
             width: '350px',
             data: 'Do you want to delete this record.',
@@ -791,6 +795,7 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
 
         dialogRef.afterClosed().subscribe((result) => {
             if (result) {
+                this.logger.log('Admin confirmed Delete dialog in Player Profile Page', "info", playerId);
                 let clubId: string;
 
                 if (this._localStorage.isClubAdmin())
@@ -800,6 +805,7 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
 
                 //this.router.navigate(["/players"]);
             } else {
+                this.logger.log('Admin cancelled Delete dialog in Player Profile Page', "info", playerId);
                 ////console.log("cancel delete action");
             }
         });
@@ -847,6 +853,7 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
     }
 
     async changeWHSHandicap() {
+        this.logger.log('Admin Click on Adjust WHS Handicap in Player Profile Page', "info", this.playerID);
         const dialogRef = this.dialog.open(DialogMergeComponent, {
             width: '350px',
             data: {
@@ -861,10 +868,12 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
                     count: 40,
                     diffChange: result,
                 };
+                this.logger.log('Admin confirmed WHS Handicap penalty dialog in Player Profile Page', "info", obj);
                 await this.handicapService
                     .adjustHandicapWHS(obj)
                     .then((response) => {
                         //console.log(response);
+                        this.logger.log('WHS Handicap adjusted successfully in Player Profile Page', "info", this.playerID);
 
                         this.snackBar.open(
                             'Handicap Adjusted Sucessfully.',
@@ -877,15 +886,19 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
                     })
                     .catch((err) => {
                         //console.log('error' + err);
+                        this.logger.log('Adjusting WHS Handicap Failed in Player Profile Page', "error", err?.toString());
                         this.snackBar.open('Error!.', 'x', {
                             duration: 5000,
                         });
                     });
+            } else {
+                this.logger.log('Admin cancelled WHS Handicap penalty dialog in Player Profile Page', "info", this.playerID);
             }
         });
     }
 
     async changeCONGUHandicap() {
+        this.logger.log('Admin Click on Adjust CONGU Handicap in Player Profile Page', "info", this.playerID);
         const dialogRef = this.dialog.open(DialogMergeComponent, {
             width: '350px',
             data: {
@@ -903,6 +916,7 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
                 let newHandicap = parseFloat(
                     (result + this.currentPlayer[0].handicap).toFixed(2)
                 );
+                this.logger.log('Admin confirmed CONGU Handicap penalty dialog in Player Profile Page', "info", { playerId: this.playerID, newHandicap: newHandicap });
 
                 try {
                     let response = await this.facadeService.updateConguHandicap(
@@ -937,6 +951,7 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
                         )
                     );
                     if (response && remarksAdded) {
+                        this.logger.log('CONGU Handicap adjusted successfully in Player Profile Page', "info", this.playerID);
                         this.snackBar.open(
                             'Handicap Adjusted Successfully.',
                             'x',
@@ -947,8 +962,11 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
                         window.location.reload();
                     }
                 } catch (error) {
+                    this.logger.log('Adjusting CONGU Handicap Failed in Player Profile Page', "error", error?.toString());
                     // Handle error
                 }
+            } else {
+                this.logger.log('Admin cancelled CONGU Handicap penalty dialog in Player Profile Page', "info", this.playerID);
             }
         });
     }
@@ -960,6 +978,7 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
     }
 
     public downloadAsPDFWHS() {
+        this.logger.log('Admin Click on Download WHS Handicap PDF in Player Profile Page', "info", this.playerID);
         let doc = new jsPDF();
         let col = [
             'Sr.',
@@ -1052,6 +1071,7 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
         //doc.save('flights.pdf');
     }
     public downloadAsPDFCongu() {
+        this.logger.log('Admin Click on Download CONGU Handicap PDF in Player Profile Page', "info", this.playerID);
         let doc = new jsPDF();
         let col = [
             'Sr.',
@@ -1214,6 +1234,7 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
     }
 
     openPasswordResetModal() {
+        this.logger.log('Admin Click on Reset Password in Player Profile Page', "info", this.playerID);
         this.resetPassword = '';
         this.resetConfirmPassword = '';
         this.resetPasswordError = '';
@@ -1223,6 +1244,7 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
     }
 
     closePasswordResetModal() {
+        this.logger.log('Password Reset Modal closed in Player Profile Page', "info", this.playerID);
         this.showPasswordResetModal = false;
         this.resetPassword = '';
         this.resetConfirmPassword = '';
@@ -1230,19 +1252,23 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
     }
 
     async submitPasswordReset() {
+        this.logger.log('Admin Click on Submit Password Reset in Player Profile Page', "info", this.playerID);
         this.resetPasswordError = '';
 
         if (!this.resetPassword || this.resetPassword.length < 8) {
+            this.logger.log('Password Reset blocked in Player Profile Page: password too short', "warn", this.playerID);
             this.resetPasswordError = 'Password must be at least 8 characters.';
             return;
         }
         if (this.resetPassword !== this.resetConfirmPassword) {
+            this.logger.log('Password Reset blocked in Player Profile Page: passwords do not match', "warn", this.playerID);
             this.resetPasswordError = 'Passwords do not match.';
             return;
         }
 
         const email = this.currentPlayer[0]?.email;
         if (!email) {
+            this.logger.log('Password Reset blocked in Player Profile Page: player email not found', "warn", this.playerID);
             this.resetPasswordError = 'Player email not found.';
             return;
         }
@@ -1259,9 +1285,11 @@ export class ViewPlayerComponent implements OnInit, OnDestroy {
                 }
             ).toPromise();
 
+            this.logger.log('Player Password reset successfully in Player Profile Page', "info", this.playerID);
             this.closePasswordResetModal();
             this.snackBar.open('Password reset successfully.', 'Close', { duration: 3000 });
         } catch (err) {
+            this.logger.log('Player Password reset Failed in Player Profile Page', "error", { playerId: this.playerID, status: err?.status });
             this.resetPasswordError = 'Failed to reset password. Please try again.';
         } finally {
             this.isResettingPassword = false;

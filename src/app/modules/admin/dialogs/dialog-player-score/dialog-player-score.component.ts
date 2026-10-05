@@ -8,6 +8,7 @@ import { Player } from 'app/shared/models/player.model';
 import { LocalStorageService } from 'app/shared/services/localStorage';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-dialog-player-score',
@@ -30,10 +31,12 @@ export class DialogPlayerScoreComponent implements OnInit {
     constructor(
         public dialogRef: MatDialogRef<DialogPlayerScoreComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any,
-        private facadeService: FacadeService, private _localStorage: LocalStorageService
+        private facadeService: FacadeService, private _localStorage: LocalStorageService,
+        private logger: LogsService
     ) { }
 
     async ngOnInit() {
+        this.logger.log('Player Score Dialog Opened', "info", { course: this.data?.course, type: this.data?.type, round: this.data?.round });
         //  //console.log(this.data.course);
         //console.log(this.data);
         if (this.data.players && this.data.players.length > 0) {
@@ -61,6 +64,7 @@ export class DialogPlayerScoreComponent implements OnInit {
                 this.data.course
             );
             this.isLoading = false;
+            this.logger.log('Getting Course Information in Player Score Dialog Successful', "info", this.data?.course);
             if (dataLeaderboard.course.length <= 0) return;
             //console.log(this.data.allGross);
             this.courseData = dataLeaderboard.course[0];
@@ -581,6 +585,7 @@ export class DialogPlayerScoreComponent implements OnInit {
         );
     }
     public downloadAsPDF() {
+        this.logger.log('Admin Click on Download PDF in Player Score Dialog', "info", { type: this.data?.type });
         var doc = new jsPDF()
 
         doc.setFontSize(18);

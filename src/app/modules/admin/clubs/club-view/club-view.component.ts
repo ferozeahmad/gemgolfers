@@ -6,6 +6,7 @@ import { FacadeService } from 'app/shared/services/facade.service';
 import { PageEvent } from '@angular/material/paginator';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -66,10 +67,12 @@ export class ClubViewComponent implements OnInit, OnDestroy {
         private facadeService: FacadeService,
         private snackBar: MatSnackBar,
         private cdr: ChangeDetectorRef,
+        private logger: LogsService,
     ) {}
 
     ngOnInit(): void {
         this.clubId = this.route.snapshot.paramMap.get('id');
+        this.logger.log('Admin comes to Club View Page', "info", this.clubId);
         if (!this.clubId) {
             this.router.navigate(['/clubs']);
             return;
@@ -93,6 +96,7 @@ export class ClubViewComponent implements OnInit, OnDestroy {
     }
 
     async loadInitialData(): Promise<void> {
+        this.logger.log('Getting Club Data', "info", this.clubId);
         this.isLoading = true;
         try {
             const [clubsResult, statsResult, categoryResult, membersResult] = await Promise.all([
@@ -106,6 +110,7 @@ export class ClubViewComponent implements OnInit, OnDestroy {
             const clubs: any[] = clubsResult?.club || [];
             this.club = clubs.find(c => c.id === this.clubId);
             if (!this.club) {
+                this.logger.log('Club not found in Club View Page', "warn", this.clubId);
                 this.snackBar.open('Club not found.', 'x', { duration: 3000 });
                 this.router.navigate(['/clubs']);
                 return;
@@ -140,8 +145,10 @@ export class ClubViewComponent implements OnInit, OnDestroy {
             this.membersTotal = membersResult?.player_aggregate?.aggregate?.count || 0;
             this.totalMembers = this.membersTotal;
             this.members = this.mapPlayers(membersResult?.player || []);
+            this.logger.log('Getting Club Data Successful', "info", this.clubId);
 
         } catch (err) {
+            this.logger.log('Getting Club Data Failed', "error", err);
             console.error(err);
             this.snackBar.open('Failed to load club data.', 'x', { duration: 3000 });
         } finally {
@@ -153,6 +160,7 @@ export class ClubViewComponent implements OnInit, OnDestroy {
     // ── Panel toggle ──────────────────────────────────────────────────────────
 
     togglePanel(tab: 'tournaments' | 'dailyRounds'): void {
+        this.logger.log('Admin Click on Panel in Club View Page', "info", tab);
         if (this.activePanelTab === tab) {
             this.activePanelTab = null;
             return;
@@ -169,6 +177,7 @@ export class ClubViewComponent implements OnInit, OnDestroy {
     // ── Tournaments ───────────────────────────────────────────────────────────
 
     async loadTournaments(): Promise<void> {
+        this.logger.log('Getting Club Tournaments Data', "info", { clubId: this.clubId, pageIndex: this.tourPageIndex, pageSize: this.tourPageSize });
         this.tourIsLoading = true;
         try {
             const result = await this.facadeService.getClubTournamentsPaginated(
@@ -176,7 +185,9 @@ export class ClubViewComponent implements OnInit, OnDestroy {
             );
             this.tournamentsTotal = result?.tournament_aggregate?.aggregate?.count || 0;
             this.tournamentList = result?.tournament || [];
+            this.logger.log('Getting Club Tournaments Data Successful', "info", this.tournamentList.length);
         } catch (err) {
+            this.logger.log('Getting Club Tournaments Data Failed', "error", err);
             console.error(err);
         } finally {
             this.tourIsLoading = false;
@@ -185,6 +196,7 @@ export class ClubViewComponent implements OnInit, OnDestroy {
     }
 
     onTourPageChange(event: PageEvent): void {
+        this.logger.log('Admin changes Tournaments page in Club View Page', "info", { pageIndex: event.pageIndex, pageSize: event.pageSize });
         this.tourPageIndex = event.pageIndex;
         this.tourPageSize = event.pageSize;
         this.loadTournaments();
@@ -201,12 +213,14 @@ export class ClubViewComponent implements OnInit, OnDestroy {
     }
 
     viewTournament(id: string): void {
+        this.logger.log('Admin Click on View Tournament in Club View Page', "info", id);
         this.router.navigate(['/tournaments/view', id]);
     }
 
     // ── Daily Rounds ──────────────────────────────────────────────────────────
 
     async loadDailyRounds(): Promise<void> {
+        this.logger.log('Getting Club Daily Rounds Data', "info", { clubId: this.clubId, pageIndex: this.drPageIndex, pageSize: this.drPageSize });
         this.drIsLoading = true;
         try {
             const result = await this.facadeService.getClubDailyRoundsPaginated(
@@ -214,7 +228,9 @@ export class ClubViewComponent implements OnInit, OnDestroy {
             );
             this.dailyRoundsTotal = result?.tournament_aggregate?.aggregate?.count || 0;
             this.dailyRoundsList = result?.tournament || [];
+            this.logger.log('Getting Club Daily Rounds Data Successful', "info", this.dailyRoundsList.length);
         } catch (err) {
+            this.logger.log('Getting Club Daily Rounds Data Failed', "error", err);
             console.error(err);
         } finally {
             this.drIsLoading = false;
@@ -223,6 +239,7 @@ export class ClubViewComponent implements OnInit, OnDestroy {
     }
 
     onDrPageChange(event: PageEvent): void {
+        this.logger.log('Admin changes Daily Rounds page in Club View Page', "info", { pageIndex: event.pageIndex, pageSize: event.pageSize });
         this.drPageIndex = event.pageIndex;
         this.drPageSize = event.pageSize;
         this.loadDailyRounds();
@@ -241,6 +258,7 @@ export class ClubViewComponent implements OnInit, OnDestroy {
     // ── Members ───────────────────────────────────────────────────────────────
 
     async loadMembers(): Promise<void> {
+        this.logger.log('Getting Club Members Data', "info", { clubId: this.clubId, pageIndex: this.pageIndex, pageSize: this.pageSize, search: this.searchControl.value });
         this.isMembersLoading = true;
         try {
             const search = this.searchControl.value || '';
@@ -249,7 +267,9 @@ export class ClubViewComponent implements OnInit, OnDestroy {
             );
             this.membersTotal = result?.player_aggregate?.aggregate?.count || 0;
             this.members = this.mapPlayers(result?.player || []);
+            this.logger.log('Getting Club Members Data Successful', "info", this.members.length);
         } catch (err) {
+            this.logger.log('Getting Club Members Data Failed', "error", err);
             console.error(err);
         } finally {
             this.isMembersLoading = false;
@@ -258,6 +278,7 @@ export class ClubViewComponent implements OnInit, OnDestroy {
     }
 
     onPageChange(event: PageEvent): void {
+        this.logger.log('Admin changes Members page in Club View Page', "info", { pageIndex: event.pageIndex, pageSize: event.pageSize });
         this.pageIndex = event.pageIndex;
         this.pageSize = event.pageSize;
         this.loadMembers();
@@ -276,14 +297,17 @@ export class ClubViewComponent implements OnInit, OnDestroy {
     }
 
     viewMember(playerId: string): void {
+        this.logger.log('Admin Click on View Member in Club View Page', "info", playerId);
         this.router.navigate(['/players/viewProfile', playerId]);
     }
 
     editClub(): void {
+        this.logger.log('Admin Click on Edit Club in Club View Page', "info", this.clubId);
         this.router.navigate(['/clubs/edit', this.clubId]);
     }
 
     goBack(): void {
+        this.logger.log('Admin Click on Back in Club View Page', "info", this.clubId);
         this.router.navigate(['/clubs']);
     }
 }

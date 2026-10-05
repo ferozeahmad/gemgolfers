@@ -177,6 +177,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
             debounceTime(400),
             distinctUntilChanged(),
         ).subscribe(() => {
+            this.logger.log('Admin searched players in Players Page', 'INFO', this.searchInputControl.value);
             this.pageIndex = 0;
             this.loadPlayers();
         });
@@ -604,6 +605,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
         });
         dialogRef.afterClosed().subscribe(async (confirmed) => {
             if (confirmed) {
+                this.logger.log('Admin confirmed Delete Player dialog in Players Page', 'INFO', player?.id);
                 const response = await this._facadeService.deletePlayer(player.homeClubId, player.id);
                 if (response) {
                     this.snackBar.open('Player has been deleted.', 'x', { duration: 5000 });
@@ -612,6 +614,8 @@ export class PlayersComponent implements OnInit, OnDestroy {
                 } else {
                     this.logger.log(`Failed to delete player ${player.id}`, 'ERROR');
                 }
+            } else {
+                this.logger.log('Admin cancelled Delete Player dialog in Players Page', 'INFO', player?.id);
             }
         });
     }
@@ -873,8 +877,10 @@ export class PlayersComponent implements OnInit, OnDestroy {
             });
             dialogRef.afterClosed().subscribe((confirmed) => {
                 if (confirmed) {
+                    this.logger.log('Admin confirmed Remove Members dialog in Players Page', 'INFO', { rows: this.removeMembersData.length });
                     this.removeMembersFromClub();
                 } else {
+                    this.logger.log('Admin cancelled Remove Members dialog in Players Page', 'INFO');
                     this.removeMembersFileInputVariable.nativeElement.value = '';
                 }
             });

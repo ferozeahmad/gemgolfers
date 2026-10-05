@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Tournament } from 'app/shared/models/tournament.model';
 import { FacadeService } from 'app/shared/services/facade.service';
 import { Subject } from 'rxjs';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -21,10 +22,12 @@ export class LeagueTournamentsListComponent implements OnInit {
     constructor(
         private _facadeService: FacadeService,
         private _changeDetectorRef: ChangeDetectorRef,
-        private _router: Router
+        private _router: Router,
+        private logger: LogsService
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Admin comes to League Tournaments List in League Detail Page', "info", this.leagueId);
         if (this.leagueId) {
             this.loadLeagueTournaments();
         }
@@ -36,12 +39,15 @@ export class LeagueTournamentsListComponent implements OnInit {
     }
 
     async loadLeagueTournaments(): Promise<void> {
+        this.logger.log('Getting League Tournaments Data', "info", this.leagueId);
         this.isLoading = true;
         this._changeDetectorRef.markForCheck();
         try {
             const data = await this._facadeService.getTournamentsListByLeague(this.leagueId);
             this.tournaments = this.sortByDateDesc(data?.CompletedRecently?.[0]?.tournaments || []);
+            this.logger.log('Getting League Tournaments Data Successful', "info", { leagueId: this.leagueId, count: this.tournaments.length });
         } catch (error) {
+            this.logger.log('Getting League Tournaments Data Failed', "error", error.toString());
             console.error('Error loading league tournaments:', error);
         } finally {
             this.isLoading = false;
@@ -59,6 +65,7 @@ export class LeagueTournamentsListComponent implements OnInit {
     }
 
     viewTournamentDetails(id: string): void {
+        this.logger.log('Admin Click on View Tournament in League Tournaments List', "info", id);
         this._router.navigate(['/tournaments/view/', id]);
     }
 }

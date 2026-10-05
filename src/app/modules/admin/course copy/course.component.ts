@@ -59,15 +59,18 @@ export class CourseComponent implements OnInit {
   ) { }
 
   async ngOnInit() {
+    this.logger.log('Admin comes to Courses Page', "info");
 
     this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
     let dataCourses: any;
+    this.logger.log('Getting Courses Data', "info");
     if (this._localStorage.isSuperAdmin()) {
       dataCourses = await this.facadeService.getCoursesList();
     } else {
       dataCourses = await this.facadeService.getCoursesListbyID(this.loggedInuser.id);
     }
     this.Courses = dataCourses?.course;
+    this.logger.log('Getting Courses Data Successful', "info", this.Courses?.length);
     //console.log(this.Courses)
     this.dataSource = new MatTableDataSource(this.Courses);
     this.dataSource.paginator = this.paginator;
@@ -76,6 +79,7 @@ export class CourseComponent implements OnInit {
 
 
   redirectToUpdate = (id: string) => {
+    this.logger.log('Admin Click on Edit in Courses Page', "info", id);
     this.location.navigate(["/course/update/" + id]);
   };
 
@@ -90,10 +94,12 @@ export class CourseComponent implements OnInit {
   }
 
   createCourse() {
+    this.logger.log('Admin Click on Create Course in Courses Page', "info");
     this.location.navigate(['/courses2/add']);
   }
 
   compelteCourse(id) {
+    this.logger.log('Admin Click on Activate Course in Courses Page', "info", id);
     console.log(id);
     const confirmation = this._fuseConfirmationService.open({
       title: 'Course Status',
@@ -107,6 +113,7 @@ export class CourseComponent implements OnInit {
 
     // Subscribe to the confirmation dialog closed action
     confirmation.afterClosed().subscribe(async (result) => {
+      this.logger.log(result === 'confirmed' ? 'Admin confirmed Activate Course' : 'Admin cancelled Activate Course', "info", id);
       // If the confirm button pressed...
       if (result === 'confirmed') {
         try {
@@ -114,6 +121,7 @@ export class CourseComponent implements OnInit {
           console.log(success);
 
           if (success) {
+            this.logger.log('Course status updated successfully', "info", id);
             // Update the dataSource data
             this.dataSource.data = this.dataSource.data.map(course => {
               if (course.id === id) {
@@ -127,6 +135,7 @@ export class CourseComponent implements OnInit {
             //this.dataSource.paginator?.firstPage();
           }
         } catch (error) {
+          this.logger.log('Updating Course status Failed', "error", error);
           console.error('Error updating course status:', error);
         }
       }

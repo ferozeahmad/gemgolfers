@@ -24,6 +24,7 @@ import { Apollo } from 'apollo-angular';
 import { DialogPlayerScoreComponent } from '../dialogs/dialog-player-score/dialog-player-score.component';
 import { LeaderboardSubscription } from 'app/shared/GraphQL/tournament.gql';
 import { LeaderboardService } from './mainleaderboard.service';
+import { LogsService } from 'app/shared/services/logs.service';
 
 
 @Component({
@@ -118,11 +119,13 @@ export class MainLeaderboardComponent implements OnInit {
         public dialog: MatDialog,
         public facadeService: FacadeService,
         private _leaderBoardService: LeaderboardService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private logger: LogsService
 
     ) { }
 
     async ngOnInit() {
+        this.logger.log('User comes to Main Leaderboard Page', "info");
         this.getOnLoadData();
 
         // const source = interval(60000 * 30);

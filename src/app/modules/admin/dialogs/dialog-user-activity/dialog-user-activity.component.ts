@@ -12,6 +12,7 @@ import { TournamentMember } from 'app/shared/models/tournament.model';
 import { FacadeService } from 'app/shared/services/facade.service';
 import * as XLSX from 'xlsx';
 import { read, utils } from 'xlsx';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-uncompleted',
@@ -32,10 +33,12 @@ export class DialogUserActivityComponent implements OnInit {
     constructor(
         public dialogRef: MatDialogRef<DialogUserActivityComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any,
+        private logger: LogsService,
 
     ) { }
 
     ngOnInit() {
+        this.logger.log('User Activity Dialog Opened', "info", { activities: this.data?.activities?.length });
         //console.log(this.data);
 
         this.playerList = this.data.activities;
@@ -61,10 +64,12 @@ export class DialogUserActivityComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in User Activity Dialog', "info");
         this.dialogRef.close();
     }
 
     close() {
+        this.logger.log('Admin Click on Close in User Activity Dialog', "info");
         this.dialogRef.close();
     }
 

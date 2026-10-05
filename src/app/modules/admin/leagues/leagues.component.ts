@@ -13,6 +13,7 @@ import { LocalStorageService } from 'app/shared/services/localStorage';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogAddLeagueComponent } from '../dialogs/dialog-add-league/dialog-add-league.component';
 import { UserSessionModel } from 'app/shared/models/player.model';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-leagues',
@@ -50,9 +51,11 @@ export class LeaguesComponent implements OnInit {
         private apollo: Apollo,
         private _localStorage: LocalStorageService,
         public dialog: MatDialog,
+        private logger: LogsService,
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Admin comes to Leagues Page', "info");
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
         this.fecthData();
     }
@@ -63,6 +66,7 @@ export class LeaguesComponent implements OnInit {
         let dataTournaments: any[] = [];
         let clubName: any[] = [];
         let clubs: any;
+        this.logger.log('Getting Leagues Data', "info");
         //console.log(this.loggedInuser);
         if (this._localStorage.isSuperAdmin()) {
             clubs = await this.facadeService.getLeagues();
@@ -73,6 +77,7 @@ export class LeaguesComponent implements OnInit {
         }
         // //console.log(clubs.league);
         this.clubs = clubs.league;
+        this.logger.log('Getting Leagues Data Successful', "info", { count: this.clubs.length });
         if (this.clubs.length == 0) {
             this.showLeaderBoards = true;
         }
@@ -194,6 +199,7 @@ export class LeaguesComponent implements OnInit {
     }
 
     toggleDetails(productId: string): void {
+        this.logger.log('Admin Click on Toggle League Details in Leagues Page', "info", productId);
         this.showLeaderBoards = true;
         if (this.selectedId && this.selectedId === productId) {
             this.showLeaderBoards = false;
@@ -207,9 +213,11 @@ export class LeaguesComponent implements OnInit {
     }
 
     addNewLeague() {
+        this.logger.log('Admin Click on Add New League in Leagues Page', "info");
         const dialogRef = this.dialog.open(DialogAddLeagueComponent);
         dialogRef.afterClosed().subscribe(async (result) => {
             //console.log(result);
+            this.logger.log(result ? 'Add League Dialog Confirmed in Leagues Page' : 'Add League Dialog Cancelled in Leagues Page', "info", result ? result.title : undefined);
             if (result) {
                 let league: any = {
                     id: UniqueIdGenerator.generate(),
@@ -220,6 +228,7 @@ export class LeaguesComponent implements OnInit {
                 }
                 this.facadeService.addLeague(league, result.file).subscribe((result) => {
                     console.log(result);
+                    this.logger.log(result ? 'League Added Successfully' : 'Adding League Failed', result ? "info" : "error", { id: league.id, name: league.name });
                     if (result) {
                         league.tournaments = []
                         league.members = []

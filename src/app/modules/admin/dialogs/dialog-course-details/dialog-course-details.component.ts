@@ -3,6 +3,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { CourseHoleSet } from 'app/shared/models/course.model';
 import { Course } from 'app/shared/models/course.model';
 import { FacadeService } from '../../../../shared/services/facade.service';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -25,10 +26,12 @@ export class DialogCourseDetailsComponent implements OnInit {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private facadeService: FacadeService
+    private facadeService: FacadeService,
+    private logger: LogsService
   ) { }
 
   async ngOnInit() {
+    this.logger.log('Course Details Dialog Opened', "info", this.data?.course);
 
     //console.log(this.data);
     ////console.log( this.data.course["TournamentQL"][0]["CourseQL"].id);
@@ -36,7 +39,8 @@ export class DialogCourseDetailsComponent implements OnInit {
       await this.facadeService.getCourseByID( this.data.course)
     );
     //console.log(this.currentCourse);
-    
+    this.logger.log('Getting Course Details in Course Details Dialog Successful', "info", this.data?.course);
+
     this.par=this.currentCourse["course"][0].par;
     // this.index=this.currentCourse["course"][0].index;
     this.slopeRating=this.currentCourse["course"][0].slopeRating

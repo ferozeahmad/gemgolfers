@@ -47,6 +47,7 @@ export class AuthSignInCourseComponent implements OnInit {
      * On init
      */
     ngOnInit(): void {
+        this.logger.log('User comes to Course Sign In Page', "info");
         // Create the form
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
         if (this.loggedInuser) {
@@ -68,6 +69,7 @@ export class AuthSignInCourseComponent implements OnInit {
      * Sign in
      */
     signIn(): void {
+        this.logger.log('User Click on Sign In in Course Sign In Page', "info", this.signInForm.get('email').value);
         // Return if the form is invalid
         if (this.signInForm.invalid) {
             return;

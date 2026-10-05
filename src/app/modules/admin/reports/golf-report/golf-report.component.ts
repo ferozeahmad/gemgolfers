@@ -153,6 +153,7 @@ export class GolfReportComponent implements OnInit {
                 )
             );
         }
+        this.logger.log('Getting Player Round Data Successfully', "info", players?.['player']?.length);
         console.log(players);
 
         this.Players = [];
@@ -190,6 +191,7 @@ export class GolfReportComponent implements OnInit {
     }
 
     redirectToHandicapDetails = (id: string) => {
+        this.logger.log('Admin Click on View Details in Player Round Page', "info", id);
         //console.log(id);
 
         if (id) {
@@ -203,6 +205,7 @@ export class GolfReportComponent implements OnInit {
             //console.log(id);
 
             dialogRef.afterClosed().subscribe((result) => {
+                this.logger.log('Player Details Dialog Closed in Player Round Page', "info", id);
                 if (result) {
                     ////console.log("record deleted.");
                     //this.delete(id);
@@ -236,6 +239,7 @@ export class GolfReportComponent implements OnInit {
     }
 
     onClubFilterChange(selectedClub: string) {
+        this.logger.log('Admin Change Club Filter in Player Round Page', "info", selectedClub);
         this.selectedClub = selectedClub;
         if (selectedClub === '' || selectedClub === 'All') {
             // Show all players
@@ -287,6 +291,7 @@ export class GolfReportComponent implements OnInit {
     //     //doc.save('flights.pdf');
     // }
     exportToExcel(): void {
+        this.logger.log('Admin Click on Export to Excel in Player Round Page', "info", this.dataSource?.data?.length);
 
         const data = this.dataSource.data.map((item) => {
             // Create a new object without the 'Details' column
@@ -300,6 +305,7 @@ export class GolfReportComponent implements OnInit {
 
         // Export the Excel file
         XLSX.writeFile(wb, 'Players_report.xlsx');
+        this.logger.log('Player Round Report exported to Excel successfully', "info");
 
     }
     onDatePick() {
@@ -329,6 +335,7 @@ export class GolfReportComponent implements OnInit {
         return date;
     }
     async dailySetup(selectedValue) {
+        this.logger.log('Getting Player Round Data By Dropdown', "info", selectedValue?.value);
         // this.logger.log('Getting Daily starter Data By Dropdown', "info", selectedValue.value.toString());
 
         //console.log(selectedValue);

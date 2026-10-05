@@ -25,6 +25,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatSort } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
+import { LogsService } from 'app/shared/services/logs.service';
 @Component({
     standalone: false,
     selector: 'app-dialog-add-league',
@@ -41,10 +42,12 @@ export class DialogAddLeagueComponent implements OnInit {
     maxDate: Date;
     constructor(
         @Inject(MAT_DIALOG_DATA) public data: any,
-        public dialogRef: MatDialogRef<DialogAddLeagueComponent>
+        public dialogRef: MatDialogRef<DialogAddLeagueComponent>,
+        private logger: LogsService
     ) { }
 
     ngOnInit(): void {
+        this.logger.log('Add League Dialog Opened', "info");
         this.tourForm = new FormGroup({
             title: new FormControl('', [
                 Validators.required,
@@ -55,11 +58,13 @@ export class DialogAddLeagueComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Add League Dialog', "info");
         this.dialogRef.close();
     }
     onSubmit() {
     }
     createTour(value) {
+        this.logger.log('Admin Click on Save in Add League Dialog', "info", { title: value?.title });
         let result = {
             file: this.file,
             title: value.title,
@@ -71,6 +76,7 @@ export class DialogAddLeagueComponent implements OnInit {
         return this.tourForm.controls[controlName].hasError(errorName);
     };
     uploadAvatar(fileList: FileList): void {
+        this.logger.log('Admin Selects Logo File in Add League Dialog', "info", fileList?.[0]?.name);
         // Return if canceled
         if (!fileList.length) {
             this.pictureUrl = null;

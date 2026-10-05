@@ -214,6 +214,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     drop(event: CdkDragDrop<string[]>) {
+        this.logger.log('Admin reorders groups via drag and drop in Add Tournament Page', "info", { previousIndex: event.previousIndex, currentIndex: event.currentIndex });
         ////console.log(event);
         if (event.previousContainer === event.container) {
             moveItemInArray(
@@ -302,6 +303,7 @@ export class AddTournamentComponent implements OnInit {
     selectedTeamColor: string | null = null;
 
     onPlayerDrop(event: CdkDragDrop<any[]>, team: 'A' | 'B', flightIndex: number) {
+        this.logger.log('Admin moves player via drag and drop in Add Tournament Page', "info", { team: team, flightIndex: flightIndex, previousIndex: event.previousIndex, currentIndex: event.currentIndex });
         const teamKey = team === 'A' ? 'teamA' : 'teamB';
 
         const previousList = event.previousContainer.data;
@@ -367,6 +369,7 @@ export class AddTournamentComponent implements OnInit {
 
 
     async ngOnInit() {
+        this.logger.log('Admin comes to Add Tournament Page', "info");
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
 
 
@@ -992,6 +995,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     closePopupAndProceed(): void {
+        this.logger.log('Admin Click on Proceed in Tournament Created Popup in Add Tournament Page', "info", this.tournamentID);
         this.showSuccessPopup = false;
         this.currentStep += 1;
         this.currentTitle = 'Select Players';
@@ -1009,6 +1013,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     toggleFlights(event, index) {
+        this.logger.log('Admin toggles category groups in Add Tournament Page', "info", { index: index, checked: event?.checked });
         console.log(event);
         console.log(this.formArray.get([1]).get('category').get([index]));
         if (event.checked) {
@@ -1021,6 +1026,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     copyLink(): void {
+        this.logger.log('Admin Click on Copy Registration Link in Add Tournament Page', "info", this.tournamentID);
         if (navigator.clipboard) {
             navigator.clipboard.writeText(this.registrationLink).then(() => {
                 this.copied = true;
@@ -1029,6 +1035,7 @@ export class AddTournamentComponent implements OnInit {
         }
     }
     copyCode(): void {
+        this.logger.log('Admin Click on Copy Join Code in Add Tournament Page', "info", this.tournamentID);
         if (navigator.clipboard) {
             navigator.clipboard.writeText(this.joinCode).then(() => {
                 this.copiedC = true;
@@ -1038,6 +1045,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     backStep() {
+        this.logger.log('Admin Click on Back Step in Add Tournament Page', "info", this.currentTitle);
         if (this.currentStep > 1) {
             this.currentStep--;
             let step = this.steps.find(a => a.number == this.currentStep);
@@ -1046,6 +1054,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     handleNextStep(): void {
+        this.logger.log('Admin Click on Next Step in Add Tournament Page', "info", this.currentTitle);
         switch (this.currentTitle) {
             case 'Tournament Setup':
                 this.editTournament ? this.editTournaments() : this.createTournament();
@@ -1076,6 +1085,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     onFileSelected(event: any): void {
+        this.logger.log('Admin selects banner file in Add Tournament Page', "info", event?.target?.files?.[0]?.name);
         const file = event.target.files[0];
         if (file) {
             this.file = file;
@@ -1091,6 +1101,7 @@ export class AddTournamentComponent implements OnInit {
     get startIndex() { return this.bannerForm.get('startIndex'); }
 
     goToStep(stepTitle: string, stepNumber: number): void {
+        this.logger.log('Admin goes to step in Add Tournament Page', "info", { stepTitle: stepTitle, stepNumber: stepNumber });
 
         const currentGroup = this.formArray?.get([0]) as FormGroup;
         // // 1️⃣ Mark all fields touched to show errors
@@ -1112,6 +1123,7 @@ export class AddTournamentComponent implements OnInit {
             }
         } else {
             const invalidFields = this.getInvalidControls(currentGroup);
+            this.logger.log('Go to step blocked, Tournament Setup form is invalid in Add Tournament Page', "warn", invalidFields);
             console.warn('Invalid fields:', invalidFields);
             // Optionally, show a toast or inline error message
             console.warn('Please complete this step before continuing.');
@@ -1142,6 +1154,7 @@ export class AddTournamentComponent implements OnInit {
 
 
     selectColor(color: string) {
+        this.logger.log('Admin selects team color in Add Tournament Page', "info", color);
         this.selectedTeamColor = color;
         this.teamForm.get('teamColor')?.setValue(color);
     }
@@ -1436,6 +1449,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     updateCategoryDates(cat) {
+        this.logger.log('Admin changes category dates in Add Tournament Page', "info", { id: cat?.id, name: cat?.name });
         const chkArray = this.formArray.get([0]).get('clubctgies') as FormArray;
 
         const idx = chkArray.value.findIndex((x) => x.id === cat.id);
@@ -1550,6 +1564,7 @@ export class AddTournamentComponent implements OnInit {
     // }
 
     updateChkbxArray(chk, index, checked, key) {
+        this.logger.log('Admin changes category selection in Add Tournament Page', "info", { category: chk?.name, checked: checked });
         const arr = this.formArray.get([0]).get(key) as FormArray;
         const group = arr.at(index) as FormGroup;
 
@@ -1625,11 +1640,13 @@ export class AddTournamentComponent implements OnInit {
     }
 
     public datechangeS(event) {
+        this.logger.log('Admin changes start date in Add Tournament Page', "info", event?.value);
         this.minDate = event.value;
         console.log(event);
     }
 
     public datechangeE(event) {
+        this.logger.log('Admin changes end date in Add Tournament Page', "info", event?.value);
         this.maxDate = event.value;
         console.log(event);
     }
@@ -1656,12 +1673,14 @@ export class AddTournamentComponent implements OnInit {
     }
 
     getSelectedCourses(course) {
+        this.logger.log('Admin selects course in Add Tournament Page', "info", { id: course?.id, name: course?.name });
         this.courseHoleSetNames = [];
         this.courseChange = true;
 
         this.formArray.get([0]).get('courseInfo').get([0]).get('courseName').setValue({ course });
 
         this.facadeService.getCourseHoleSets(course.id).subscribe((selectedCourseHoleSet) => {
+            this.logger.log('Getting Course Hole Sets successfully in Add Tournament Page', "info", course.id);
             const sets = selectedCourseHoleSet.course_hole_sets || [];
 
             if (sets.length > 0) {
@@ -1684,12 +1703,14 @@ export class AddTournamentComponent implements OnInit {
         });
     }
     getSelectedCoursesMulti(course, index) {
+        this.logger.log('Admin selects round course in Add Tournament Page', "info", { id: course?.id, name: course?.name, index: index });
 
         this.courseChange = true;
         //console.log(this.courseChange);
         this.facadeService
             .getCourseHoleSets(course.id)
             .subscribe((selectedCourseHoleSet) => {
+                this.logger.log('Getting Course Hole Sets successfully in Add Tournament Page', "info", course.id);
                 //console.log(selectedCourseHoleSet);
                 if (selectedCourseHoleSet.course_hole_sets.length > 0) {
                     this.courseHoleSetName.push(selectedCourseHoleSet.course_hole_sets)
@@ -1949,6 +1970,7 @@ export class AddTournamentComponent implements OnInit {
 
 
     getSelectedPlayers() {
+        this.logger.log('Admin Click on Next in Groups Setup in Add Tournament Page', "info", this.tournamentID);
         //console.log(index);
         // this.flightArrangementSetup();
         this.selectedMembers = [];
@@ -1991,6 +2013,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     addBanner() {
+        this.logger.log('Admin Click on Next in Banner Setup in Add Tournament Page', "info", { tournamentId: this.tournamentID, hasFile: !!this.file });
 
         if (this.file) {
             console.log(this.file);
@@ -2003,6 +2026,7 @@ export class AddTournamentComponent implements OnInit {
             }
             this.facadeService.updateTournamentBanner(banner, this.file).subscribe((res) => {
                 if (res) {
+                    this.logger.log('Tournament banner updated successfully in Add Tournament Page', "info", this.tournamentID);
                     this.currentTitle = 'Review & Confirm';
                     this.currentStep++;
                 }
@@ -2278,8 +2302,10 @@ export class AddTournamentComponent implements OnInit {
     }
 
     async refreshCourseList() {
+        this.logger.log('Admin Click on Refresh Course List in Add Tournament Page', "info");
         let dataCourses = await this.facadeService.getApprovedCoursesList();
         this.Courses = dataCourses.course;
+        this.logger.log('Course list refreshed successfully in Add Tournament Page', "info", this.Courses?.length);
 
         this.filteredCourseOptions = this.formArray
             .get([0])
@@ -2298,12 +2324,14 @@ export class AddTournamentComponent implements OnInit {
     }
 
     openAddCourse() {
+        this.logger.log('Admin Click on Add Course in Add Tournament Page', "info");
         const url = this.location.prepareExternalUrl('/courses2/add');
         window.open(url, '_blank');
     }
 
 
     multiCourseChange(value) {
+        this.logger.log('Admin changes multiple courses option in Add Tournament Page', "info", value);
         if (value) {
             this.formArray.get([0]).get('courseInfo')!.get([0]).get('courseName').clearValidators();
             const control = this.formArray.get([0]).get('courses') as FormArray;
@@ -2626,10 +2654,12 @@ export class AddTournamentComponent implements OnInit {
     }
 
     async createTournament() {
+        this.logger.log('Admin Click on Create Tournament in Add Tournament Page', "info");
 
         const currentGroup = this.formArray?.get([0]) as FormGroup;
         // // 1️⃣ Mark all fields touched to show errors
         if (currentGroup.invalid) {
+            this.logger.log('Create Tournament blocked, form is invalid in Add Tournament Page', "warn");
             currentGroup.markAllAsTouched();
             return;
         }
@@ -2812,6 +2842,7 @@ export class AddTournamentComponent implements OnInit {
                     },
                 },
             }).afterClosed().subscribe((result) => {
+                this.logger.log('Select course dialog closed in Add Tournament Page', "info", result);
                 if (result === 'confirmed') {
                     this.openAddCourse();
                 }
@@ -2892,6 +2923,7 @@ export class AddTournamentComponent implements OnInit {
             let result = <any>(
                 await this.facadeService.createTournamentMarshals(marshalsData)
             );
+            this.logger.log('Create Tournament Marshals call completed in Add Tournament Page', "info", { tournamentId: this.tournamentID, count: marshalsData.length });
 
             if (this.formArray.get([0]).value.prefixFormCtrl) {
                 let checkPrfix: any = [];
@@ -2904,6 +2936,7 @@ export class AddTournamentComponent implements OnInit {
                 //console.log(checkPrfix);
 
                 if (checkPrfix.length > 0) {
+                    this.logger.log('Create Tournament blocked, prefix already exists in Add Tournament Page', "warn", this.formArray.get([0]).value.prefixFormCtrl);
                     this.snackBar.open('Prefix already exist.', 'x', {
                         duration: 5000,
                     });
@@ -2912,6 +2945,7 @@ export class AddTournamentComponent implements OnInit {
                         await this.facadeService.addTournament(tournament)
                         // //console.log('a')
                     );
+                    this.logger.log(result ? 'Tournament created successfully in Add Tournament Page' : 'Creating Tournament Failed in Add Tournament Page', result ? "info" : "error", this.tournamentID);
                     this.currentTournament = tournament;
                     //console.log(result);
                     if (result) {
@@ -2994,6 +3028,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     async refreshPlayerList(selectedClubId: string) {
+        this.logger.log('Refreshing Players List in Add Tournament Page', "info", selectedClubId);
         let state = this._localStorage.get(Constants.STATE);
         // this.clubMembers = [];
 
@@ -3069,12 +3104,14 @@ export class AddTournamentComponent implements OnInit {
 
         }
 
+        this.logger.log('Players List refreshed successfully in Add Tournament Page', "info", this.clubMembers?.length);
         this.syncClubMembers();
         // this.syncTournamentMembers();
     }
 
 
     async editTournaments() {
+        this.logger.log('Admin Click on Update Tournament in Add Tournament Page', "info", this.tournamentID);
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
         let tournamentCats: TournamentCategory[] = [];
         let tournamentRoundCourses: TournamentRoundCourses[] = [];
@@ -3300,11 +3337,13 @@ export class AddTournamentComponent implements OnInit {
             )
         );
         if (result) {
+            this.logger.log('Tournament updated successfully in Add Tournament Page', "info", this.tournamentID);
             this.snackBar.open('Tournament has been updated.', 'x', {
                 duration: 5000,
             });
             this.goToStep('Select Players', 2);
         } else {
+            this.logger.log('Updating Tournament Failed in Add Tournament Page', "error", this.tournamentID);
             this.snackBar.open('Error! Try Again later.', 'x', {
                 duration: 5000,
             });
@@ -3367,6 +3406,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     downloadSample() {
+        this.logger.log('Admin Click on Download Sample in Add Tournament Page', "info");
         // Create sample data
         // this.logger.info("User click on bulk import sample");
         const data = [
@@ -3383,6 +3423,7 @@ export class AddTournamentComponent implements OnInit {
 
         // Save file
         XLSX.writeFile(wb, 'sample_file.xlsx');
+        this.logger.log('Sample file downloaded successfully in Add Tournament Page', "info");
         // this.logger.info("Bulk import sample downloaded successfully");
     }
 
@@ -3624,6 +3665,7 @@ export class AddTournamentComponent implements OnInit {
     // }
 
     async saveTournamentMember() {
+        this.logger.log('Admin Click on Save Tournament Members in Add Tournament Page', "info", this.tournamentID);
         let tournamentMember: TournamentMember[] = [];
         let invalidPlayers = [];
         let selectedCategories = this.formArray.get([0]).get('clubctgies').value.filter(a => a.checked == true).map(z => z.name);
@@ -3679,6 +3721,7 @@ export class AddTournamentComponent implements OnInit {
         }
 
         if (this.formArray.get([0]).value.courseInfo[0].matchFormat == matchFormat.STROKE_PLAY && invalidPlayers.length > 0) {
+            this.logger.log('Save Tournament Members blocked, players with invalid category in Add Tournament Page', "warn", invalidPlayers.length);
             this.tournamentMembers = [];
             this.dialog.open(InvalidCategoryPlayersComponent, {
                 width: '600px',
@@ -3687,6 +3730,7 @@ export class AddTournamentComponent implements OnInit {
                     categories: selectedCategories,
                 }
             }).afterClosed().subscribe((res) => {
+                this.logger.log('Invalid category players dialog closed in Add Tournament Page', "info", res?.length);
                 console.log(res);
 
                 if (res && res.length > 0) {
@@ -3716,6 +3760,7 @@ export class AddTournamentComponent implements OnInit {
         let result = <any>(
             await this.facadeService.insertTournamentMember(tournamentMember)
         );
+        this.logger.log(result ? 'Tournament members saved successfully in Add Tournament Page' : 'Saving Tournament Members Failed in Add Tournament Page', result ? "info" : "error", { tournamentId: this.tournamentID, count: tournamentMember.length });
         if (this.dataSource.data.length > 0) {
             this.dataSource.data.forEach(async (element) => {
                 await this.facadeService.deleteTournamentMember(this.tournamentID, element.id)
@@ -3823,10 +3868,12 @@ export class AddTournamentComponent implements OnInit {
     }
 
     paneltToggle(event) {
+        this.logger.log('Admin toggles categories panel in Add Tournament Page', "info", { skipCategory: !this.skipCat });
         this.skipCat = !this.skipCat;
     }
 
     saveTournamentMembers() {
+        this.logger.log('Admin Click on Add Selected Players in Add Tournament Page', "info", this.selection?.selected?.length);
         let selectionArray = Object.assign({}, this.selection.selected);
         let members: any[] = [];
 
@@ -3874,6 +3921,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     saveAllTournamentMembers() {
+        this.logger.log('Admin Click on Add All Players in Add Tournament Page', "info", this.dataSource?.data?.length);
         let clubMembers = this.dataSource.data;
         let members = [];
         for (let index in clubMembers) {
@@ -3917,6 +3965,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     removeSelectedMembers() {
+        this.logger.log('Admin Click on Remove Selected Players in Add Tournament Page', "info", this.memberSelection?.selected?.length);
         let selectionArray = Object.assign({}, this.memberSelection.selected);
         let members = [];
         for (let index in selectionArray) {
@@ -3969,6 +4018,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     removeAllTournamentMembers() {
+        this.logger.log('Admin Click on Remove All Players in Add Tournament Page', "info", this.membersSource?.data?.length);
         let tournamentMembers = this.membersSource.data;
         let members = [];
         for (let index in tournamentMembers) {
@@ -4014,6 +4064,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     async saveTournamentTeams() {
+        this.logger.log('Admin Click on Save Tournament Teams in Add Tournament Page', "info", { tournamentId: this.tournamentID, teams: this.selectedTeams?.length });
         let tournamentMember: TeamMembers[] = []
         this.teamMembersToSave = [];
         let teamsToSave: Team[] = [];
@@ -4067,6 +4118,7 @@ export class AddTournamentComponent implements OnInit {
         );
 
         if (result) {
+            this.logger.log('Tournament teams saved successfully in Add Tournament Page', "info", this.tournamentID);
             if (
                 this.formArray.get([0]).value.courseInfo[0].matchFormat === matchFormat.STROKE_PLAY
             ) {
@@ -4126,6 +4178,7 @@ export class AddTournamentComponent implements OnInit {
             }
             // stepper.next();
         } else {
+            this.logger.log('Saving Tournament Teams Failed in Add Tournament Page', "error", this.tournamentID);
             this.snackBar.open('Error!.Try Again', 'x', {
                 duration: 2000,
             });
@@ -4140,6 +4193,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     addTeam() {
+        this.logger.log('Admin Click on Add Team in Add Tournament Page', "info", this.teamForm.get('teamName')?.value);
         const teamName = this.teamForm.get('teamName')?.value?.trim();
         const teamColor = this.teamForm.get('teamColor')?.value;
 
@@ -4162,6 +4216,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     addPairs() {
+        this.logger.log('Admin Click on Add Pair in Add Tournament Page', "info", this.teamForm.get('teamName')?.value);
         const teamName = this.teamForm.get('teamName')?.value?.trim();
         const teamColor = this.teamForm.get('teamColor')?.value;
 
@@ -4191,6 +4246,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     addSelectedPlayersToTeam(teamId: number) {
+        this.logger.log('Admin Click on Add Selected Players to Team in Add Tournament Page', "info", { teamId: teamId, count: this.memberTMSelection?.selected?.length });
         const selectedPlayers = [...this.memberTMSelection.selected]; // array of selected players
         if (!selectedPlayers.length) return;
 
@@ -4215,6 +4271,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     addSelectedPlayersToPair(pairId: string) {
+        this.logger.log('Admin Click on Add Selected Players to Pair in Add Tournament Page', "info", { pairId: pairId, count: this.memberTMSelection?.selected?.length });
         const selectedPlayers = [...this.memberTMSelection.selected]; // array of selected players
         if (!selectedPlayers.length) return;
 
@@ -4456,6 +4513,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     async createFlights() {
+        this.logger.log('Admin Click on Start Tournament in Add Tournament Page', "info", this.tournamentID);
         this.isCreatingFlights = true;
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
         let tournamentFlights: Flight[] = [];
@@ -4717,6 +4775,7 @@ export class AddTournamentComponent implements OnInit {
         }
 
         if (result) {
+            this.logger.log('Tournament groups created successfully in Add Tournament Page', "info", this.tournamentID);
             if (!this.currentTournament.isSetupComplete) {
                 await this.facadeService.setTournamentStep(this.tournamentID, 4, true);
             }
@@ -4727,12 +4786,14 @@ export class AddTournamentComponent implements OnInit {
             this.reset();
             this.router.navigate(['/tournaments/view/' + this.tournamentID]);
         } else {
+            this.logger.log('Creating Tournament groups Failed in Add Tournament Page', "error", this.tournamentID);
             this.isCreatingFlights = false;
 
         }
     }
 
     removeTeamPlayer(playerId: string, teamId: string) {
+        this.logger.log('Admin Click on Remove Player from Team in Add Tournament Page', "info", { playerId: playerId, teamId: teamId });
         // Find the team
         const teamToUpdate = this.selectedTeams.find(team => team.id === teamId);
 
@@ -4760,6 +4821,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     removePairPlayer(playerId: string, teamId: string) {
+        this.logger.log('Admin Click on Remove Player from Pair in Add Tournament Page', "info", { playerId: playerId, pairId: teamId });
         // Find the team
         const teamToUpdate = this.selectedPairs.find(team => team.id === teamId);
 
@@ -4788,6 +4850,7 @@ export class AddTournamentComponent implements OnInit {
 
 
     deleteTeam(teamId: string) {
+        this.logger.log('Admin Click on Delete Team in Add Tournament Page', "info", teamId);
         // Find the team being deleted
         const deletedTeam = this.selectedTeams.find(team => team.id === teamId);
 
@@ -4815,6 +4878,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     deletePair(teamId: string) {
+        this.logger.log('Admin Click on Delete Pair in Add Tournament Page', "info", teamId);
         // Find the team being deleted
         const deletedTeam = this.selectedPairs.find(team => team.id === teamId);
 
@@ -4889,6 +4953,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     roundChange(event: any) {
+        this.logger.log('Admin changes number of rounds in Add Tournament Page', "info", event?.value);
         const rounds = Number(event.value);
         this.multiCourse = rounds > 1;
         this.noOfRounds = Array.from({ length: rounds }, (_, i) => i + 1);
@@ -4942,6 +5007,7 @@ export class AddTournamentComponent implements OnInit {
 
     /** Selects all rows if they are not all selected; otherwise clear selection. */
     masterToggle() {
+        this.logger.log('Admin toggles select all players in Add Tournament Page', "info");
         //console.log(this.selection);
         //console.log(this.selection.selected.length);
         this.isAllSelected()
@@ -4969,6 +5035,7 @@ export class AddTournamentComponent implements OnInit {
 
     /** Selects all rows if they are not all selected; otherwise clear selection. */
     masterToggleM() {
+        this.logger.log('Admin toggles select all tournament members in Add Tournament Page', "info");
         //console.log(this.selection);
         //console.log(this.selection.selected.length);
         this.isAllSelectedM()
@@ -4995,6 +5062,7 @@ export class AddTournamentComponent implements OnInit {
     }
     /** Selects all rows if they are not all selected; otherwise clear selection. */
     masterToggleTM() {
+        this.logger.log('Admin toggles select all team members in Add Tournament Page', "info");
         //console.log(this.selection);
         //console.log(this.selection.selected.length);
         this.isAllSelectedTM()
@@ -5056,11 +5124,13 @@ export class AddTournamentComponent implements OnInit {
     }
 
     addPlayer() {
+        this.logger.log('Admin Click on Add Player in Add Tournament Page', "info", this.tournamentID);
         const dialogRef = this.dialog.open(DialogAddPlayerComponent, {
             data: { flights: this.selectedMembers.length, tournamentID: this.tournamentID },
         });
 
         dialogRef.afterClosed().subscribe((result) => {
+            this.logger.log(result ? 'Add Player dialog confirmed in Add Tournament Page' : 'Add Player dialog cancelled in Add Tournament Page', "info", result?.id);
             if (result) {
                 ////console.log("record deleted.");
                 console.log(result);
@@ -5122,6 +5192,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     async searchPlayer() {
+        this.logger.log('Admin Click on Search Player in Add Tournament Page', "info", this.tournamentID);
         // const dialogRef = this.dialog.open(DialogPlayerComponent, {
         //     width: '740px',
         //     data: { flights: this.selectedMembers.length },
@@ -5132,11 +5203,13 @@ export class AddTournamentComponent implements OnInit {
         let datas = await this.facadeService.getPlayersListForTournament(
             this.loggedInuser.adminClubId
         );
+        this.logger.log('Getting Players List for Tournament successfully in Add Tournament Page', "info", datas?.player?.length);
         const dialogRef = this.dialog.open(DialogPlayerListComponent, {
             data: { players: datas.player, tournamentID: this.tournamentID, subTournamentID: this.subTournamentID },
         });
 
         dialogRef.afterClosed().subscribe(async (result) => {
+            this.logger.log(result ? 'Search Player dialog confirmed in Add Tournament Page' : 'Search Player dialog cancelled in Add Tournament Page', "info");
             //console.log(result);
             if (result) {
                 let dataFullTournaments: any;
@@ -5220,6 +5293,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     openFormatInfo(index: number) {
+        this.logger.log('Admin Click on Format Info in Add Tournament Page', "info", index);
         const selectedFormat = this.courseFileds.controls[index].value.matchFormat;
 
         const infoText = INDIVIDUAL_FORMATS_INFO[selectedFormat]
@@ -5249,6 +5323,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     openInfo(text: string) {
+        this.logger.log('Admin Click on Info in Add Tournament Page', "info", text);
 
         // this.dialog.open(DialogOverviewComponent, {
         //     width: '350px',
@@ -5285,6 +5360,7 @@ export class AddTournamentComponent implements OnInit {
     }
 
     updateCategorySelection(event, row) {
+        this.logger.log('Admin changes player selection in Add Tournament Page', "info", { playerId: row?.id, checked: event?.checked });
         //console.log(this.selection.isSelected(row));
         let status = false;
 
@@ -5463,6 +5539,7 @@ export class AddTournamentComponent implements OnInit {
         };
     }
     formatChange(event) {
+        this.logger.log('Admin changes match format in Add Tournament Page', "info", event?.value);
         this.showSubtournament = false;
         if (event.value == matchFormat.STROKE_PLAY || event.vlaue == matchFormat.STABLE_FORD) {
             this.showCat = true;
@@ -5552,6 +5629,7 @@ export class AddTournamentComponent implements OnInit {
 
     }
     teamMatchChange(event) {
+        this.logger.log('Admin changes tournament type in Add Tournament Page', "info", event?.value);
         this.matchFormats = [];
 
         if (event.value == '1') {
@@ -5602,6 +5680,7 @@ export class AddTournamentComponent implements OnInit {
 
 
     typeChange(event) {
+        this.logger.log('Admin changes format type in Add Tournament Page', "info", event?.value);
         if (event.value == 'SINGLE') {
             this.showSubtournament = false;
         } else {

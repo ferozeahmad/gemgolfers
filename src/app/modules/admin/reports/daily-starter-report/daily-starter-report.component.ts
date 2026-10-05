@@ -183,6 +183,7 @@ export class DailyStarterReportComponent implements OnInit {
                 this.datePipe.transform(toDate.toString(), 'yyyy-MM-dd')
             );
         }
+        this.logger.log('Getting Daily Starter Report Data Successfully', "info", dataPlayers?.TournamentsQL?.length);
         //console.log(dataPlayers.TournamentsQL);
         //console.log(dataPlayers.TournamentsQL.length);
         if (dataPlayers.TournamentsQL) {

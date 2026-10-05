@@ -157,12 +157,14 @@ export class AddDailyRoundComponent implements OnInit {
     }
 
     changeFlight(item) {
+        this.logger.log('Admin change Hole Set in Add Daily Round Page', "info", item?.value);
         ////console.log("Selected value: " + item.value);
         this.selectedCourseHoleSet = item.value;
         //console.log(this.selectedCourseHoleSet);
     }
 
     changeRound(item) {
+        this.logger.log('Admin change Round Category in Add Daily Round Page', "info", item?.value);
         if (item.value == 'true') {
             this.starterForm.get('title').setValidators([Validators.required]);
             this.starterForm.get('title').updateValueAndValidity();
@@ -213,6 +215,7 @@ export class AddDailyRoundComponent implements OnInit {
     };
 
     public onCancel = () => {
+        this.logger.log('Admin Click on Cancel in Add Daily Round Page', "info");
         this.location.back();
     };
 
@@ -244,6 +247,7 @@ export class AddDailyRoundComponent implements OnInit {
                 this.datepipe.transform(date.toString(), 'yyyy-MM-dd')
             );
             if (founded && founded.length > 0) {
+                this.logger.log('Creating Daily Round stopped, Player already played in a round today', "warn", member.playerId);
                 this.snackBar.open(
                     'Player already played in a round today.',
                     'x',
@@ -384,6 +388,7 @@ export class AddDailyRoundComponent implements OnInit {
         //console.log(result);
 
         if (result) {
+            this.logger.log('Daily Round created successfully', "info", { tournamentId: tournament.id, flightId: flight.id, players: roundMembers.length });
             this.snackBar.open('Daily Round has been setup.', 'x', {
                 duration: 5000,
             });
@@ -397,6 +402,7 @@ export class AddDailyRoundComponent implements OnInit {
     }
 
     async searchPlayer(query) {
+        this.logger.log('Admin search Player in Add Daily Round Page', "info", query);
         let player;
         //console.log(this.starterForm.value);
 
@@ -483,6 +489,7 @@ export class AddDailyRoundComponent implements OnInit {
                     this.tournamentMembers.push(updatedPlayer);
 
                     this.syncTournamentMembers();
+                    this.logger.log('Player added in Add Daily Round list', "info", updatedPlayer.id);
                     this.snackBar.open(
                         'Player has been added in the list.',
                         'x',
@@ -502,6 +509,7 @@ export class AddDailyRoundComponent implements OnInit {
             } else {
                 if (player.length == 0) return;
 
+                this.logger.log('Select Existing Player Dialog Open on Add Daily Round Page', "info", { query: query, players: player.length });
                 const dialogRef = this.dialog.open(
                     DialogAddExisitingPlayerComponent,
                     {
@@ -513,6 +521,7 @@ export class AddDailyRoundComponent implements OnInit {
                 dialogRef.afterClosed().subscribe(async (result) => {
                     //console.log(result);
                     if (result) {
+                        this.logger.log('Select Existing Player Dialog confirmed on Add Daily Round Page', "info", result?.player?.id);
                         ////console.log("record deleted.");
                         //console.log(result);
                         //console.log(
@@ -626,6 +635,7 @@ export class AddDailyRoundComponent implements OnInit {
 
                             //console.log(this.tournamentMembers);
                             this.syncTournamentMembers();
+                            this.logger.log('Player added in Add Daily Round list', "info", result.player.id);
                             this.snackBar.open(
                                 'Player has been added in the list.',
                                 'x',
@@ -643,6 +653,7 @@ export class AddDailyRoundComponent implements OnInit {
                             );
                         }
                     } else {
+                        this.logger.log('Select Existing Player Dialog cancelled on Add Daily Round Page', "info");
                         ////console.log("cancel delete action");
                     }
                 });
@@ -746,6 +757,7 @@ export class AddDailyRoundComponent implements OnInit {
     }
 
     selectedTee(event, playerId) {
+        this.logger.log('Admin change Player Tee in Add Daily Round Page', "info", { playerId: playerId, tee: event?.value });
         //console.log(playerId);
         let target = event.source.selected._element.nativeElement;
         let selectedData = {

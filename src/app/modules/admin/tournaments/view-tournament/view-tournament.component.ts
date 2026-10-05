@@ -714,22 +714,26 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     toggleTopPlayersScoreType(type: 'gross' | 'net') {
+        this.logger.log('Admin Click on Top Players Score Type in View Tournament Page', "info", type);
         this.topPlayersScoreType = type;
         this.calculateStatistics(Math.min(this.activeRound, this.noOfRounds));
     }
 
     navigateToPlayerFlight(player: any) {
+        this.logger.log('Admin Click on Top Player to view Flight Scores in View Tournament Page', "info", { playerId: player?.id, flightId: player?.flightId });
         this.highlightedFlightId = player.flightId || null;
         this.setPrimaryTab('Scores');
     }
 
     public onChangeGross(event) {
+        this.logger.log('Admin change Gross Category Tab in View Tournament Page', "info", event?.index);
         //console.log(event);
         this.selectedCategory = this.tournamentCategories[event.index].category;
         //console.log(this.selectedCategory);
         if (this.showSummary) this.GrossData(this.selectedCategory);
     }
     public onChangeNet(event) {
+        this.logger.log('Admin change Net Category Tab in View Tournament Page', "info", event?.index);
         //console.log(event);
         this.selectedCategory = this.tournamentCategories[event.index].category;
         //console.log(this.selectedCategory);
@@ -739,6 +743,7 @@ export class ViewTournamentComponent implements OnInit {
     tabClicked(tab: any) {
 
         try {
+            this.logger.log('Admin Click on Round Tab in View Tournament Page', "info", tab.round);
             this.activeRound = tab.round;
             this.calculateStatistics(tab.round);
             this.getRoundStats(tab.round);
@@ -777,6 +782,7 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     setPrimaryTab(tab: string) {
+        this.logger.log('Admin Click on Main Tab in View Tournament Page', "info", tab);
         this.activeTab = tab;
         this.calculateStatistics(Math.min(this.activeRound, this.noOfRounds));
         this.getRoundStats(Math.min(this.activeRound, this.noOfRounds));
@@ -1000,6 +1006,7 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     copyLink(): void {
+        this.logger.log('Admin Click on Copy Joining Code in View Tournament Page', "info", this.tournamentID);
         if (navigator.clipboard) {
             navigator.clipboard.writeText(this.joiningCode).then(() => {
                 this.copied = true;
@@ -1167,6 +1174,7 @@ export class ViewTournamentComponent implements OnInit {
                             this.activeRound + 1,
                             this.fullTournament.cutOffCriteria, this.activeRound
                         );
+                        this.logger.log('Tournament Closed Successfully', "info", this.tournamentID);
                         window.location.reload();
                     } else {
                         this.logger.log('Close Round Dialog Box Close Without Save', "info");
@@ -1402,6 +1410,7 @@ export class ViewTournamentComponent implements OnInit {
                             this.activeRound
                         );
                         if (response) {
+                            this.logger.log('Tournament Round Closed Successfully', "info", { tournamentId: this.tournamentID, round: this.activeRound });
                             window.location.reload();
                         }
                     } else {
@@ -1421,12 +1430,14 @@ export class ViewTournamentComponent implements OnInit {
                                         );
 
                                         if (response) {
+                                            this.logger.log('Tournament Round Closed Successfully', "info", { tournamentId: this.tournamentID, round: this.activeRound });
                                             window.location.reload();
                                         }
                                     }
 
                                 } catch (error) {
                                     console.error("Error in closing round:", error);
+                                    this.logger.log('Close Tournament Round Failed', "error", error.toString());
                                 }
                             }
                         }
@@ -1439,6 +1450,7 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     showCourseDetails() {
+        this.logger.log('Admin Click on Course Details in View Tournament Page', "info", this.tournamentID);
         this.dialog.open(DialogCourseDetailsComponent, {
             data: {
                 course: this.dataFullTournament['TournamentQL'][0]['CourseQL']
@@ -1792,6 +1804,7 @@ export class ViewTournamentComponent implements OnInit {
         }
     }
     downloadResultSheetGross() {
+        this.logger.log('Admin Click on Download Gross Result Sheet in View Tournament Page', "info", this.tournamentID);
         let doc = new jsPDF();
         let col = General.createClmGross(this.noOfRounds);
 
@@ -1897,6 +1910,7 @@ export class ViewTournamentComponent implements OnInit {
         //doc.save('flights.pdf');
     }
     downloadResultSheetNet() {
+        this.logger.log('Admin Click on Download Net Result Sheet in View Tournament Page', "info", this.tournamentID);
         let doc = new jsPDF();
         let col = General.createClmNet(this.noOfRounds);
 
@@ -2108,6 +2122,7 @@ export class ViewTournamentComponent implements OnInit {
 
             // this.logger.log('Admin click on undo round btn', "info", this.activeRound.toString());
             // this.logger.log('Round undo Dialog Box Open', "info", this.activeRound.toString());
+            this.logger.log('Admin Click on Undo Round btn in View Tournament Page', "info", { tournamentId: this.tournamentID, round: this.activeRound });
             const dialogRef = this.dialog.open(DialogOverviewComponent, {
                 width: '350px',
                 data: 'Do you want to undo current round?',
@@ -2116,6 +2131,7 @@ export class ViewTournamentComponent implements OnInit {
             dialogRef.afterClosed().subscribe(async (result) => {
                 if (result) {
                     // this.logger.log('Round undo sucessfully', "info", this.activeRound.toString());
+                    this.logger.log('Undo Round Dialog Box Confirmed', "info", this.activeRound);
                     let jObject = null;
                     //console.log('====================================');
                     //console.log(jObject);
@@ -2126,9 +2142,11 @@ export class ViewTournamentComponent implements OnInit {
                         this.activeRound - 1,
                         jObject
                     );
+                    this.logger.log('Round undo Successfully', "info", this.tournamentID);
 
                     window.location.reload();
                 } else {
+                    this.logger.log('Undo Round Dialog Box Cancelled', "info");
                     ////console.log("cancel delete action");
                 }
             });
@@ -2138,6 +2156,7 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     redirectToLeaderboard() {
+        this.logger.log('Admin Click on Leaderboard btn in View Tournament Page', "info", this.tournamentID);
         //this.router.navigate(['/leaderboard/' + this.tournamentID]);
 
         let tournament: string = '';
@@ -2149,9 +2168,11 @@ export class ViewTournamentComponent implements OnInit {
         window.open(url.toString(), '_blank');
     }
     redirectToScores() {
+        this.logger.log('Admin Click on Scores btn in View Tournament Page', "info", this.tournamentID);
         this.router.navigate(['/matchplay/' + this.tournamentID]);
     }
     viewsignupform() {
+        this.logger.log('Admin Click on Sign Up Form btn in View Tournament Page', "info", this.tournamentID);
         let url = this.router.createUrlTree([
             '/signUpForm/' + this.tournamentID,
         ]);
@@ -2159,12 +2180,15 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     redirectToflightManagement() {
+        this.logger.log('Admin Click on Flight Management btn in View Tournament Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/manage/' + this.tournamentID]);
     }
     redirectToAttendance() {
+        this.logger.log('Admin Click on Attendance btn in View Tournament Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/attendance/' + this.tournamentID]);
     }
     async calculateHandicap() {
+        this.logger.log('Admin Click on Calculate Handicap btn in View Tournament Page', "info", this.tournamentID);
         //console.log(player);
         const dialogRef = this.dialog.open(DialogOverviewComponent, {
             width: '350px',
@@ -2173,30 +2197,36 @@ export class ViewTournamentComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe((result) => {
             if (result) {
+                this.logger.log('Calculate Handicap Dialog Box Confirmed', "info", this.tournamentID);
                 ////console.log("record deleted.");
                 let result = this.facadeService.calculateHandicap(
                     this.tournamentID
                 );
                 if (result) {
+                    this.logger.log('Calculate Handicap requested for Tournament', "info", this.tournamentID);
                     this.snackBar.open('Handicap has been calculated.', 'x', {
                         duration: 3000,
                         panelClass: ['orange-snackbar'],
                     });
                 }
             } else {
+                this.logger.log('Calculate Handicap Dialog Box Cancelled', "info");
                 ////console.log("cancel delete action");
             }
         });
     }
 
     redirectToTournamentSetup() {
+        this.logger.log('Admin Click on Tournament Setup btn in View Tournament Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/add/' + this.tournamentID]);
     }
 
     addTournamentPlayers() {
+        this.logger.log('Admin Click on Add Tournament Players btn in View Tournament Page', "info", this.tournamentID);
         this.router.navigate(['/tournaments/players/' + this.tournamentID]);
     }
     copy() {
+        this.logger.log('Admin Click on Copy Leaderboard Link in View Tournament Page', "info", this.tournamentID);
         let selBox = document.createElement('textarea');
 
         selBox.style.position = 'fixed';
@@ -2214,6 +2244,7 @@ export class ViewTournamentComponent implements OnInit {
         document.body.removeChild(selBox);
     }
     pop(s) {
+        this.logger.log('Admin Click on Playing Category in View Tournament Page', "info", s?.title);
         //console.log(s.title);
 
         const dialogRef = this.dialog.open(DialogPlayingCategoryComponent, {
@@ -2224,6 +2255,7 @@ export class ViewTournamentComponent implements OnInit {
         });
     }
     viewProfile(s) {
+        this.logger.log('Admin Click on View Player Profile in View Tournament Page', "info", s?.id);
         //console.log(s);
 
         this.router.navigate(['/players/view/' + s.id]);
@@ -2829,6 +2861,7 @@ export class ViewTournamentComponent implements OnInit {
         this.showSummary = true;
     }
     async deleteTM(player: any) {
+        this.logger.log('Admin Click on Delete Member btn on Members Tab', "info", { tournamentId: this.tournamentID, playerId: player?.id });
         //console.log(player);
         const dialogRef = this.dialog.open(DialogOverviewComponent, {
             width: '350px',
@@ -2837,12 +2870,14 @@ export class ViewTournamentComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe((result) => {
             if (result) {
+                this.logger.log('Delete Member Dialog Box Confirmed', "info", player.id);
                 ////console.log("record deleted.");
                 let result = this.facadeService.deleteTournamentMember(
                     this.tournamentID,
                     player.id
                 );
                 if (result) {
+                    this.logger.log('Delete Tournament Member requested', "info", { tournamentId: this.tournamentID, playerId: player.id });
                     this.snackBar.open('Member has been deleted', 'x', {
                         duration: 3000,
                         panelClass: ['orange-snackbar'],
@@ -2852,11 +2887,13 @@ export class ViewTournamentComponent implements OnInit {
                     );
                 }
             } else {
+                this.logger.log('Delete Member Dialog Box Cancelled', "info", player.id);
                 ////console.log("cancel delete action");
             }
         });
     }
     async editTM(player: any) {
+        this.logger.log('Admin Click on Edit Member btn on Members Tab', "info", { tournamentId: this.tournamentID, playerId: player?.id });
         //console.log(player);
         const dialogRef = this.dialog.open(DialogEditPlayerHandicapComponent, {
             data: {
@@ -2867,6 +2904,7 @@ export class ViewTournamentComponent implements OnInit {
         dialogRef.afterClosed().subscribe(async (res) => {
             if (res) {
                 console.log(res);
+                this.logger.log('Result from Edit Member Handicap Dialog Box', "info", { playerId: player.id, handicap: res.handicap });
 
                 ////console.log("record deleted.");
                 let result = await this.facadeService.updateTournamentMemberHandicap(
@@ -2875,6 +2913,7 @@ export class ViewTournamentComponent implements OnInit {
                     res.handicap
                 );
                 if (result) {
+                    this.logger.log('Tournament Member Handicap updated successfully', "info", { tournamentId: this.tournamentID, playerId: player.id });
                     this.snackBar.open('Member has been updated', 'x', {
                         duration: 3000,
                         panelClass: ['orange-snackbar'],
@@ -2894,11 +2933,13 @@ export class ViewTournamentComponent implements OnInit {
 
                 }
             } else {
+                this.logger.log('Edit Member Handicap Dialog Box Close Without Save', "info", player.id);
                 ////console.log("cancel delete action");
             }
         });
     }
     async disqulifyTM(player: any) {
+        this.logger.log('Admin Click on Disqualify Member btn on Members Tab', "info", { tournamentId: this.tournamentID, playerId: player?.id });
         //console.log(player);
         const dialogRef = this.dialog.open(DialogOverviewComponent, {
             width: '350px',
@@ -2907,6 +2948,7 @@ export class ViewTournamentComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe((result) => {
             if (result) {
+                this.logger.log('Disqualify Member Dialog Box Confirmed', "info", player.id);
                 ////console.log("record deleted.");
                 let member: any = {
                     tournamentId: this.tournamentID,
@@ -2922,6 +2964,7 @@ export class ViewTournamentComponent implements OnInit {
                     });
                 }
             } else {
+                this.logger.log('Disqualify Member Dialog Box Cancelled', "info", player.id);
                 ////console.log("cancel delete action");
             }
         });
@@ -3205,6 +3248,7 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     addPlayer() {
+        this.logger.log('Admin Click on Add Player btn in View Tournament Page', "info", this.tournamentID);
         const dialogRef = this.dialog.open(DialogAddPlayerComponent, {
             data: { flights: this.selectedMembers.length, tournamentID: this.tournamentID },
         });
@@ -3223,6 +3267,7 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     searchPlayer() {
+        this.logger.log('Admin Click on Search Player btn in View Tournament Page', "info", this.tournamentID);
         const dialogRef = this.dialog.open(DialogPlayerComponent, {
             width: '740px',
             data: { flights: this.selectedMembers.length },
@@ -3230,6 +3275,7 @@ export class ViewTournamentComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe((result) => {
             //console.log(result);
+            this.logger.log('Result from Search Player Dialog Box', "info", { selectedPlayers: result?.length });
             if (result.length == 1) {
                 ////console.log("record deleted.");
                 //console.log(result);
@@ -3304,6 +3350,7 @@ export class ViewTournamentComponent implements OnInit {
         }
     }
     movetoFlight(id) {
+        this.logger.log('Admin Click on Move to Flight in View Tournament Page', "info", id);
         this.mainSelected = ++this.mainSelected;
     }
     async playerList() {
@@ -3357,6 +3404,7 @@ export class ViewTournamentComponent implements OnInit {
         }
     }
     async closeDrawer() {
+        this.logger.log('Admin Close Flight Drawer in View Tournament Page', "info", this.flightid);
         //let obj =new FlightManagementComponent(this.route, this.router,this.snackBar,this.dialog,null,this.facadeService,this.changeDetection);
         if (this.flightid) {
             //this._flightManagmentComponent.closedrawer(this.tournamentID);
@@ -3399,6 +3447,7 @@ export class ViewTournamentComponent implements OnInit {
         this.flight.startingHole = event;
     }
     async getFlightId(id: string) {
+        this.logger.log('Getting Flight Data in View Tournament Page', "info", id);
         this.flightid = id;
         let SelectedFLight: any = [];
         let flightPlayers: any[] = [];
@@ -3499,6 +3548,7 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     async removeFlightMembers(playerId) {
+        this.logger.log('Admin Click on Remove Flight Member in View Tournament Page', "info", { flightId: this.flightid, playerId: playerId });
         //console.log(playerId);
         let count = 0;
         // this.flight.MembersQL.forEach((element) => {
@@ -3515,6 +3565,7 @@ export class ViewTournamentComponent implements OnInit {
         );
         //console.log(result);
         if (result) {
+            this.logger.log('Flight Member removed successfully', "info", { flightId: this.flightid, playerId: playerId });
             this.snackBar.open('Flights members have been removed.', 'x', {
                 duration: 5000,
             });
@@ -3543,6 +3594,7 @@ export class ViewTournamentComponent implements OnInit {
         return flightTime;
     }
     createFlight(index: any) {
+        this.logger.log('Admin Click on Create Flight in View Tournament Page', "info", index);
         this.flightRound = index;
         this.flight.startingHole = 1;
         this.flight.tee = 'AMATEURS';
@@ -3550,6 +3602,7 @@ export class ViewTournamentComponent implements OnInit {
         this.newFlightID = UniqueIdGenerator.generate();
     }
     async saveTournamentPlayer(player: any) {
+        this.logger.log('Admin Click on Add Player to Flight in View Tournament Page', "info", { flightId: this.flightid ? this.flightid : this.newFlightID, playerId: player?.id });
         let flightMembersToSave: any[] = [];
         //console.log(player);
         let roundTeeId: any = General.getPlayersTe(
@@ -3602,6 +3655,7 @@ export class ViewTournamentComponent implements OnInit {
             );
         }
 
+        this.logger.log('Save Flight Member result', "info", { playerId: player.id, saved: save });
         if (save && this.flightid) {
             this.getFlightId(this.flightid);
             this.snackBar.open(
@@ -3632,6 +3686,7 @@ export class ViewTournamentComponent implements OnInit {
         // }
     }
     async saveFlight() {
+        this.logger.log('Admin Click on Save Flight in View Tournament Page', "info", { flightId: this.flightid ? this.flightid : this.newFlightID });
         //console.log('flight saved');
         let flight: any;
         if (this.flightid) {
@@ -3678,6 +3733,7 @@ export class ViewTournamentComponent implements OnInit {
         }
         let save = <boolean>await this.facadeService.SaveRoundFlight(flight);
         if (save) {
+            this.logger.log('Flight saved successfully', "info", flight.id);
             this.getFlightId(this.flightid);
             this.snackBar.open(
                 'Flights have been saved and updated successfully.',
@@ -3964,6 +4020,7 @@ export class ViewTournamentComponent implements OnInit {
     }
 
     async generateGrossResultSheetPDF() {
+        this.logger.log('Admin Click on Gross Result Sheet PDF in View Tournament Page', "info", this.tournamentID);
         this.isGeneratingResultSheet = true;
         this.showResultSheetMenu = false;
         try {
@@ -4096,12 +4153,14 @@ export class ViewTournamentComponent implements OnInit {
             }
 
             doc.save(`${tournamentTitle}_Gross_Results.pdf`);
+            this.logger.log('Gross Result Sheet exported to PDF successfully', "info", this.tournamentID);
         } finally {
             this.isGeneratingResultSheet = false;
         }
     }
 
     async generateNetResultSheetPDF() {
+        this.logger.log('Admin Click on Net Result Sheet PDF in View Tournament Page', "info", this.tournamentID);
         this.isGeneratingResultSheet = true;
         this.showResultSheetMenu = false;
         try {
@@ -4232,12 +4291,14 @@ export class ViewTournamentComponent implements OnInit {
             }
 
             doc.save(`${tournamentTitle}_Net_Results.pdf`);
+            this.logger.log('Net Result Sheet exported to PDF successfully', "info", this.tournamentID);
         } finally {
             this.isGeneratingResultSheet = false;
         }
     }
 
     async generateResultSheetExcel() { /* commented out for now */
+        this.logger.log('Admin Click on Result Sheet Excel in View Tournament Page', "info", this.tournamentID);
         this.isGeneratingResultSheet = true;
         this.showResultSheetMenu = false;
         try {
@@ -4509,6 +4570,7 @@ export class ViewTournamentComponent implements OnInit {
             a.download = `${tournamentTitle}_Results.xlsx`;
             a.click();
             URL.revokeObjectURL(url);
+            this.logger.log('Result Sheet exported to Excel successfully', "info", this.tournamentID);
         } finally {
             this.isGeneratingResultSheet = false;
         }

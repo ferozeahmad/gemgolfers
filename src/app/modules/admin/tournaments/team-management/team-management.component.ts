@@ -176,6 +176,7 @@ export class TeamManagementComponent implements OnInit {
     }
 
     masterToggleM() {
+        this.logger.log('Admin Click on Select All Players in Team Management Page', "info");
         //console.log(this.selection);
         //console.log(this.selection.selected.length);
         this.isAllSelectedM()
@@ -194,6 +195,7 @@ export class TeamManagementComponent implements OnInit {
     }
 
     selectColor(color: string) {
+        this.logger.log('Admin Click on Team Color in Team Management Page', "info", color);
         this.selectedTeamColor = color;
         this.teamForm.get('teamColor')?.setValue(color);
     }
@@ -226,6 +228,7 @@ export class TeamManagementComponent implements OnInit {
         }
     }
     removeTeamPlayer(playerId: string, teamId: string) {
+        this.logger.log('Admin Click on Remove Player from Team in Team Management Page', "info", { playerId: playerId, teamId: teamId });
         // Find the team with the given ID
         const teamToUpdate = this.selectedTeams.find(team => team.id === teamId);
 
@@ -241,6 +244,7 @@ export class TeamManagementComponent implements OnInit {
 
 
     deleteTeam(teamId: string) {
+        this.logger.log('Admin Click on Delete Team in Team Management Page', "info", teamId);
         // Find the team being deleted
         const deletedTeam = this.selectedTeams.find(team => team.id === teamId);
 
@@ -294,6 +298,7 @@ export class TeamManagementComponent implements OnInit {
             });
 
             dialogRef.afterClosed().subscribe((result) => {
+                this.logger.log('Add New member to Team dialog closed in Team Management Page', "info", teamId);
                 //console.log(result);
                 if (result.length > 0) {
                     let playerAdded = false; // Flag to track if the player has been added to a team
@@ -329,6 +334,7 @@ export class TeamManagementComponent implements OnInit {
 
 
     addSelectedPlayersToTeam(teamId: number) {
+        this.logger.log('Admin Click on Add Selected Players to Team in Team Management Page', "info", { teamId: teamId, selectedCount: this.memberSelection.selected.length });
         const selectedPlayers = [...this.memberSelection.selected]; // array of selected players
         if (!selectedPlayers.length) return;
 
@@ -353,6 +359,7 @@ export class TeamManagementComponent implements OnInit {
     }
 
     async saveTournamentTeams() {
+        this.logger.log('Admin Click on Save Teams in Team Management Page', "info", { tournamentId: this.tournamentID, teamsCount: this.selectedTeams.length });
         let tournamentMember: TeamMembers[] = [];
         this.teamMembersToSave = [];
         let teamsToSave: Team[] = [];
@@ -406,10 +413,12 @@ export class TeamManagementComponent implements OnInit {
         );
 
         if (result) {
+            this.logger.log('Tournament Teams saved successfully', "info", this.tournamentID);
             this.snackBar.open('Tournament Teams have been saved.', 'x', {
                 duration: 2000,
             });
         } else {
+            this.logger.log('Saving Tournament Teams Failed', "error", this.tournamentID);
             this.snackBar.open('Error!.Try Again', 'x', {
                 duration: 2000,
             });
@@ -419,6 +428,7 @@ export class TeamManagementComponent implements OnInit {
     addTeam() {
         const teamName = this.teamForm.get('teamName')?.value?.trim();
         const teamColor = this.teamForm.get('teamColor')?.value;
+        this.logger.log('Admin Click on Create Team in Team Management Page', "info", { teamName: teamName, teamColor: teamColor });
 
         this.selectedTeams.push({
             id: UniqueIdGenerator.generate(),

@@ -5,6 +5,7 @@ import { FacadeService } from '../../../../shared/services/facade.service';
 import { DatePipe } from '@angular/common';
 import { Constants } from 'app/shared/classes/general';
 import { MatTabChangeEvent } from '@angular/material/tabs';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -34,10 +35,12 @@ export class DialogCloseRoundComponent implements OnInit {
         public dialogRef: MatDialogRef<DialogCloseRoundComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any,
         private fb: FormBuilder,
-        private facadeService: FacadeService
+        private facadeService: FacadeService,
+        private logger: LogsService
     ) { }
 
     async ngOnInit() {
+        this.logger.log('Close Round Dialog Opened', "info", { tournament: this.data?.tournament, round: this.data?.round, categories: this.data?.categories?.length });
         this.cutOffform = this.fb.group({
             category: this.fb.array([]),
         });
@@ -227,6 +230,7 @@ export class DialogCloseRoundComponent implements OnInit {
     }
 
     selectionChangeCopy(evt, cat) {
+        this.logger.log('Admin Toggles Cut Option in Close Round Dialog', "info", { category: cat, checked: evt?.checked });
         //console.log(evt);
         //console.log(evt);
         //console.log(cat);
@@ -236,6 +240,7 @@ export class DialogCloseRoundComponent implements OnInit {
             : (this.catArray[cat].showCutCopy = false);
     }
     selectionChange(evt, cat) {
+        this.logger.log('Admin Toggles Category Playing in Close Round Dialog', "info", { category: cat, checked: evt?.checked });
         //console.log(evt);
         //console.log(cat);
 
@@ -283,10 +288,12 @@ export class DialogCloseRoundComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Close Round Dialog', "info");
         this.dialogRef.close();
     }
 
     saveCutSettings(index, event): void {
+        this.logger.log('Admin Click on Save Cut Settings in Close Round Dialog', "info", { tabIndex: index, round: this.round });
         //console.log(this.tabGroup);
         // ///console.log(event);
 

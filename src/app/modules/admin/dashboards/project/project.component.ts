@@ -95,6 +95,7 @@ export class ProjectComponent implements OnInit, OnDestroy, AfterViewInit {
     ngOnInit(): void {
         // this.loggedInuser.adminClubId=localStorage.getItem('adminClubID');
         try {
+            this.logger.log('Admin comes to Dashboard Page', "info");
             this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
 
             this.clubLogo = this.loggedInuser.club && this.loggedInuser.club.logo ? this.loggedInuser.club.logo : 'e2esp.png';
@@ -111,6 +112,7 @@ export class ProjectComponent implements OnInit, OnDestroy, AfterViewInit {
             this._projectService.data$
                 .pipe(takeUntil(this._unsubscribeAll))
                 .subscribe((res) => {
+                    this.logger.log('Getting Dashboard Data Successful', "info");
                     let getall = res.data;
                     console.log(getall);
 
@@ -478,9 +480,11 @@ export class ProjectComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     addNewRound() {
+        this.logger.log('Admin Click on Add New Round in Dashboard Page', "info");
         this._router.navigate(['/dailyRounds/add-daily-rounds']);
     }
     addNewPlayer() {
+        this.logger.log('Admin Click on Add New Player in Dashboard Page', "info");
         this._router.navigate([
             '/players/add'
         ]);
@@ -673,8 +677,10 @@ export class ProjectComponent implements OnInit, OnDestroy, AfterViewInit {
         };
     }
     async addnewTour() {
+        this.logger.log('Admin Click on Add New Tour in Dashboard Page', "info");
         const dialogRef = this.dialog.open(DialogAddTourMainComponent);
         dialogRef.afterClosed().subscribe(async (result) => {
+            this.logger.log(result ? 'Admin submits Add Tour dialog' : 'Admin cancelled Add Tour dialog', "info");
             //console.log(result);
             if (result) {
                 let tour = {
@@ -687,6 +693,7 @@ export class ProjectComponent implements OnInit, OnDestroy, AfterViewInit {
                     endDate: result.endDate,
                 }
                 this._facadeService.addTour(tour, result.file).subscribe((result) => {
+                    this.logger.log(result ? 'Tour added successfully' : 'Adding Tour Failed', result ? "info" : "error", { id: tour.id, name: tour.name });
                     //console.log(result);
                     if (result) {
 

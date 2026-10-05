@@ -311,6 +311,7 @@ export class DailyRoundsStatsComponent implements OnInit {
                     (error) => (this.isLoading = false)
                 );
         } catch (error) {
+            this.logger.log('Getting Daily Round Report Data Failed', "error", error.toString());
 
         }
     }
@@ -381,6 +382,7 @@ export class DailyRoundsStatsComponent implements OnInit {
                 this.datePipe.transform(toDate.toString(), 'yyyy-MM-dd')
             );
         }
+        this.logger.log('Getting Daily Round Report Data Successfully', "info", dataPlayers?.FlightsQL?.length);
         //console.log(dataPlayers);
         for (let stats of dataPlayers.FlightsQL) {
 
@@ -1219,6 +1221,7 @@ export class DailyRoundsStatsComponent implements OnInit {
         };
     }
     onDatePick(item) {
+        this.logger.log('Admin Select Custom End Date in Daily Round Report Page', "info", item?.value);
         //console.log(item);
         this.customDate = item;
         if (this.customDate2) {
@@ -1233,6 +1236,7 @@ export class DailyRoundsStatsComponent implements OnInit {
     }
 
     onDatePick2(item) {
+        this.logger.log('Admin Select Custom Start Date in Daily Round Report Page', "info", item?.value);
         //console.log(item);
         this.customDate2 = item;
         if (this.customDate) {

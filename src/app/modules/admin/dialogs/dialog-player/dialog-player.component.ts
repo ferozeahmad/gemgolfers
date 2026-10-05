@@ -8,6 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FacadeService } from '../../../../shared/services/facade.service';
 import { SelectionModel } from '@angular/cdk/collections';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -42,10 +43,12 @@ export class DialogPlayerComponent implements OnInit {
     constructor(
         public dialogRef: MatDialogRef<DialogPlayerComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any,
-        public facadeService: FacadeService
+        public facadeService: FacadeService,
+        private logger: LogsService
     ) {}
 
     ngOnInit() {
+        this.logger.log('Player Dialog Opened', "info", { flights: this.data?.flights });
         //console.log(this.data);
 
         for (let flight = 1; flight <= this.data.flights; flight++) {
@@ -62,11 +65,13 @@ export class DialogPlayerComponent implements OnInit {
     async getPlayerInformationByGEMID() {
         let GEMID: string = (<HTMLInputElement>document.getElementById('gemid'))
             .value;
+        this.logger.log('Admin Search Player by GEM ID in Player Dialog', "info", GEMID);
 
         if (GEMID) {
             this.player = <Player[]>(
                 await this.facadeService.getPlayerByGEMID(GEMID)
             );
+            this.logger.log('Search Player by GEM ID in Player Dialog Successful', "info");
 
             this.setDataSource(this.player['player']);
 
@@ -85,11 +90,13 @@ export class DialogPlayerComponent implements OnInit {
     async getPlayerInformationByPhone() {
         let phone: string = (<HTMLInputElement>document.getElementById('phone'))
             .value;
+        this.logger.log('Admin Search Player by Phone in Player Dialog', "info", phone);
 
         if (phone) {
             this.player = <Player[]>(
                 await this.facadeService.getPlayerByPhone(phone)
             );
+            this.logger.log('Search Player by Phone in Player Dialog Successful', "info");
 
             if (this.player['player'] != undefined) {
                 this.setDataSource(this.player['player']);
@@ -113,6 +120,7 @@ export class DialogPlayerComponent implements OnInit {
         let membershipNumber: string = (<HTMLInputElement>(
             document.getElementById('membershipNumber')
         )).value;
+        this.logger.log('Admin Search Player by Membership Number in Player Dialog', "info", membershipNumber);
 
         if (membershipNumber) {
             this.player = <Player[]>(
@@ -120,6 +128,7 @@ export class DialogPlayerComponent implements OnInit {
                     membershipNumber
                 )
             );
+            this.logger.log('Search Player by Membership Number in Player Dialog Successful', "info", { found: this.player?.length });
 
             this.setDataSource(this.player);
 
@@ -138,11 +147,13 @@ export class DialogPlayerComponent implements OnInit {
     async getPlayerInformationByEmail() {
         let email: string = (<HTMLInputElement>document.getElementById('email'))
             .value;
+        this.logger.log('Admin Search Player by Email in Player Dialog', "info", email);
 
         if (email) {
             this.player = <Player[]>(
                 await this.facadeService.getPlayerByEmail(email)
             );
+            this.logger.log('Search Player by Email in Player Dialog Successful', "info", { found: this.player?.length });
 
             this.setDataSource(this.player);
 
@@ -171,6 +182,7 @@ export class DialogPlayerComponent implements OnInit {
         let text1 = '%';
         let text4 = '%';
         let result = text1.concat(fullName, text4);
+        this.logger.log('Admin Search Player by Name in Player Dialog', "info", { fullName: fullName, handicap: handicap });
         //console.log('====================================');
         //console.log(fullName);
         //console.log('====================================');
@@ -194,6 +206,7 @@ export class DialogPlayerComponent implements OnInit {
                 )
             );
             this.player = matchingList['Result'];
+            this.logger.log('Search Player by Name in Player Dialog Successful', "info", { found: this.player?.length });
 
             this.setDataSource(this.player);
 
@@ -294,6 +307,7 @@ export class DialogPlayerComponent implements OnInit {
     }
 
     masterToggle() {
+        this.logger.log('Admin Toggles Select All in Player Dialog', "info");
         // //console.log(this.selection);
         // //console.log(this.selection.selected.length);
         this.isAllSelecteds()
@@ -346,6 +360,7 @@ export class DialogPlayerComponent implements OnInit {
     }
 
     changeFlight(item) {
+        this.logger.log('Admin Changes Flight in Player Dialog', "info", item?.value);
         //console.log('Selected value: ' + item.value);
         this.selectedFlight = item.value;
 
@@ -357,6 +372,7 @@ export class DialogPlayerComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Player Dialog', "info");
         this.dialogRef.close();
     }
 }

@@ -341,6 +341,7 @@ export class PlayerHandicapComponent implements OnInit, AfterViewInit {
             //console.log(this.blackTeeHI);
             //console.log(this.whiteTeeHI);
             //console.log(this.blueTeeHI);
+            this.logger.log('Getting Player Wise WHS Handicap Data Successful', "info", this.playerID);
             this.showTable = Promise.resolve(true);
             let newScores: any[] = [];
 
@@ -406,6 +407,7 @@ export class PlayerHandicapComponent implements OnInit, AfterViewInit {
 
     public downloadAsPDFWHS() {
         try {
+            this.logger.log('Download Player WHS Handicap Button Click', "info", this.playerID);
             var doc = new jsPDF();
             var col = [
                 'Sr.',
@@ -521,6 +523,7 @@ export class PlayerHandicapComponent implements OnInit, AfterViewInit {
             // });
             // Open PDF document in new tab
             doc.output('dataurlnewwindow');
+            this.logger.log('Player WHS Handicap PDF generated successfully', "info", this.playerID);
         } catch (error) {
             this.logger.log('Download Player Handicap WHS Failed', "error", error.toString());
 
@@ -548,6 +551,7 @@ export class PlayerHandicapComponent implements OnInit, AfterViewInit {
     }
 
     openTeeChangeDailog(player) {
+        this.logger.log('Admin Click on Change Tee in Player WHS Handicap', "info", this.playerID);
         console.log(player);
 
         const dialogRef = this.dialog.open(DialogTeeComponent, {
@@ -557,6 +561,7 @@ export class PlayerHandicapComponent implements OnInit, AfterViewInit {
             }
         });
         dialogRef.afterClosed().subscribe((result) => {
+            this.logger.log('Change Tee dialog closed in Player WHS Handicap', "info", { playerId: this.playerID, confirmed: !!result });
             if (result) {
                 this.WHSSource = null;
                 this.fecthData()

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -26,7 +27,7 @@ export class SelectMonthYearDialogComponent implements OnInit {
     selectedMonth: number;
     selectedYear: number;
 
-    constructor(public dialogRef: MatDialogRef<SelectMonthYearDialogComponent>) {}
+    constructor(public dialogRef: MatDialogRef<SelectMonthYearDialogComponent>, private logger: LogsService) {}
 
     ngOnInit(): void {
         const currentDate = new Date();
@@ -41,10 +42,12 @@ export class SelectMonthYearDialogComponent implements OnInit {
     }
 
     onCancel(): void {
+        this.logger.log('Admin Click on Cancel in Select Month Year Dialog', "info");
         this.dialogRef.close();
     }
 
     onConfirm(): void {
+        this.logger.log('Admin Click on Confirm in Select Month Year Dialog', "info", { month: this.selectedMonth, year: this.selectedYear });
         // Calculate the last date of the selected month
         // In JavaScript, passing 0 as the day to Date constructor returns the last day of the previous month.
         // So passing selectedMonth + 1 and day 0 gives the last day of selectedMonth.

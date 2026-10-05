@@ -189,6 +189,7 @@ export class HandicapsComponent implements OnInit {
                     this.syncHandicapWHS();
                 }
             }
+            this.logger.log('Getting WHS Handicap Data Successful', "info", { count: this.dataPlayers?.player?.length });
             this.showTable = Promise.resolve(true);
             // Subscribe to MatDrawer opened change
             this.matDrawer.openedChange.subscribe((opened) => {
@@ -230,6 +231,7 @@ export class HandicapsComponent implements OnInit {
                 player: row,
             }
         }).afterClosed().subscribe(async (result) => {
+            this.logger.log('Dialog for freeze handicap whs closed', "info", { playerId: row?.id, confirmed: !!result });
             if (result) {
                 // Handle the result from the dialog
             }
@@ -268,6 +270,7 @@ export class HandicapsComponent implements OnInit {
                         return player;
                     });
                     this.WHSSource._updateChangeSubscription();
+                    this.logger.log('Handicap WHS Unfreeze Successful', "info", row.id);
                     this.snackBar.open('Handicap Unfreeze successfully!.', 'x', { duration: 2000 });
                 }).catch((error) => {
                     this.logger.log('Error Unfreezing Handicap WHS', "error", error);
@@ -278,6 +281,7 @@ export class HandicapsComponent implements OnInit {
 
 
     onBackdropClicked(): void {
+        this.logger.log('BackDrop click on WHS Handicap Page', "info");
         // Go back to the list
         this.location.navigate(['./'], { relativeTo: this._activatedRoute });
 
@@ -326,6 +330,7 @@ export class HandicapsComponent implements OnInit {
         this.player = [];
     }
     public onSortChanged(e) {
+        this.logger.log('Admin changed sorting in WHS Handicap Page', "info", { active: e?.active, direction: e?.direction });
         if (e.active == 'handicap') {
             this.sorting = e.direction;
         }
@@ -334,6 +339,7 @@ export class HandicapsComponent implements OnInit {
         this.syncHandicapWHS();
         const filters = this.itemForm.getRawValue(); // Assuming itemForm contains the filter form
         let { lowerHandicap, higherHandicap, cat } = filters; // Extracting filter values
+        this.logger.log('Admin Click on Apply Filters in WHS Handicap Page', "info", { cat: cat, lowerHandicap: lowerHandicap, higherHandicap: higherHandicap });
 
         // Apply filter on WHSSource data
         const filteredData = this.WHSSource.data.map((player: any) => {
@@ -391,6 +397,7 @@ export class HandicapsComponent implements OnInit {
 
 
     exportToExcel(): void {
+        this.logger.log('Admin Click on Export to Excel in WHS Handicap Page', "info");
         const sortedRows = this.WHSSource?.sort
             ? this.WHSSource.sortData(this.WHSSource.filteredData, this.WHSSource.sort)
             : this.WHSSource?.filteredData ?? [];
@@ -405,6 +412,7 @@ export class HandicapsComponent implements OnInit {
         XLSX.utils.book_append_sheet(wb, ws, 'Report');
 
         XLSX.writeFile(wb, 'Players_report.xlsx');
+        this.logger.log('WHS Handicap List exported to Excel successfully', "info", { count: data.length });
     }
     Comparatordsc(a, b) {
         let handicapA =
@@ -442,6 +450,7 @@ export class HandicapsComponent implements OnInit {
         return 0;
     }
     redirectToHandicapDetails = (id: string) => {
+        this.logger.log('View Player Handicap WHS Details Click', "info", id);
         this.location.navigate(['./', id], {
             relativeTo: this._activatedRoute,
         });
@@ -572,6 +581,7 @@ export class HandicapsComponent implements OnInit {
             });
 
             doc.save('WHS.pdf');
+            this.logger.log('WHS Handicap List downloaded as PDF successfully', "info", mode);
         } catch (error) {
             this.logger.log('Downloading WHS Handicap Data Failed', "error", error.toString());
         }
@@ -751,6 +761,7 @@ export class HandicapsComponent implements OnInit {
     }
 
     redirectToDetails = (id: string) => {
+        this.logger.log('Admin Click on View Player in WHS Handicap Page', "info", id);
         //console.log(id);
 
         this.location.navigate(['/players/view/' + id]);
@@ -805,6 +816,7 @@ export class HandicapsComponent implements OnInit {
     }
 
     openTeeChangeDailog(player) {
+        this.logger.log('Admin Click on Change Tee in WHS Handicap Page', "info", player?.id);
         // console.log(player);
 
         const dialogRef = this.dialog.open(DialogTeeComponent, {

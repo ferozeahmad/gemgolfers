@@ -24,6 +24,7 @@ export class DialogMarshalComponent implements OnInit {
       @Inject(MAT_DIALOG_DATA) public data: any) { }
 
   ngOnInit() {
+    this.logger.log('Marshal Dialog Opened', "info", { marshals: this.data?.marshals?.length });
     this.marshalList = this.data.marshals;
 
     this.dataSource = new MatTableDataSource(this.marshalList);
@@ -65,6 +66,7 @@ export class DialogMarshalComponent implements OnInit {
   }
 
   onNoClick(): void {
+    this.logger.log('Admin Click on Close in Marshal Dialog', "info");
     this.dialogRef.close();
   }
 

@@ -22,6 +22,7 @@ import { LocalStorageService } from 'app/shared/services/localStorage';
 import { DialogAddPlayerComponent } from '../dialogs/dialog-add-player/dialog-add-player.component';
 import { DialogPlayerListComponent } from '../dialogs/dialog-player-list-flight/dialog-player-list.component';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -72,6 +73,7 @@ export class TeeTimesComponent implements OnInit {
         private facadeService: FacadeService,
         private _localStorage: LocalStorageService,
         private _fuseConfirmationService: FuseConfirmationService,
+        private logger: LogsService,
     ) { }
 
     ngAfterViewInit(): void {
@@ -86,6 +88,7 @@ export class TeeTimesComponent implements OnInit {
     }
 
     async ngOnInit() {
+        this.logger.log('Admin Come to Tee Times Page, Getting Tee Times Data', "info", { pageIndex: this.pageIndex, pageSize: this.pageSize });
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
         this.teeTimes = [];
         let dataPlayers =
@@ -97,6 +100,7 @@ export class TeeTimesComponent implements OnInit {
         this.teeTimes = dataPlayers.paginatedData.data.tee_time_booking;
         this.totalSize = dataPlayers.aggregateData.data.tee_time_booking_aggregate.aggregate.count;
         this.isLoading = false;
+        this.logger.log('Getting Tee Times Data Successfull', "info", { count: this.teeTimes?.length, total: this.totalSize });
 
         console.log(this.teeTimes);
 
@@ -109,6 +113,7 @@ export class TeeTimesComponent implements OnInit {
     }
 
     onPageChange(event: PageEvent): void {
+        this.logger.log('Admin click on pagination on Tee Times Page', "info", { pageIndex: event.pageIndex, pageSize: event.pageSize });
         this.pageIndex = event.pageIndex;
         this.pageSize = event.pageSize;
 
@@ -127,14 +132,17 @@ export class TeeTimesComponent implements OnInit {
     }
 
     redirectToDetails = (id: string) => {
+        this.logger.log('Admin Click on View Player Details in Tee Times Page', "info", id);
         this.location.navigate(['/players/view/' + id]);
     };
 
     redirectToUpdate = (id: string) => {
+        this.logger.log('Admin Click on Update Player in Tee Times Page', "info", id);
         this.location.navigate(['/players/update/' + id]);
     };
 
     listTeeTimeSlots(row: any): void {
+        this.logger.log('Admin Click on Tee Time Slots in Tee Times Page, Dialog Open', "info", { id: row?.id, bookingDate: row?.bookingDate });
         const dialogRef = this.dialog.open(DialogTeeTimeSlotComponent, {
             width: '600px',
             data: {
@@ -146,6 +154,7 @@ export class TeeTimesComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe(async (result) => {
             if (result) {
+                this.logger.log('Tee Time Slots Dialog Closed with Member deleted on Tee Times Page', "info");
                 this.snackBar.open('Member has been deleted.', 'x', {
                     duration: 5000,
                 });
@@ -155,6 +164,7 @@ export class TeeTimesComponent implements OnInit {
                 this.dataSource = new MatTableDataSource(this.teeTimes);
                 this.ngOnInit();
             } else {
+                this.logger.log('Tee Time Slots Dialog Closed on Tee Times Page', "info");
                 ////console.log("cancel delete action");
             }
         });
@@ -178,6 +188,7 @@ export class TeeTimesComponent implements OnInit {
 
 
     async openAddPlayersDialog(item: any) {
+        this.logger.log('Admin Click on Add Players in Tee Times Page', "info", item?.id);
         let datas = await this.facadeService.getPlayersListForTournament(
             this.loggedInuser.adminClubId
         );
@@ -187,19 +198,23 @@ export class TeeTimesComponent implements OnInit {
 
         // Handle dialog close or dismiss if needed
         dialogRef.afterClosed().subscribe(result => {
+            this.logger.log('Add Players Dialog Closed on Tee Times Page', "info");
             console.log('The dialog was closed');
         });
     }
 
     redirectToView = (date: string) => {
+        this.logger.log('Admin Click on View Slots in Tee Times Page', "info", date);
         this.location.navigate(['/teetimes/view-teetimes/' + date]);
     };
 
     redirectToEdit = (id: string) => {
+        this.logger.log('Admin Click on Edit Settings in Tee Times Page', "info", id);
         this.location.navigate(['/teetimes/edit/' + id]);
     };
 
     deleteTeeTime(teeTime) {
+        this.logger.log('Admin Click on Delete in Tee Times Page, Confirmation Dialog Open', "info", teeTime?.id);
 
         const confirmation = this._fuseConfirmationService.open({
             title: 'Delete Tee Time',
@@ -214,6 +229,7 @@ export class TeeTimesComponent implements OnInit {
         confirmation.afterClosed().subscribe(async (result) => {
             // If the confirm button pressed...
             if (result === 'confirmed') {
+                this.logger.log('Admin confirmed Delete Tee Time in Tee Times Page', "info", teeTime?.id);
                 this.facadeService.deleteTeeTime(teeTime.id).then(
                     async (result) => {
                         if (result) {
@@ -222,18 +238,22 @@ export class TeeTimesComponent implements OnInit {
                             for (let id of flightIds) {
                                 await this.facadeService.deleteFlight(id);
                             }
+                            this.logger.log('Tee Time deleted successfully', "info", { id: teeTime?.id, flightsDeleted: flightIds.length });
                             this.snackBar.open('Tee Time has been deleted.', 'x', {
                                 duration: 5000,
                             });
                             this.teeTimes = [];
                             this.ngOnInit();
                         } else {
+                            this.logger.log('Deleting Tee Time Failed', "error", teeTime?.id);
                             this.snackBar.open('Tee Time could not be deleted.', 'x', {
                                 duration: 5000,
                             });
                         }
                     }
                 );
+            } else {
+                this.logger.log('Admin cancelled Delete Tee Time in Tee Times Page', "info", teeTime?.id);
             }
         });
     }

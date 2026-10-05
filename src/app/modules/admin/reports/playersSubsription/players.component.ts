@@ -143,6 +143,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     ) {}
 
     openPlayerSubscriptionHistoryDialog(player: any): void {
+        this.logger.log('Admin Click on Subscription History in Players Subscription Page', "info", player?.id);
         this.dialog.open(PlayerSubscriptionHistoryDialogComponent, {
             width: '1000px',
             data: { player: player },
@@ -150,6 +151,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        this.logger.log('Admin Come to Players Subscription Page', "info");
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
         this.isSuperAdmin = this._localStorage.isSuperAdmin();
         this.isClubAdmin = this._localStorage.isClubAdmin();
@@ -257,7 +259,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
 
             this.players = rawPlayers.map(p => this.mapPlayer(p));
             this.selection.clear();
+            this.logger.log('Getting Players Subscription Data Successfully', "info", { total: this.totalCount, pageIndex: this.pageIndex, pageSize: this.pageSize });
         } catch (err) {
+            this.logger.log('Getting Players Subscription Data Failed', "error", err?.toString());
             console.error(err);
         } finally {
             this.isLoading = false;
@@ -347,12 +351,14 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     applyRoundsFilter(value: string): void {
+        this.logger.log('Admin Click on Rounds Filter in Players Subscription Page', "info", value);
         this.selectedRoundsFilter = this.selectedRoundsFilter === value ? '' : value;
         this.pageIndex = 0;
         this.loadPlayers();
     }
 
     onPageChange(event: PageEvent): void {
+        this.logger.log('Admin Change Page in Players Subscription Page', "info", { pageIndex: event.pageIndex, pageSize: event.pageSize });
         this.pageIndex = event.pageIndex;
         this.pageSize = event.pageSize;
         if (this.isEntityFiltered) {
@@ -369,17 +375,20 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     applyCategory(category: string): void {
+        this.logger.log('Admin Change Category Filter in Players Subscription Page', "info", category);
         this.selectedCategory = category;
         this.pageIndex = 0;
         this.loadPlayers();
     }
 
     applyClubSearch(): void {
+        this.logger.log('Admin Apply Club Search in Players Subscription Page', "info");
         this.pageIndex = 0;
         this.loadPlayers();
     }
 
     clearFilters(): void {
+        this.logger.log('Admin Click on Clear Filters in Players Subscription Page', "info");
         this.searchInputControl.setValue('', { emitEvent: false });
         this.selectedCategory = '';
         this.selectedRoundsFilter = '';
@@ -429,13 +438,16 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async onClubSelected(club: any): Promise<void> {
+        this.logger.log('Admin Select Club Filter in Players Subscription Page', "info", { id: club?.id, name: club?.name });
         this._clearOtherEntityFilters('club');
         this.entityFilterLoading = true;
         this._changeDetectorRef.markForCheck();
         try {
             const data = await this._facadeService.getPlayersListByClub(club.id);
             this._applyEntityPlayers(data?.player || []);
+            this.logger.log('Getting Players By Club Successfully', "info", this.totalCount);
         } catch (err) {
+            this.logger.log('Getting Players By Club Failed', "error", err?.toString());
             console.error(err);
             this.entityFilterLoading = false;
             this._changeDetectorRef.markForCheck();
@@ -443,6 +455,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async onTournamentSelected(tournament: any): Promise<void> {
+        this.logger.log('Admin Select Tournament Filter in Players Subscription Page', "info", { id: tournament?.id, title: tournament?.title });
         this._clearOtherEntityFilters('tournament');
         this.entityFilterLoading = true;
         this._changeDetectorRef.markForCheck();
@@ -450,7 +463,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
             const data = await this._facadeService.getPlayersListByTournament(tournament.id);
             const players = (data?.tournament_member || []).map((m: any) => m.player).filter(Boolean);
             this._applyEntityPlayers(players);
+            this.logger.log('Getting Players By Tournament Successfully', "info", players.length);
         } catch (err) {
+            this.logger.log('Getting Players By Tournament Failed', "error", err?.toString());
             console.error(err);
             this.entityFilterLoading = false;
             this._changeDetectorRef.markForCheck();
@@ -458,6 +473,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async onLeagueSelected(league: any): Promise<void> {
+        this.logger.log('Admin Select League Filter in Players Subscription Page', "info", { id: league?.id, name: league?.name });
         this._clearOtherEntityFilters('league');
         this.entityFilterLoading = true;
         this._changeDetectorRef.markForCheck();
@@ -465,7 +481,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
             const data = await this._facadeService.getPlayersListByLeague(league.id);
             const players = (data?.league_member || []).map((m: any) => m.player).filter(Boolean);
             this._applyEntityPlayers(players);
+            this.logger.log('Getting Players By League Successfully', "info", players.length);
         } catch (err) {
+            this.logger.log('Getting Players By League Failed', "error", err?.toString());
             console.error(err);
             this.entityFilterLoading = false;
             this._changeDetectorRef.markForCheck();
@@ -473,6 +491,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async onTourSelected(tour: any): Promise<void> {
+        this.logger.log('Admin Select Tour Filter in Players Subscription Page', "info", { id: tour?.id, name: tour?.name });
         this._clearOtherEntityFilters('tour');
         this.entityFilterLoading = true;
         this._changeDetectorRef.markForCheck();
@@ -480,7 +499,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
             const data = await this._facadeService.getPlayersListByTour(tour.id);
             const players = (data?.tour_member || []).map((m: any) => m.player).filter(Boolean);
             this._applyEntityPlayers(players);
+            this.logger.log('Getting Players By Tour Successfully', "info", players.length);
         } catch (err) {
+            this.logger.log('Getting Players By Tour Failed', "error", err?.toString());
             console.error(err);
             this.entityFilterLoading = false;
             this._changeDetectorRef.markForCheck();
@@ -526,7 +547,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
                 }));
                 this.totalCount = legacyPlayers.length;
             }
+            this.logger.log('Getting Players Subscription Data Successfully', "info", legacyPlayers.length);
         } catch (err) {
+            this.logger.log('Getting Players Subscription Data Failed', "error", err?.toString());
             console.error(err);
         } finally {
             this.players = legacyPlayers.sort((a, b) => {
@@ -543,28 +566,34 @@ export class PlayersComponent implements OnInit, OnDestroy {
     // ── Table actions ──────────────────────────────────────────────────────────
 
     createPlayer(): void {
+        this.logger.log('Admin Click on Add Player in Players Subscription Page', "info");
         this._router.navigate(['./add'], { relativeTo: this._activatedRoute });
         this._changeDetectorRef.markForCheck();
     }
 
     updatePlayer(id: string): void {
+        this.logger.log('Admin Click on Edit Player in Players Subscription Page', "info", id);
         this._router.navigate(['./view/', id], { relativeTo: this._activatedRoute });
         this._changeDetectorRef.markForCheck();
     }
 
     viewProfile(id: string): void {
+        this.logger.log('Admin Click on View Profile in Players Subscription Page', "info", id);
         this._router.navigate(['/players/viewProfile/' + id]);
     }
 
     async deletePlayer(player: any): Promise<void> {
+        this.logger.log('Admin Click on Delete Player in Players Subscription Page', "info", player?.id);
         const dialogRef = this.dialog.open(DialogOverviewComponent, {
             width: '350px',
             data: 'Do you want to delete the player?',
         });
         dialogRef.afterClosed().subscribe(async (confirmed) => {
+            this.logger.log(confirmed ? 'Delete Player Dialog Confirmed' : 'Delete Player Dialog Cancelled', "info", player?.id);
             if (confirmed) {
                 const response = await this._facadeService.deletePlayer(player.homeClubId, player.id);
                 if (response) {
+                    this.logger.log('Player deleted successfully', "info", player.id);
                     this.snackBar.open('Player has been deleted.', 'x', { duration: 5000 });
                     this.loadPlayers();
                 }
@@ -580,6 +609,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     masterToggle(): void {
+        this.logger.log('Admin Click on Select All in Players Subscription Page', "info", this.players.length);
         if (this.isAllSelected()) {
             this.selection.clear();
         } else {
@@ -611,6 +641,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     async exportToExcel(): Promise<void> {
+        this.logger.log('Admin Click on Export to Excel in Players Subscription Page', "info");
         this.isLoading = true;
         this._changeDetectorRef.markForCheck();
         try {
@@ -620,7 +651,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
             const wb: XLSX.WorkBook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Players');
             XLSX.writeFile(wb, 'Players_report.xlsx');
+            this.logger.log('Players exported to Excel successfully', "info", allPlayers.length);
         } catch (err) {
+            this.logger.log('Players export to Excel Failed', "error", err?.toString());
             console.error(err);
         } finally {
             this.isLoading = false;
@@ -630,23 +663,29 @@ export class PlayersComponent implements OnInit, OnDestroy {
 
     async verifyUserEmails(): Promise<void> {
         const emails = this.selection.selected.map(item => item.Email);
+        this.logger.log('Admin Click on Verify Emails in Players Subscription Page', "info", emails.length);
         const res = await this._facadeService.verifyUserEmails(emails);
         if (res) {
+            this.logger.log('Player emails verified successfully', "info", emails.length);
             this.snackBar.open('Player emails have been verified.', 'x', { duration: 5000 });
             this.selection.clear();
         } else {
+            this.logger.log('Verifying Player emails Failed', "error", emails.length);
             this.snackBar.open('Error! Try Again later.', 'x', { duration: 5000 });
         }
     }
 
     sendResetPasswordEmail(): void {
+        this.logger.log('Admin Click on Send Reset Password Email in Players Subscription Page', "info", this.selection.selected.length);
         this._facadeService.executeSendResetEmailInBulk(this.selection.selected).subscribe(() => {
+            this.logger.log('Password reset emails sent successfully', "info");
             this.snackBar.open('Password reset email sent successfully.', 'close', { duration: 3000 });
             this.selection.clear();
         });
     }
 
     async downloadPDF(): Promise<void> {
+        this.logger.log('Admin Click on Download PDF in Players Subscription Page', "info");
         this.isLoading = true;
         this._changeDetectorRef.markForCheck();
         try {
@@ -661,7 +700,9 @@ export class PlayersComponent implements OnInit, OnDestroy {
             doc.text('Players List', 15, 15);
             (doc as any).autoTable(col, rows, { startY: 25, theme: 'grid' });
             doc.save('Players.pdf');
+            this.logger.log('Players PDF downloaded successfully', "info", allPlayers.length);
         } catch (err) {
+            this.logger.log('Players PDF download Failed', "error", err?.toString());
             console.error(err);
         } finally {
             this.isLoading = false;
@@ -678,6 +719,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     parseFlightsData(event: any): void {
         this.playersData = [];
         if (event.target.files.length > 0) this.file = event.target.files[0];
+        this.logger.log('Admin Select Subscription Excel File to Import in Players Subscription Page', "info", this.file?.name);
         const fileReader = new FileReader();
         fileReader.onload = (e) => {
             this.arrayBuffer = fileReader.result;
@@ -695,6 +737,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
             });
 
             dialogRef.afterClosed().subscribe((result) => {
+                this.logger.log(result ? 'Select Month Year Dialog Confirmed' : 'Select Month Year Dialog Cancelled', "info", result);
                 if (result) {
                     this.importExcelData(result.dueDate, result.month, result.year);
                 } else {
@@ -713,6 +756,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
         this._changeDetectorRef.markForCheck();
 
         const importResults: ImportResult[] = [];
+        this.logger.log('Importing Players Subscription Data', "info", { rows: this.totalImportRows, dueDate: dueDate, month: month, year: year });
 
         for (let i = 0; i < this.playersData.length; i++) {
             this.currentImportRow = i + 1;
@@ -843,6 +887,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
         }
 
         this.importingList = false;
+        this.logger.log('Players Subscription Import Completed', "info", { rows: importResults.length, success: importResults.filter(r => r.status === 'success').length, errors: importResults.filter(r => r.status === 'error').length });
         this.fileInputVariable.nativeElement.value = '';
         this.dialog.open(ImportResultsDialogComponent, {
             width: '800px',

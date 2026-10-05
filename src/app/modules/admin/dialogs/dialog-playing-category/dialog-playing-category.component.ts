@@ -8,6 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Player } from "app/shared/models/player.model";
 import { of } from "rxjs";
 import { FacadeService } from "app/shared/services/facade.service";
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -39,10 +40,12 @@ export class DialogPlayingCategoryComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<DialogPlayingCategoryComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private facadeService: FacadeService
+    private facadeService: FacadeService,
+    private logger: LogsService
   ) {}
 
   async ngOnInit() {
+    this.logger.log('Playing Category Dialog Opened', "info", { tournament: this.data?.tournament, category: this.data?.cat?.title });
     //console.log(this.data);
 
     this.dataFullTournament = await this.facadeService.LeaderboardSubscriptions(
@@ -58,6 +61,7 @@ export class DialogPlayingCategoryComponent implements OnInit {
         this.data["cat"].title
       );
     this.Player = dataPlayers.tournament_member;
+    this.logger.log('Getting Players List in Playing Category Dialog Successful', "info", { players: this.Player?.length });
     this.dataSource = new MatTableDataSource(this.Player);
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;

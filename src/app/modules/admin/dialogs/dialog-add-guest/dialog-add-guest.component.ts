@@ -22,6 +22,7 @@ import {
     General,
 } from '../../../../shared/classes/general';
 import { LocalStorageService } from 'app/shared/services/localStorage';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -35,10 +36,12 @@ export class DialogAddGuestComponent implements OnInit {
 
     constructor(
         public dialogRef: MatDialogRef<DialogAddGuestComponent>,
+        private logger: LogsService,
         @Inject(MAT_DIALOG_DATA) public data: any,
     ) { }
 
     async ngOnInit() {
+        this.logger.log('Add Guest Dialog Opened', "info");
         ////console.log(this.route.snapshot.paramMap.get("id"));
 
 
@@ -62,9 +65,11 @@ export class DialogAddGuestComponent implements OnInit {
     };
 
     createPlayer() {
+        this.logger.log('Admin Click on Add Guest in Add Guest Dialog', "info", { firstName: this.playerForm?.value?.firstName, lastName: this.playerForm?.value?.lastName, handicap: this.playerForm?.value?.handicap });
         this.dialogRef.close(this.playerForm.value);
     }
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Add Guest Dialog', "info");
         this.dialogRef.close();
     }
 }

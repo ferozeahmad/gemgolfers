@@ -33,6 +33,7 @@ import { DialogAddPlayerComponent } from '../dialog-add-player/dialog-add-player
 import { DialogOverviewComponent } from '../dialog-overview/dialog-overview.component';
 import { DialogAddExisitingPlayerComponent } from '../dialog-add-exisiting-player/dialog-add-exisiting-player.component';
 import { LocalStorageService } from 'app/shared/services/localStorage';
+import { LogsService } from 'app/shared/services/logs.service';
 
 @Component({
     standalone: false,
@@ -99,10 +100,12 @@ export class DialogChangeCourseHoleSetComponent implements OnInit {
         private route: ActivatedRoute,
         private location: Location,
         public snackBar: MatSnackBar, private _localStorage: LocalStorageService,
-        public facadeService: FacadeService
+        public facadeService: FacadeService,
+        private logger: LogsService
     ) { }
 
     async ngOnInit() {
+        this.logger.log('Change Course Hole Set Dialog Opened', "info", { tournament: this.data?.tournament, course: this.data?.course, currentHoleSet: this.data?.currentHoleSet, members: this.data?.members?.length });
         // console.log(this.data);
         this.currentHoleSet =
             this.data.currentHoleSet + '_' + this.data.courseHoleSetsInverted;
@@ -178,12 +181,14 @@ export class DialogChangeCourseHoleSetComponent implements OnInit {
     }
 
     changeFlight(item) {
+        this.logger.log('Admin Changes Hole Set in Change Course Hole Set Dialog', "info", item?.value);
         //console.log('Selected value: ' + item.value);
         this.starterForm.value.holeSets = item.value;
         //console.log(this.starterForm);
     }
 
     changeRound(item) {
+        this.logger.log('Admin Changes Round Category in Change Course Hole Set Dialog', "info", item?.value);
         if (item.value == 'true') {
             this.starterForm.get('title').setValidators([Validators.required]);
             this.starterForm.get('title').updateValueAndValidity();
@@ -196,6 +201,7 @@ export class DialogChangeCourseHoleSetComponent implements OnInit {
     }
 
     selectedTee(event, playerId) {
+        this.logger.log('Admin Changes Player Tee in Change Course Hole Set Dialog', "info", { playerId: playerId, tee: event?.value });
         //console.log(playerId);
         let target = event.source.selected._element.nativeElement;
         let selectedData = {
@@ -221,6 +227,7 @@ export class DialogChangeCourseHoleSetComponent implements OnInit {
     }
 
     onNoClick(): void {
+        this.logger.log('Admin Click on Cancel in Change Course Hole Set Dialog', "info");
         this.dialogRef.close();
     }
 
@@ -260,10 +267,12 @@ export class DialogChangeCourseHoleSetComponent implements OnInit {
     };
 
     public onCancel = () => {
+        this.logger.log('Admin Click on Cancel (Back) in Change Course Hole Set Dialog', "info");
         this.location.back();
     };
 
     async searchPlayer(query) {
+        this.logger.log('Admin Search Player in Change Course Hole Set Dialog', "info", query);
         let player;
 
         if (query) {
@@ -277,6 +286,7 @@ export class DialogChangeCourseHoleSetComponent implements OnInit {
                 );
             }
 
+            this.logger.log('Search Player in Change Course Hole Set Dialog Successful', "info", { found: player?.length });
             if (player.length == 1) {
                 let founded = this.starterForm.value.members.filter((a) => {
                     if (a.PlayerQL) {
@@ -317,6 +327,7 @@ export class DialogChangeCourseHoleSetComponent implements OnInit {
                         return;
                     }
                     this.starterForm.value.members.push(player[0]);
+                    this.logger.log('Player Added to Flight List in Change Course Hole Set Dialog', "info", player[0]?.id);
 
                     this.syncTournamentMembers();
                     this.snackBar.open(
@@ -347,6 +358,7 @@ export class DialogChangeCourseHoleSetComponent implements OnInit {
 
                 dialogRef.afterClosed().subscribe(async (result) => {
                     //console.log(result);
+                    this.logger.log(result ? 'Select Existing Player Dialog Confirmed in Change Course Hole Set Dialog' : 'Select Existing Player Dialog Cancelled in Change Course Hole Set Dialog', "info", result?.player?.id);
                     if (result) {
                         ////console.log("record deleted.");
                         //console.log(result);
@@ -449,11 +461,13 @@ export class DialogChangeCourseHoleSetComponent implements OnInit {
     }
 
     addPlayer() {
+        this.logger.log('Admin Click on Add Player in Change Course Hole Set Dialog', "info", { tournamentID: this.tournamentID });
         const dialogRef = this.dialog.open(DialogAddPlayerComponent, {
             data: { flights: this.selectedMembers.length, tournamentID: this.tournamentID },
         });
 
         dialogRef.afterClosed().subscribe((result) => {
+            this.logger.log(result ? 'Add Player Dialog Confirmed in Change Course Hole Set Dialog' : 'Add Player Dialog Cancelled in Change Course Hole Set Dialog', "info", result?.id);
             if (result) {
                 ////console.log("record deleted.");
                 //console.log(result);
@@ -468,6 +482,7 @@ export class DialogChangeCourseHoleSetComponent implements OnInit {
     }
 
     removePlayer(playerId: string) {
+        this.logger.log('Admin Click on Remove Player in Change Course Hole Set Dialog', "info", playerId);
         //console.log(playerId);
         this.delMember.push(playerId);
         //console.log(this.starterForm.value.members);
@@ -498,6 +513,7 @@ export class DialogChangeCourseHoleSetComponent implements OnInit {
         });
 
         dialogRef.afterClosed().subscribe((result) => {
+            this.logger.log(result ? 'Remove Player Confirmed in Change Course Hole Set Dialog' : 'Remove Player Cancelled in Change Course Hole Set Dialog', "info", playerId);
             if (result) {
                 ////console.log("record deleted.");
                 data.splice(DelplayerIndex, 1);
