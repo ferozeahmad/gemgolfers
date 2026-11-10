@@ -1,69 +1,88 @@
-<div>
-    <section fxLayout="column wrap" class="w-160" fxLayoutAlign="center center">
+<div class="flex flex-col w-full sm:w-[520px] max-w-full">
 
-        <mat-card-header>
-            <mat-card-title class="mat-button mat-accent">Tour Form</mat-card-title>
-        </mat-card-header>
-        <form [formGroup]="tourForm" autocomplete="off" novalidate (ngSubmit)="createTour(tourForm.value)"
-            fxLayout="column wrap" fxLayoutAlign="center center">
-            <mat-card-content class="flex flex-col min-w-64 justify-center items-center">
-                <div
-                    class="relative flex items-center justify-center w-32 h-32 rounded-full overflow-hidden ring-4 ring-bg-card">
-                    <div class=" flex items-center justify-center h-40 w-40">
-                        <div>
-                            <input id="avatar-file-input" formControlName="logo"
-                                class="absolute h-0 w-0 opacity-0 invisible pointer-events-none" type="file"
-                                [multiple]="false" [accept]="'image/jpeg, image/png, image/jpg'"
-                                (change)="uploadAvatar(avatarFileInput.files)" #avatarFileInput>
-                            <label
-                                class="flex items-center justify-center w-0 h-0 rounded-full cursor-pointer hover:bg-hover"
-                                for="avatar-file-input" matRipple>
-                                <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:camera'"></mat-icon>
-                            </label>
-                        </div>
-                    </div>
-                    <img class="object-cover w-full h-full" *ngIf="pictureUrl" [src]="pictureUrl">
+    <!-- Header -->
+    <div class="flex items-start justify-between gap-4 px-6 pt-6 pb-4">
+        <div class="flex items-center gap-4 min-w-0">
+            <div
+                class="flex flex-0 items-center justify-center w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300">
+                <mat-icon class="icon-size-6 text-current" [svgIcon]="'heroicons_outline:map'"></mat-icon>
+            </div>
+            <div class="min-w-0">
+                <div class="text-2xl font-semibold tracking-tight leading-tight">Create a new tour</div>
+                <div class="mt-0.5 text-md text-secondary">
+                    Start with the basics. You can add the itinerary, members and tournaments afterwards.
                 </div>
+            </div>
+        </div>
+        <button type="button" mat-icon-button class="-mr-2 -mt-1" aria-label="Close" (click)="onNoClick()">
+            <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+        </button>
+    </div>
 
-                <mat-form-field>
-                    <mat-label>Title</mat-label>
-                    <input matInput type="text" placeholder="Tour Name" formControlName="title" />
+    <form [formGroup]="tourForm" autocomplete="off" novalidate (ngSubmit)="onSubmit()">
+        <div class="flex flex-col gap-5 px-6 py-4">
 
-                    <mat-error *ngIf="hasError('title', 'required')">Title is required</mat-error>
-                    <mat-error *ngIf="hasError('title', 'maxlength')">You have more than 100 characters</mat-error>
-                    <mat-icon matSuffix>face</mat-icon>
-                </mat-form-field>
-                <mat-form-field class="fuse-mat-no-subscript w-full">
-                    <mat-label>Start Date</mat-label>
-                    <input matInput [matDatepicker]="picker" [min]="minDate" [max]="maxDate" (focus)="picker.open()"
-                       formControlName="startDate" placeholder="start date"
-                        required />
-                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                    <mat-datepicker #picker></mat-datepicker>
-                    <mat-error>This field is required</mat-error>
-                </mat-form-field>
+            <!-- Logo -->
+            <div class="flex items-center gap-5">
+                <input id="tour-logo-input" class="hidden" type="file" [multiple]="false"
+                    [accept]="'image/jpeg, image/png, image/jpg'" (change)="uploadAvatar(logoInput)" #logoInput>
+                <label for="tour-logo-input" matRipple
+                    class="group relative flex flex-0 flex-col items-center justify-center w-24 h-24 rounded-2xl overflow-hidden cursor-pointer border-2 border-dashed border-gray-300 text-secondary hover:border-primary-500 hover:text-primary-600 transition-colors dark:border-gray-600">
+                    <img *ngIf="pictureUrl" class="absolute inset-0 w-full h-full object-cover" [src]="pictureUrl"
+                        alt="Tour logo preview">
+                    <ng-container *ngIf="!pictureUrl">
+                        <mat-icon class="icon-size-7 text-current" [svgIcon]="'heroicons_outline:camera'"></mat-icon>
+                        <span class="mt-1 text-sm font-medium">Add logo</span>
+                    </ng-container>
+                    <div *ngIf="pictureUrl"
+                        class="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <mat-icon class="icon-size-6 text-current" [svgIcon]="'heroicons_outline:camera'"></mat-icon>
+                    </div>
+                </label>
+                <div class="flex flex-col min-w-0">
+                    <div class="font-medium">Tour logo</div>
+                    <div class="text-md text-secondary">JPG or PNG, up to 5 MB. Optional.</div>
+                    <div *ngIf="fileError" class="mt-1 text-md text-warn">{{ fileError }}</div>
+                    <button *ngIf="pictureUrl" type="button" mat-button color="warn"
+                        class="self-start -ml-3 mt-1" (click)="removeAvatar(logoInput)">
+                        Remove
+                    </button>
+                </div>
+            </div>
 
-                <mat-form-field class="fuse-mat-no-subscript w-full mt-2">
-                    <mat-label>End Date</mat-label>
-                    <input matInput [matDatepicker]="picker2" [min]="minDate" [max]="maxDate" (focus)="picker2.open()"
-                       formControlName="endDate" placeholder="end date"
-                        required />
-                    <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
-                    <mat-datepicker #picker2></mat-datepicker>
-                    <mat-error>This field is required</mat-error>
-                </mat-form-field>
+            <!-- Title -->
+            <mat-form-field class="w-full">
+                <mat-label>Tour name</mat-label>
+                <input matInput type="text" placeholder="e.g. Spring Golf Tour 2027" formControlName="title"
+                    [maxlength]="maxTitleLength" cdkFocusInitial />
+                <mat-hint align="end">{{ titleLength }} / {{ maxTitleLength }}</mat-hint>
+                <mat-error *ngIf="hasError('title', 'required')">Tour name is required</mat-error>
+                <mat-error *ngIf="hasError('title', 'maxlength')">
+                    Tour name can be at most {{ maxTitleLength }} characters
+                </mat-error>
+            </mat-form-field>
 
-            </mat-card-content>
+            <!-- Dates -->
+            <mat-form-field class="w-full">
+                <mat-label>Tour dates</mat-label>
+                <mat-date-range-input [rangePicker]="rangePicker">
+                    <input matStartDate formControlName="startDate" placeholder="Start date" (click)="rangePicker.open()">
+                    <input matEndDate formControlName="endDate" placeholder="End date">
+                </mat-date-range-input>
+                <mat-datepicker-toggle matIconSuffix [for]="rangePicker"></mat-datepicker-toggle>
+                <mat-date-range-picker #rangePicker></mat-date-range-picker>
+                <mat-hint>For a one-day tour, pick the same day twice.</mat-hint>
+                <mat-error>Select both a start date and an end date</mat-error>
+            </mat-form-field>
+        </div>
 
-            <mat-card-actions class="flex justify-center mt-4">
-                <button class="mx-2" mat-raised-button color="primary" [disabled]="!tourForm.valid" cdkFocusInitial>
-                    Save
-                </button>
-                <button type="button" mat-raised-button color="warn" (click)="onNoClick()">
-                    Cancel
-                </button>
-            </mat-card-actions>
-        </form>
-
-    </section>
+        <!-- Actions -->
+        <div class="flex items-center justify-end gap-2 px-6 py-4 mt-2 border-t bg-gray-50 dark:bg-transparent">
+            <button type="button" mat-stroked-button (click)="onNoClick()">Cancel</button>
+            <button type="submit" mat-flat-button color="primary" [disabled]="tourForm.invalid">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
+                <span class="ml-2">Create tour</span>
+            </button>
+        </div>
+    </form>
 </div>

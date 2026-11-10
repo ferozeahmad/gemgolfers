@@ -372,6 +372,19 @@ export class AddTournamentComponent implements OnInit {
         this.logger.log('Admin comes to Add Tournament Page', "info");
         this.loggedInuser = this._localStorage.get(Constants.LOGGED_IN_USER);
 
+        // Opened from a tour ("Create Tournament"): remember the tour so the tournament is attached to it
+        // when it is saved. Without a tour in the URL, drop a stale tour context left by an earlier visit
+        // so a regular tournament is never attached to the wrong tour.
+        const tourIdFromRoute = this.route.snapshot.queryParamMap.get('tourId');
+        if (tourIdFromRoute) {
+            this._localStorage.set(Constants.TOUR_ID, tourIdFromRoute);
+            this._localStorage.set(Constants.STATE, Constants.TOUR);
+        } else if (
+            this._localStorage.get(Constants.STATE) == Constants.TOUR &&
+            !this._localStorage.isTourAdmin()
+        ) {
+            this._localStorage.remove(Constants.STATE);
+        }
 
         this.route.paramMap.subscribe((params) => {
             this.tournamentID = params.get('id');

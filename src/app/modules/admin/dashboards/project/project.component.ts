@@ -28,6 +28,7 @@ import { LogsService } from 'app/shared/services/logs.service';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogAddTourMainComponent } from '../../dialogs/dialog-add-tour-main/dialog-add-tour-main.component';
 import { DialogPlayersComponent } from '../../dialogs/dialog-report-player/dialog-uncomplete.component';
+import { buildTourPayload } from '../../tour/tour-utils';
 
 @Component({
     standalone: false,
@@ -678,27 +679,20 @@ export class ProjectComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     async addnewTour() {
         this.logger.log('Admin Click on Add New Tour in Dashboard Page', "info");
-        const dialogRef = this.dialog.open(DialogAddTourMainComponent);
+        const dialogRef = this.dialog.open(DialogAddTourMainComponent, { autoFocus: false });
         dialogRef.afterClosed().subscribe(async (result) => {
             this.logger.log(result ? 'Admin submits Add Tour dialog' : 'Admin cancelled Add Tour dialog', "info");
             //console.log(result);
             if (result) {
-                let tour = {
-                    id: UniqueIdGenerator.generate(),
-                    adminId: this.loggedInuser.id,
-                    name: result.title,
-                    logo: null,
-                    dateCreated: new Date().toISOString(),
-                    startDate: result.startDate,
-                    endDate: result.endDate,
-                }
-                this._facadeService.addTour(tour, result.file).subscribe((result) => {
-                    this.logger.log(result ? 'Tour added successfully' : 'Adding Tour Failed', result ? "info" : "error", { id: tour.id, name: tour.name });
-                    //console.log(result);
-                    if (result) {
-
-                    }
-                })
+                const tour = buildTourPayload(result, this.loggedInuser.id, UniqueIdGenerator.generate());
+                this._facadeService.addTour(tour, result.file).subscribe({
+                    next: () => {
+                        this.logger.log('Tour added successfully', "info", { id: tour.id, name: tour.name });
+                    },
+                    error: (error) => {
+                        this.logger.log('Adding Tour Failed', "error", { id: tour.id, name: tour.name, error: error?.toString() });
+                    },
+                });
 
             }
 

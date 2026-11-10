@@ -1183,6 +1183,21 @@ export class TournamentsService {
     //   });
     // }
     public addTour(tour: any, file: File): Observable<string> {
+        // The logo is optional: without a file, skip the storage upload and just save the tour.
+        if (!file) {
+            tour.logo = null;
+            return this.apollo
+                .mutate<any>({
+                    mutation: Query.insertTourQL,
+                    variables: {
+                        tour: tour
+                    },
+                })
+                .pipe(
+                    // Emit a truthy value so callers can tell the tour was saved.
+                    map(() => '')
+                );
+        }
         const fileName = 'tour/' + tour.id + '.png';
         const ref = this.storage.ref(fileName);
         const task = ref.put(file);

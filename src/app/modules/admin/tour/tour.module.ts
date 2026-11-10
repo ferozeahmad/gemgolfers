@@ -44,8 +44,17 @@ import { TourGuideComponent } from './guides/guide.component';
 import { TourMembersListComponent } from './tour-members-list/tour-members-list.component';
 import { TourTournamentsListComponent } from './tour-tournaments-list/tour-tournaments-list.component';
 import { QuillModule } from 'ngx-quill';
+import { DialogAddTourMemberComponent } from '../dialogs/dialog-add-tour-member/dialog-add-tour-member.component';
 @NgModule({
-    declarations: [TourComponent,DialogAddTourComponent,DetailTourComponent,TourGuideComponent, TourMembersListComponent, TourTournamentsListComponent],
+    declarations: [
+        TourComponent,
+        DialogAddTourComponent,
+        DialogAddTourMemberComponent,
+        DetailTourComponent,
+        TourGuideComponent,
+        TourMembersListComponent,
+        TourTournamentsListComponent,
+    ],
     imports: [
         CommonModule,
         NgApexchartsModule,
@@ -66,6 +75,7 @@ import { QuillModule } from 'ngx-quill';
         MatSelectModule,
         MatDatepickerModule,
         MatNativeDateModule,
+        MatRippleModule,
         QuillModule.forRoot(),
         MatProgressBarModule,
         MatProgressSpinnerModule,

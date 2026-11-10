@@ -1190,6 +1190,33 @@ export const AddTourMemberMutation = gql`
         }
     }
 `;
+/**
+ * Case-insensitive player lookup by email. The caller escapes LIKE wildcards in the
+ * email so this behaves as a case-insensitive equality check.
+ */
+export const GetPlayersByEmailIlike = gql`
+    query GetPlayersByEmailIlike($email: String!) {
+        player(where: { email: { _ilike: $email } }, limit: 5) {
+            id
+            fullName
+            firstName
+            lastName
+            email
+            phone
+            handicap
+            playerCategory
+            membershipNumber
+            picture
+        }
+    }
+`;
+export const InsertTourMembersMutation = gql`
+    mutation InsertTourMembers($tourMember: [tour_member_insert_input!]!) {
+        insert_tour_member(objects: $tourMember) {
+            affected_rows
+        }
+    }
+`;
 export const AddLeagueMemberMutation = gql`
     mutation insert_player(
         $objects: [player_insert_input!]!

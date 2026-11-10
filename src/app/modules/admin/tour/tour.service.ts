@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, take, tap } from 'rxjs';
 import { Apollo } from 'apollo-angular';
 import * as Query from '../../../shared/GraphQL/tournament.gql';
 import { Constants } from 'app/shared/classes/general';
@@ -80,12 +80,44 @@ export class TourService {
         }
     }
 
+    /**
+     * Loads a single tour (with its tournaments and members). Rejects on network errors so
+     * the UI can show an error state instead of staying blank forever.
+     */
     public getTourById(id: string): Promise<any> {
-        return new Promise(resolve => {
-            this.apollo.subscribe<any>({
-                query: Query.GetTourByIdQL,
-                variables: { id }
-            }).subscribe(({ data }) => resolve(data));
+        return new Promise((resolve, reject) => {
+            this.apollo
+                .subscribe<any>({
+                    query: Query.GetTourByIdQL,
+                    variables: { id },
+                })
+                .pipe(take(1))
+                .subscribe({
+                    next: ({ data }) => resolve(data),
+                    error: (error) => reject(error),
+                });
+        });
+    }
+
+    /** Loads every tour owned by the given tour operator, with the data the dashboard needs. */
+    public getTourOperatorDashboard(adminId: string): Promise<any[]> {
+        return new Promise((resolve, reject) => {
+            this.apollo
+                .subscribe<any>({
+                    query: Query.getTourOperatorDashboard,
+                    variables: { adminId },
+                })
+                .pipe(take(1))
+                .subscribe({
+                    next: ({ data }) => {
+                        this.logger.log('Getting Tour Operator Dashboard Data Successful', 'info');
+                        resolve(data?.tour ?? []);
+                    },
+                    error: (error) => {
+                        this.logger.log('Getting Tour Operator Dashboard Data Failed', 'error', error?.toString());
+                        reject(error);
+                    },
+                });
         });
     }
 }

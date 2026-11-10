@@ -407,6 +407,12 @@ export class FacadeService {
   AddTourPlayer(club: Player, tourMember: any) {
     return this.playerService.AddTourPlayer(club, tourMember);
   }
+  findPlayersByEmail(email: string) {
+    return this.playerService.findPlayersByEmail(email);
+  }
+  addTourMembers(tourId: string, playerIds: string[]) {
+    return this.playerService.addTourMembers(tourId, playerIds);
+  }
   AddLeaguePlayer(club: Player, leagueMember: any) {
     return this.playerService.AddLeaguePlayer(club, leagueMember);
   }

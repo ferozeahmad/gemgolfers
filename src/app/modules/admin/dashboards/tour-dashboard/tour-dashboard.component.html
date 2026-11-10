@@ -1,0 +1,255 @@
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50 dark:bg-transparent">
+
+    <!-- Header -->
+    <div class="bg-card border-b">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 w-full max-w-7xl mx-auto px-6 py-8 sm:px-10">
+            <div class="min-w-0">
+                <div class="text-md font-medium text-secondary">{{ today | date: 'EEEE, d MMMM' }}</div>
+                <h1 class="mt-1 text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight truncate">
+                    Welcome back<ng-container *ngIf="greetingName">, {{ greetingName }}</ng-container>
+                </h1>
+                <p class="mt-2 text-lg text-secondary">Here's what's happening across your tours.</p>
+            </div>
+            <div class="flex items-center gap-3 flex-0">
+                <a mat-stroked-button [routerLink]="['/tours']">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:view-grid'"></mat-icon>
+                    <span class="ml-2">All Tours</span>
+                </a>
+                <button mat-flat-button [color]="'primary'" (click)="addNewTour()">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
+                    <span class="ml-2">New Tour</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full max-w-7xl mx-auto px-6 py-8 sm:px-10">
+
+        <!-- Loading skeleton -->
+        <ng-container *ngIf="isLoading">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" role="status" aria-label="Loading dashboard">
+                <div *ngFor="let i of [1, 2, 3, 4]" class="h-32 rounded-2xl bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                <div class="lg:col-span-2 h-80 rounded-2xl bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                <div class="h-80 rounded-2xl bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+            </div>
+        </ng-container>
+
+        <!-- Error -->
+        <div *ngIf="!isLoading && loadFailed"
+            class="flex flex-col items-center justify-center text-center py-24 rounded-2xl bg-card border border-gray-200 dark:border-gray-700">
+            <mat-icon class="icon-size-16 text-hint" [svgIcon]="'heroicons_outline:exclamation-circle'"></mat-icon>
+            <div class="mt-4 text-2xl font-semibold tracking-tight">We couldn't load your dashboard</div>
+            <div class="mt-1 text-secondary">Please check your connection and try again.</div>
+            <button class="mt-6" mat-flat-button [color]="'primary'" (click)="load()">Try again</button>
+        </div>
+
+        <!-- No tours yet -->
+        <div *ngIf="!isLoading && !loadFailed && !tours.length"
+            class="flex flex-col items-center justify-center text-center py-24 px-6 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-card">
+            <div
+                class="flex items-center justify-center w-20 h-20 rounded-full bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300">
+                <mat-icon class="icon-size-10 text-current" [svgIcon]="'heroicons_outline:map'"></mat-icon>
+            </div>
+            <div class="mt-6 text-3xl font-semibold tracking-tight">Create your first tour</div>
+            <div class="mt-2 max-w-md text-lg text-secondary">
+                Tours bring your itinerary, members and tournaments together. Start by giving your tour a name and dates.
+            </div>
+            <button class="mt-8" mat-flat-button [color]="'primary'" (click)="addNewTour()">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
+                <span class="ml-2">New Tour</span>
+            </button>
+        </div>
+
+        <ng-container *ngIf="!isLoading && !loadFailed && tours.length">
+
+            <!-- KPI cards -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div class="flex items-start gap-4 p-5 rounded-2xl bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div
+                        class="flex flex-0 items-center justify-center w-12 h-12 rounded-xl bg-primary-100 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300">
+                        <mat-icon class="icon-size-6 text-current" [svgIcon]="'heroicons_outline:map'"></mat-icon>
+                    </div>
+                    <div class="leading-tight">
+                        <div class="text-md text-secondary">Tours</div>
+                        <div class="mt-1 text-4xl font-bold">{{ totals.tours }}</div>
+                        <div class="mt-1 text-md text-secondary">
+                            {{ totals.ongoing }} ongoing · {{ totals.upcoming }} upcoming
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4 p-5 rounded-2xl bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div
+                        class="flex flex-0 items-center justify-center w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300">
+                        <mat-icon class="icon-size-6 text-current" [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
+                    </div>
+                    <div class="leading-tight">
+                        <div class="text-md text-secondary">Members</div>
+                        <div class="mt-1 text-4xl font-bold">{{ totals.members }}</div>
+                        <div class="mt-1 text-md text-secondary">Unique players across your tours</div>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4 p-5 rounded-2xl bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div
+                        class="flex flex-0 items-center justify-center w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                        <mat-icon class="icon-size-6 text-current" [svgIcon]="'heroicons_outline:flag'"></mat-icon>
+                    </div>
+                    <div class="leading-tight">
+                        <div class="text-md text-secondary">Tournaments</div>
+                        <div class="mt-1 text-4xl font-bold">{{ totals.tournaments }}</div>
+                        <div class="mt-1 text-md text-secondary">{{ totals.liveTournaments }} in progress</div>
+                    </div>
+                </div>
+
+                <!-- Spotlight -->
+                <a *ngIf="spotlight; else noSpotlight" [routerLink]="['/tours', spotlight.id]"
+                    class="flex flex-col justify-between gap-2 p-5 rounded-2xl text-white shadow-sm bg-gradient-to-br from-primary-600 to-primary-900 hover:shadow-lg transition-shadow">
+                    <div class="text-md font-medium text-white/80">
+                        {{ spotlight.status === 'ongoing' ? 'Happening now' : 'Up next' }}
+                    </div>
+                    <div class="text-xl font-semibold leading-snug line-clamp-2">{{ spotlight.name }}</div>
+                    <div class="flex items-center justify-between text-md text-white/90">
+                        <span>{{ spotlight.timing }}</span>
+                        <mat-icon class="icon-size-5 text-current" [svgIcon]="'heroicons_solid:arrow-sm-right'"></mat-icon>
+                    </div>
+                </a>
+                <ng-template #noSpotlight>
+                    <div
+                        class="flex flex-col justify-between gap-2 p-5 rounded-2xl bg-card border border-dashed border-gray-300 dark:border-gray-700">
+                        <div class="text-md font-medium text-secondary">Up next</div>
+                        <div class="text-lg font-semibold leading-snug">No upcoming tours</div>
+                        <button type="button" class="self-start text-md font-medium text-primary-600 hover:underline"
+                            (click)="addNewTour()">Plan a new tour</button>
+                    </div>
+                </ng-template>
+            </section>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+
+                <!-- Your tours -->
+                <section class="lg:col-span-2 flex flex-col rounded-2xl bg-card border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+                    <div class="flex items-center justify-between p-6 pb-4">
+                        <div>
+                            <div class="text-xl font-semibold tracking-tight">Your tours</div>
+                            <div class="text-md text-secondary">Ongoing and upcoming tours first</div>
+                        </div>
+                        <a class="inline-flex items-center text-md font-medium text-primary-600 hover:underline"
+                            [routerLink]="['/tours']">
+                            View all
+                            <mat-icon class="ml-1 icon-size-4 text-current" [svgIcon]="'heroicons_solid:arrow-sm-right'"></mat-icon>
+                        </a>
+                    </div>
+                    <ul class="divide-y divide-gray-200 dark:divide-gray-700 border-t">
+                        <li *ngFor="let tour of featuredTours; trackBy: trackById">
+                            <a [routerLink]="['/tours', tour.id]"
+                                class="flex flex-col gap-3 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="flex flex-0 items-center justify-center w-12 h-12 rounded-xl overflow-hidden bg-primary-50 text-primary-700 font-bold">
+                                        <img *ngIf="tour.logo" class="object-cover w-full h-full" [src]="tour.logo" alt=""
+                                            (error)="onLogoError(tour)" />
+                                        <span *ngIf="!tour.logo">{{ tour.initials }}</span>
+                                    </div>
+                                    <div class="flex flex-col min-w-0 flex-auto">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="font-semibold truncate">{{ tour.name }}</span>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold ring-1 ring-inset"
+                                                [ngClass]="tour.statusClass">{{ tour.statusLabel }}</span>
+                                        </div>
+                                        <div class="mt-0.5 text-md text-secondary">
+                                            {{ tour.startDate | date: 'd MMM' }} – {{ tour.endDate | date: 'd MMM y' }}
+                                            · {{ tour.tournaments }} {{ tour.tournaments === 1 ? 'tournament' : 'tournaments' }}
+                                            · {{ tour.members }} {{ tour.members === 1 ? 'member' : 'members' }}
+                                        </div>
+                                    </div>
+                                    <mat-icon class="flex-0 icon-size-5 text-hint" [svgIcon]="'heroicons_solid:arrow-sm-right'"></mat-icon>
+                                </div>
+                                <div *ngIf="tour.status === 'ongoing'" class="flex items-center gap-3">
+                                    <div class="flex-auto h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
+                                        role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                                        [attr.aria-valuenow]="tour.progress" [attr.aria-label]="tour.name + ' progress'">
+                                        <div class="h-full rounded-full bg-primary-500" [style.width.%]="tour.progress"></div>
+                                    </div>
+                                    <span class="text-md text-secondary whitespace-nowrap">{{ tour.timing }}</span>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </section>
+
+                <!-- Members by category -->
+                <section class="flex flex-col rounded-2xl bg-card border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                    <div class="text-xl font-semibold tracking-tight">Members by category</div>
+                    <div class="text-md text-secondary">Unique players across all your tours</div>
+
+                    <ul *ngIf="categoryBars.length; else noMembers" class="flex flex-col gap-4 mt-6">
+                        <li *ngFor="let bar of categoryBars" [title]="bar.label + ': ' + bar.count">
+                            <div class="flex items-baseline justify-between text-md">
+                                <span class="font-medium">{{ bar.label }}</span>
+                                <span class="font-semibold tabular-nums">{{ bar.count }}</span>
+                            </div>
+                            <div class="mt-1.5 h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                                <div class="h-full rounded-r-md bg-primary-500" [style.width.%]="bar.percent"></div>
+                            </div>
+                        </li>
+                    </ul>
+                    <ng-template #noMembers>
+                        <div class="flex flex-col items-center justify-center text-center flex-auto py-10 text-secondary">
+                            <mat-icon class="icon-size-10 text-hint" [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
+                            <div class="mt-3 font-medium">No members yet</div>
+                            <div class="mt-1 text-md">Add players to a tour to see how they are split by category.</div>
+                        </div>
+                    </ng-template>
+                </section>
+            </div>
+
+            <!-- Recent tournaments -->
+            <section class="flex flex-col mt-6 rounded-2xl bg-card border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+                <div class="p-6 pb-4">
+                    <div class="text-xl font-semibold tracking-tight">Recent tournaments</div>
+                    <div class="text-md text-secondary">The latest tournaments across your tours</div>
+                </div>
+
+                <div *ngIf="!recentTournaments.length"
+                    class="flex flex-col items-center justify-center text-center py-12 px-6 border-t text-secondary">
+                    <mat-icon class="icon-size-10 text-hint" [svgIcon]="'heroicons_outline:flag'"></mat-icon>
+                    <div class="mt-3 font-medium">No tournaments yet</div>
+                    <div class="mt-1 text-md">Open a tour and create its first tournament.</div>
+                </div>
+
+                <ul *ngIf="recentTournaments.length" class="divide-y divide-gray-200 dark:divide-gray-700 border-t">
+                    <li *ngFor="let tournament of recentTournaments; trackBy: trackById"
+                        class="flex flex-col sm:flex-row sm:items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                        <div
+                            class="flex flex-0 flex-col items-center justify-center w-14 h-14 rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-300">
+                            <span class="text-sm font-semibold uppercase leading-none">{{ tournament.startDate | date: 'MMM' }}</span>
+                            <span class="mt-1 text-xl font-bold leading-none">{{ tournament.startDate | date: 'd' }}</span>
+                        </div>
+                        <div class="flex flex-col min-w-0 flex-auto">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="font-semibold truncate">{{ tournament.title }}</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold ring-1 ring-inset"
+                                    [ngClass]="tournament.statusClass">{{ tournament.statusLabel }}</span>
+                                <span *ngIf="!tournament.setupComplete"
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold ring-1 ring-inset bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300">
+                                    Setup incomplete
+                                </span>
+                            </div>
+                            <div class="mt-0.5 text-md text-secondary">
+                                <a class="text-primary-600 hover:underline" [routerLink]="['/tours', tournament.tourId]"
+                                    [queryParams]="{ tab: 'tournaments' }">{{ tournament.tourName }}</a>
+                                <ng-container *ngIf="tournament.formatLabel"> · {{ tournament.formatLabel }}</ng-container>
+                            </div>
+                        </div>
+                        <button mat-stroked-button class="flex-0 self-start sm:self-center" (click)="openTournament(tournament)">
+                            {{ tournament.setupComplete ? 'View' : 'Continue setup' }}
+                        </button>
+                    </li>
+                </ul>
+            </section>
+        </ng-container>
+    </div>
+</div>

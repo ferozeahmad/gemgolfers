@@ -62,7 +62,7 @@ export class LocalStorageService {
     isTourAdmin(): boolean {
         let loggedInuser = this.get(Constants.LOGGED_IN_USER);
         if (loggedInuser && loggedInuser.roles) {
-            return loggedInuser.roles.some((r: any) => { r.name === 'TourOperator' || r.name === 'TourLeagueAdmin' });
+            return loggedInuser.roles.some((r: any) => r.name === 'TourOperator' || r.name === 'TourLeagueAdmin');
         }
         return false;
     }
@@ -78,7 +78,7 @@ export class LocalStorageService {
     isLeagueAdmin(): boolean {
         let loggedInuser = this.get(Constants.LOGGED_IN_USER);
         if (loggedInuser && loggedInuser.roles) {
-            return loggedInuser.roles.some((r: any) => { r.name === 'LeagueAdmin' || r.name === 'TourLeagueAdmin' });
+            return loggedInuser.roles.some((r: any) => r.name === 'LeagueAdmin' || r.name === 'TourLeagueAdmin');
         }
         return false;
     }

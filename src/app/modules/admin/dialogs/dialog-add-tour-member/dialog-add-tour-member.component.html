@@ -1,0 +1,131 @@
+<div class="flex flex-col w-full sm:w-[520px] max-w-full">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between gap-4 px-6 pt-6 pb-2">
+        <div class="flex items-center gap-4 min-w-0">
+            <div
+                class="flex flex-0 items-center justify-center w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300">
+                <mat-icon class="icon-size-6 text-current" [svgIcon]="'heroicons_outline:user-add'"></mat-icon>
+            </div>
+            <div class="min-w-0">
+                <div class="text-2xl font-semibold tracking-tight leading-tight">Add member to tour</div>
+                <div class="mt-0.5 text-md text-secondary">
+                    Enter the email address of a registered Gemgolfers player.
+                </div>
+            </div>
+        </div>
+        <button type="button" mat-icon-button class="-mr-2 -mt-1" aria-label="Close" (click)="close()">
+            <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+        </button>
+    </div>
+
+    <div class="flex flex-col gap-4 px-6 py-4">
+
+        <!-- Email search -->
+        <div class="flex items-start gap-3">
+            <mat-form-field class="flex-auto fuse-mat-no-subscript">
+                <mat-label>Player email</mat-label>
+                <mat-icon matPrefix class="icon-size-5 mr-1" [svgIcon]="'heroicons_outline:mail'"></mat-icon>
+                <input matInput type="email" inputmode="email" autocomplete="off" placeholder="player@example.com"
+                    [formControl]="emailControl" (keydown.enter)="search()" cdkFocusInitial />
+                <mat-error *ngIf="emailControl.hasError('required')">Email is required</mat-error>
+                <mat-error *ngIf="emailControl.hasError('email')">Enter a valid email address</mat-error>
+            </mat-form-field>
+            <button type="button" mat-flat-button [color]="'primary'" class="flex-0 !h-14 !px-5"
+                [disabled]="emailControl.invalid || state === 'searching'" (click)="search()">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:search'"></mat-icon>
+                <span class="ml-2">Find</span>
+            </button>
+        </div>
+
+        <!-- Searching -->
+        <div *ngIf="state === 'searching'" class="flex items-center gap-3 py-6 justify-center text-secondary" role="status">
+            <mat-spinner [diameter]="24"></mat-spinner>
+            <span>Looking for {{ searchedEmail }}…</span>
+        </div>
+
+        <!-- Idle hint -->
+        <div *ngIf="state === 'idle'"
+            class="flex items-start gap-3 p-4 rounded-xl bg-gray-50 text-secondary dark:bg-gray-800/60">
+            <mat-icon class="icon-size-5 text-hint mt-0.5" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
+            <span class="text-md">
+                The player will be linked to this tour straight away and can then be picked for the tour's tournaments.
+            </span>
+        </div>
+
+        <!-- Found -->
+        <div *ngIf="state === 'found'" class="flex flex-col gap-2" role="radiogroup" aria-label="Matching players">
+            <div class="text-md font-medium text-secondary">
+                {{ results.length === 1 ? 'Player found' : results.length + ' players found' }}
+            </div>
+            <button *ngFor="let player of results" type="button" role="radio"
+                [attr.aria-checked]="selected?.id === player.id" [disabled]="isAlreadyMember(player)"
+                (click)="select(player)"
+                class="flex items-center gap-4 w-full p-4 text-left rounded-xl border-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                [ngClass]="selected?.id === player.id && !isAlreadyMember(player)
+                    ? 'border-primary-500 bg-primary-50/60 dark:bg-primary-500/10'
+                    : 'border-gray-200 dark:border-gray-700'">
+                <div class="flex flex-0 items-center justify-center w-12 h-12 rounded-full overflow-hidden bg-primary-100 text-primary-700 font-bold">
+                    <img *ngIf="player.picture" class="object-cover w-full h-full" [src]="player.picture" alt="" />
+                    <span *ngIf="!player.picture">{{ initials(player) }}</span>
+                </div>
+                <div class="flex flex-col min-w-0 flex-auto">
+                    <div class="font-semibold truncate">{{ displayName(player) }}</div>
+                    <div class="text-md text-secondary truncate">{{ player.email }}</div>
+                    <div class="flex flex-wrap items-center gap-x-3 mt-1 text-md text-secondary">
+                        <span *ngIf="player.playerCategory">{{ player.playerCategory === 'Seniors' ? 'Senior Amateurs' : player.playerCategory }}</span>
+                        <span *ngIf="player.handicap !== null && player.handicap !== undefined">
+                            Handicap {{ player.handicap | number: '1.1-1' }}
+                        </span>
+                        <span *ngIf="player.membershipNumber">No. {{ player.membershipNumber }}</span>
+                    </div>
+                </div>
+                <span *ngIf="isAlreadyMember(player)"
+                    class="flex-0 px-2.5 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    Already a member
+                </span>
+                <mat-icon *ngIf="!isAlreadyMember(player) && selected?.id === player.id"
+                    class="flex-0 icon-size-6 text-primary-600" [svgIcon]="'heroicons_solid:check-circle'"></mat-icon>
+            </button>
+        </div>
+
+        <!-- Not found -->
+        <div *ngIf="state === 'notFound'"
+            class="flex items-start gap-3 p-4 rounded-xl bg-amber-50 text-amber-900 dark:bg-amber-500/10 dark:text-amber-200" role="alert">
+            <mat-icon class="icon-size-5 text-current mt-0.5" [svgIcon]="'heroicons_outline:exclamation-circle'"></mat-icon>
+            <div class="text-md">
+                <div class="font-semibold">No player found for {{ searchedEmail }}</div>
+                <div class="mt-0.5">
+                    Check the spelling, or ask the player to register on Gemgolfers first - then try again.
+                </div>
+            </div>
+        </div>
+
+        <!-- Search error -->
+        <div *ngIf="state === 'error'"
+            class="flex items-start gap-3 p-4 rounded-xl bg-red-50 text-red-900 dark:bg-red-500/10 dark:text-red-200" role="alert">
+            <mat-icon class="icon-size-5 text-current mt-0.5" [svgIcon]="'heroicons_outline:x-circle'"></mat-icon>
+            <div class="text-md">
+                <div class="font-semibold">The search failed</div>
+                <div class="mt-0.5">Please check your connection and try again.</div>
+            </div>
+        </div>
+
+        <!-- Save error -->
+        <div *ngIf="saveError"
+            class="flex items-start gap-3 p-4 rounded-xl bg-red-50 text-red-900 dark:bg-red-500/10 dark:text-red-200" role="alert">
+            <mat-icon class="icon-size-5 text-current mt-0.5" [svgIcon]="'heroicons_outline:x-circle'"></mat-icon>
+            <div class="text-md">{{ saveError }}</div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end gap-2 px-6 py-4 border-t bg-gray-50 dark:bg-transparent">
+        <button type="button" mat-stroked-button (click)="close()">Cancel</button>
+        <button type="button" mat-flat-button [color]="'primary'" [disabled]="!canAdd" (click)="add()">
+            <mat-spinner *ngIf="isSaving" class="mr-2" [diameter]="18"></mat-spinner>
+            <mat-icon *ngIf="!isSaving" class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
+            <span class="ml-2">{{ isSaving ? 'Adding…' : 'Add to tour' }}</span>
+        </button>
+    </div>
+</div>

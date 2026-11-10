@@ -1,112 +1,152 @@
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-y-auto bg-gray-50 dark:bg-transparent" cdkScrollable>
+    <div class="flex flex-col w-full max-w-7xl mx-auto px-6 py-6 sm:px-10 sm:py-8">
 
+        <!-- Back link -->
+        <a class="inline-flex items-center self-start text-md font-medium text-secondary hover:text-primary-600 transition-colors"
+            [routerLink]="['/tours']">
+            <mat-icon class="icon-size-5 text-current" [svgIcon]="'heroicons_solid:arrow-sm-left'"></mat-icon>
+            <span class="ml-1">All tours</span>
+        </a>
 
-<main class="flex-1 flex flex-col h-screen bg-[#f3f4f6] text-gray-800 overflow-y-auto">
-    <div class="p-6 md:px-20  md:py-8 flex-1">
-
-        <!-- Top Header -->
-        <div
-            class="flex flex-col text-white bg-[#175f9d] p-4 rounded-lg sm:flex-row justify-between items-start sm:items-center mb-8">
-            <div>
-                <h1 class="text-4xl font-bold text-white"> {{ tour?.name }}
-
-                </h1>
-                <p class="text-sm text-white gap-1 flex items-center mt-1">
-                    <mat-icon class="icon-size-5 text-white" [svgIcon]="'heroicons_solid:bell'"></mat-icon>
-                    {{
-                    tour?.startDate
-                    |date
-                    }} - {{
-                    tour?.endDate |date
-                    }}
-                </p>
+        <!-- Loading skeleton -->
+        <ng-container *ngIf="isLoading">
+            <div class="mt-4 h-44 rounded-2xl bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+                <div *ngFor="let i of [1, 2, 3]" class="h-24 rounded-2xl bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
             </div>
+        </ng-container>
 
-        </div>
-
-
-
-        <!-- Stats Cards -->
-        <div class="flex flex-col sm:flex-row gap-6 mb-8">
-            <div class="bg-white p-4 rounded-lg w-full shadow-sm flex items-center space-x-4 border border-gray-200">
-
-                <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-teal-200">
-                    <mat-icon class="icon-size-5  text-teal-600" [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500"> Total Members</p>
-                    <p class="text-2xl font-bold text-gray-900"> {{ tour?.members?.length || 0 }}</p>
-                    <!-- @if (date()) {
-                    <p class="text-xs text-gray-400 mt-1">
-                        Date: {{ date() }}
-                    </p>
-                    } -->
-                </div>
-            </div>
-            <div class="bg-white w-full p-4 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200">
-
-                <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-blue-200">
-                    <mat-icon class="icon-size-5  text-blue-600" [svgIcon]="'heroicons_outline:user'"></mat-icon>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500"> Total Tournaments</p>
-                    <p class="text-2xl font-bold text-gray-900"> {{ tour?.tournaments?.length || 0 }}</p>
-
-
-
-
-
-                </div>
-            </div>
-            <div class="bg-white w-full p-5 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200">
-
-                <div class="flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center bg-red-200">
-                    <mat-icon class="icon-size-5  text-red-600" [svgIcon]="'heroicons_outline:user'"></mat-icon>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500"> Tour Description</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ tour?.description || 'No description available.' }}
-                    </p>
-                </div>
-            </div>
-
-
-        </div>
-
-
-        <!-- Tabs -->
-        <div class="my-4">
-            <div class="border-b border-gray-200">
-                <nav class="-mb-px flex space-x-6" aria-label="Tabs">
-
-                    <button *ngFor="let tab of tabs" (click)="setPrimaryTab(tab)" [ngClass]="
-          activePrimaryTab() === tab
-            ? 'border-emerald-500 text-emerald-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-        " class="whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-lg transition-colors focus:outline-none">
-                        {{ tab }}
-                    </button>
-
-                </nav>
+        <!-- Error / not found -->
+        <div *ngIf="!isLoading && loadFailed"
+            class="flex flex-col items-center justify-center text-center py-24 mt-4 rounded-2xl bg-card border border-gray-200 dark:border-gray-700">
+            <mat-icon class="icon-size-16 text-hint" [svgIcon]="'heroicons_outline:exclamation-circle'"></mat-icon>
+            <div class="mt-4 text-2xl font-semibold tracking-tight">We couldn't load this tour</div>
+            <div class="mt-1 text-secondary">It may have been removed, or you may not have access to it.</div>
+            <div class="flex items-center gap-3 mt-6">
+                <button mat-stroked-button [routerLink]="['/tours']">Back to tours</button>
+                <button mat-flat-button [color]="'primary'" (click)="loadTour()">Try again</button>
             </div>
         </div>
 
+        <ng-container *ngIf="!isLoading && !loadFailed && tour">
 
+            <!-- Hero -->
+            <section
+                class="relative mt-4 overflow-hidden rounded-2xl bg-gradient-to-br from-primary-600 to-primary-900 text-white shadow-lg">
+                <div class="absolute -right-12 -top-16 w-72 h-72 rounded-full bg-white/10"></div>
+                <div class="absolute right-40 -bottom-24 w-56 h-56 rounded-full bg-white/10"></div>
 
-        <div *ngIf="activePrimaryTab() === 'Itinerary'" class="animate-fade-in">
-            <app-tour-guide></app-tour-guide>
-        </div>
+                <div class="relative flex flex-col sm:flex-row sm:items-center gap-5 p-6 sm:p-8">
+                    <div
+                        class="flex flex-0 items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-white/15 ring-2 ring-white/40 text-3xl font-bold">
+                        <img *ngIf="tour.logo && !logoFailed" class="object-cover w-full h-full" [src]="tour.logo"
+                            [alt]="tour.name + ' logo'" (error)="logoFailed = true" />
+                        <span *ngIf="!tour.logo || logoFailed">{{ initials }}</span>
+                    </div>
 
-        <div *ngIf="activePrimaryTab() === 'Members'">
-            <app-tour-members-list [tourId]="tourId"></app-tour-members-list>
-        </div>
+                    <div class="flex flex-col min-w-0 flex-auto">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight break-words">
+                                {{ tour.name }}
+                            </h1>
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-semibold ring-1 ring-inset bg-white/95"
+                                [ngClass]="statusClass">
+                                <span class="w-1.5 h-1.5 rounded-full bg-current"
+                                    [class.animate-pulse]="status === 'ongoing'"></span>
+                                {{ statusLabel }}
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3 text-lg text-white/90">
+                            <span class="inline-flex items-center">
+                                <mat-icon class="icon-size-5 text-current"
+                                    [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+                                <span class="ml-1.5">
+                                    {{ tour.startDate | date: 'EEE, d MMM y' }} – {{ tour.endDate | date: 'EEE, d MMM y' }}
+                                </span>
+                            </span>
+                            <span class="inline-flex items-center">
+                                <mat-icon class="icon-size-5 text-current"
+                                    [svgIcon]="'heroicons_outline:clock'"></mat-icon>
+                                <span class="ml-1.5">{{ timing }}</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
 
-        <div *ngIf="activePrimaryTab() === 'Tournaments'">
-            <app-tour-tournaments-list [tourId]="tourId"></app-tour-tournaments-list>
-        </div>
+                <!-- Timeline progress -->
+                <div class="relative h-1.5 bg-white/20" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                    [attr.aria-valuenow]="progress" aria-label="Tour progress">
+                    <div class="h-full bg-white/90 transition-all" [style.width.%]="progress"></div>
+                </div>
+            </section>
 
-      
+            <!-- Stats -->
+            <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+                <div class="flex items-center gap-4 p-5 rounded-2xl bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div
+                        class="flex flex-0 items-center justify-center w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300">
+                        <mat-icon class="icon-size-6 text-current" [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
+                    </div>
+                    <div class="leading-tight">
+                        <div class="text-md text-secondary">Total members</div>
+                        <div class="mt-1 text-3xl font-bold">{{ tour.members?.length || 0 }}</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 p-5 rounded-2xl bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div
+                        class="flex flex-0 items-center justify-center w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                        <mat-icon class="icon-size-6 text-current" [svgIcon]="'heroicons_outline:flag'"></mat-icon>
+                    </div>
+                    <div class="leading-tight">
+                        <div class="text-md text-secondary">Total tournaments</div>
+                        <div class="mt-1 text-3xl font-bold">{{ tour.tournaments?.length || 0 }}</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 p-5 rounded-2xl bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div
+                        class="flex flex-0 items-center justify-center w-12 h-12 rounded-xl bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300">
+                        <mat-icon class="icon-size-6 text-current" [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+                    </div>
+                    <div class="leading-tight">
+                        <div class="text-md text-secondary">Duration</div>
+                        <div class="mt-1 text-3xl font-bold">
+                            {{ duration }} <span class="text-lg font-medium text-secondary">{{ duration === 1 ? 'day' : 'days' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tabs -->
+            <nav class="flex gap-1 p-1 mt-8 self-start max-w-full overflow-x-auto rounded-xl bg-gray-200/70 dark:bg-gray-800"
+                role="tablist" aria-label="Tour sections">
+                <button *ngFor="let tab of tabs; trackBy: trackByTab" type="button" role="tab"
+                    [attr.aria-selected]="activePrimaryTab() === tab.id" (click)="setPrimaryTab(tab.id)"
+                    class="inline-flex items-center gap-2 h-10 px-4 rounded-lg whitespace-nowrap text-base font-semibold transition-all focus:outline-none"
+                    [ngClass]="activePrimaryTab() === tab.id
+                        ? 'bg-card text-primary-600 shadow-sm'
+                        : 'text-secondary hover:text-primary-600'">
+                    <mat-icon class="icon-size-5 text-current" [svgIcon]="tab.icon"></mat-icon>
+                    {{ tab.label }}
+                    <span *ngIf="tab.id === 'members'" class="px-1.5 rounded-full text-sm bg-gray-100 dark:bg-gray-700">
+                        {{ tour.members?.length || 0 }}
+                    </span>
+                    <span *ngIf="tab.id === 'tournaments'" class="px-1.5 rounded-full text-sm bg-gray-100 dark:bg-gray-700">
+                        {{ tour.tournaments?.length || 0 }}
+                    </span>
+                </button>
+            </nav>
+
+            <!-- Tab content -->
+            <div class="mt-6">
+                <app-tour-guide *ngIf="activePrimaryTab() === 'itinerary'" [tourId]="tourId" [tour]="tour"></app-tour-guide>
+
+                <app-tour-members-list *ngIf="activePrimaryTab() === 'members'" [tourId]="tourId"
+                    (membersChanged)="onMembersChanged()"></app-tour-members-list>
+
+                <app-tour-tournaments-list *ngIf="activePrimaryTab() === 'tournaments'" [tourId]="tourId">
+                </app-tour-tournaments-list>
+            </div>
+        </ng-container>
     </div>
-</main>
+</div>

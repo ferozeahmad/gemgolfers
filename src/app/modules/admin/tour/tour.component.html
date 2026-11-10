@@ -1,141 +1,178 @@
-<div class="absolute inset-0 flex flex-col min-w-0 overflow-y-auto" cdkScrollable>
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-y-auto bg-gray-50 dark:bg-transparent" cdkScrollable>
 
-    <!-- Main -->
-    <div class="relative flex-0 py-8 px-4 sm:p-14 overflow-hidden border-b bg-card">
-
-
-
-        <div class="text-6xl font-extrabold tracking-tight leading-none">
-            Your Tours
+    <!-- Header -->
+    <div class="relative flex-0 px-6 py-8 sm:px-10 sm:py-10 border-b bg-card">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 max-w-7xl mx-auto w-full">
+            <div class="min-w-0">
+                <div class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-none">
+                    {{ isSuperAdmin ? 'All Tours' : 'Your Tours' }}
+                </div>
+                <div class="mt-2 text-lg text-secondary">
+                    Plan itineraries, manage members and run tournaments for every tour in one place.
+                </div>
+            </div>
+            <button class="flex-0" mat-flat-button [color]="'primary'" (click)="addnewTour()">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
+                <span class="ml-2">Add New Tour</span>
+            </button>
         </div>
-
     </div>
 
-    <!-- tours -->
-    <div class="flex flex-auto p-6 sm:p-10">
-        <div class="flex flex-col flex-auto w-full max-w-xs sm:max-w-5xl mx-auto">
-            <div class="flex flex-col sm:flex-row items-center justify-between w-full max-w-xs sm:max-w-none">
-                <mat-form-field *ngIf="this._localStorage.isSuperAdmin() || this._localStorage.isClubAdmin()"
-                    class="fuse-mat-no-subscript w-full sm:w-36">
-                    <mat-select [value]="0" (selectionChange)="filterByCategory($event)">
+    <!-- Content -->
+    <div class="flex flex-col flex-auto px-6 py-6 sm:px-10 sm:py-8">
+        <div class="flex flex-col flex-auto w-full max-w-7xl mx-auto">
 
-                        <ng-container *ngFor="
-                                    let category of categories;
-                                    trackBy: trackByFn
-                                ">
-                            <mat-option [value]="category.id">{{
-                                category.title
-                                }}</mat-option>
-                        </ng-container>
-                    </mat-select>
-                </mat-form-field>
-                <mat-form-field class="fuse-mat-no-subscript w-full sm:w-72 mt-4 sm:mt-0 sm:ml-4"
-                    [floatLabel]="'always'">
-                    <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_solid:search'"></mat-icon>
-                    <input (input)="filterByQuery(query.value)" placeholder="Search by title" matInput #query />
-                </mat-form-field>
-                <button class="bg-accent" mat-flat-button (click)="addnewTour()" [color]="'accent'">
-                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
-                    <span class="ml-2">Add New Tour</span>
-                </button>
-                <!-- <mat-slide-toggle
-                        class="mt-8 sm:mt-0 sm:ml-auto"
-                        [color]="'primary'"
-                        (change)="toggleCompleted($event)"
-                    >
-                        Hide completed
-                    </mat-slide-toggle> -->
-            </div>
-            <ng-container *ngIf="this.tours.length; else noCourses">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-8 sm:mt-10">
-                    <ng-container *ngFor="let tour of tours;">
-                        <div class="flex flex-col h-96 shadow rounded-2xl overflow-hidden bg-card">
-                            <div class="flex flex-col p-6">
-                                <div *ngIf="!tour.logo"
-                                    class="flex items-center justify-center p-4 rounded-full bg-primary-50 text-primary-700 dark:bg-primary dark:text-on-primary mr-auto">
-                                    <mat-icon class="text-current" [svgIcon]="'heroicons_outline:template'"></mat-icon>
-                                </div>
-                                <div class="flex flex-0 items-center justify-center w-14 h-14 rounded-full overflow-hidden"
-                                    *ngIf="tour.logo">
-                                    <ng-container>
-                                        <img class="object-cover w-full h-full" [src]="tour.logo" alt="User avatar" />
-                                    </ng-container>
-                                </div>
-                                <div class="mt-1 text-lg font-medium">
-                                    {{tour.title}}
-                                </div>
-                                <div class="w-12 h-1 mt-6 border-t-2"></div>
-                                <div class="flex items-center mt-2 text-md font-md -ml-1">
-                                    <mat-icon class="icon-size-5 text-hint"
-                                        [svgIcon]="'heroicons_solid:clipboard'"></mat-icon>
-                                    <div class="text-secondary ml-1">Tournaments:</div>
-                                    <div class="ml-1">{{tour.tournaments}}</div>
-                                </div>
-                                <div class="flex items-center mt-2 text-md font-md -ml-1">
-                                    <mat-icon class="icon-size-5 text-hint"
-                                        [svgIcon]="'heroicons_solid:user-group'"></mat-icon>
-                                    <div class="text-secondary ml-1">Members:</div>
-                                    <div class="ml-1">{{tour.members}}</div>
-                                </div>
-                                <div class="flex items-center mt-2 text-md font-md -ml-1">
-                                    <mat-icon class="icon-size-5 text-hint"
-                                        [svgIcon]="'heroicons_solid:clock'"></mat-icon>
-                                    <div class="text-secondary ml-1">Start Date:</div>
-                                    <div class="ml-1">{{tour.startDate | date:'dd/MM/yyyy'}}</div>
-                                </div>
-                                <div class="flex items-center mt-2 text-md font-md -ml-1">
-                                    <mat-icon class="icon-size-5 text-hint"
-                                        [svgIcon]="'heroicons_solid:clock'"></mat-icon>
-                                    <div class="text-secondary ml-1">End Date:</div>
-                                    <div class="ml-1">{{tour.endDate | date:'dd/MM/yyyy'}}</div>
-                                </div>
-                            </div>
-                            <div class="flex flex-col w-full mt-auto">
-                                <!-- Course progress -->
-                                <div class="relative h-0.5">
-                                    <div class="z-10 absolute inset-x-0 h-6 -mt-3" [matTooltipPosition]="'above'"
-                                        [matTooltipClass]="'-mb-0.5'"></div>
-                                    <mat-progress-bar class="h-0.5" [value]="1002"></mat-progress-bar>
-                                </div>
+            <ng-container *ngIf="tours.length; else noTours">
 
-                                <!-- Course launch button -->
-                                <div class="px-6 py-4 text-right bg-gray-50 dark:bg-transparent">
-                                    <a mat-stroked-button [routerLinkActive]="'active'"
-                                    [routerLink]="[tour.id]">
-                                        <span class="inline-flex items-center">
-                                            <!-- Not started -->
+                <!-- Toolbar -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <!-- Status filter -->
+                    <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="Filter tours by status">
+                        <button *ngFor="let tab of statusTabs" type="button" role="tab"
+                            [attr.aria-selected]="statusFilter === tab.id" (click)="filterByStatus(tab.id)"
+                            class="inline-flex items-center gap-2 h-9 px-4 rounded-full border text-md font-medium transition-colors"
+                            [ngClass]="statusFilter === tab.id
+                                ? 'bg-primary text-on-primary border-primary'
+                                : 'bg-card text-secondary border-gray-200 hover:border-primary-400 hover:text-primary-600 dark:border-gray-700'">
+                            {{ tab.label }}
+                            <span class="min-w-5 px-1.5 rounded-full text-sm leading-5 text-center"
+                                [ngClass]="statusFilter === tab.id ? 'bg-white/25' : 'bg-gray-100 dark:bg-gray-700'">
+                                {{ counts[tab.id] }}
+                            </span>
+                        </button>
+                    </div>
 
-                                            <!-- Started -->
-                                            <ng-container>
-                                                <span>View Details</span>
-                                            </ng-container>
+                    <!-- Search -->
+                    <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript fuse-mat-rounded w-full lg:w-80"
+                        [floatLabel]="'always'">
+                        <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_solid:search'"></mat-icon>
+                        <input matInput placeholder="Search by title" [autocomplete]="'off'" [ngModel]="searchTerm"
+                            (ngModelChange)="filterByQuery($event)" />
+                    </mat-form-field>
+                </div>
 
-                                            <mat-icon class="ml-1.5 icon-size-5" [svgIcon]="
-                                                    'heroicons_solid:arrow-sm-right'
-                                                "></mat-icon>
-                                        </span>
-                                    </a>
-                                </div>
-                            </div>
+                <!-- Tour cards -->
+                <div *ngIf="filteredTours.length; else noMatches"
+                    class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
+                    <article *ngFor="let tour of filteredTours; trackBy: trackByFn"
+                        class="group flex flex-col rounded-2xl overflow-hidden bg-card border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+
+                        <!-- Banner -->
+                        <div class="relative h-24 bg-gradient-to-br from-primary-500 to-primary-800">
+                            <div class="absolute -right-6 -top-10 w-40 h-40 rounded-full bg-white/10"></div>
+                            <div class="absolute right-16 -bottom-12 w-28 h-28 rounded-full bg-white/10"></div>
+                            <span
+                                class="absolute top-4 right-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-semibold ring-1 ring-inset bg-white/95"
+                                [ngClass]="tour.statusClass">
+                                <span class="w-1.5 h-1.5 rounded-full bg-current"
+                                    [class.animate-pulse]="tour.status === 'ongoing'"></span>
+                                {{ tour.statusLabel }}
+                            </span>
                         </div>
 
+                        <div class="flex flex-col flex-auto px-6 pb-6">
+                            <!-- Logo -->
+                            <div
+                                class="relative z-10 -mt-9 flex flex-0 items-center justify-center w-[72px] h-[72px] rounded-2xl overflow-hidden ring-4 ring-white dark:ring-gray-800 bg-primary-50 text-primary-700 text-2xl font-bold shadow">
+                                <img *ngIf="tour.logo" class="object-cover w-full h-full" [src]="tour.logo"
+                                    [alt]="tour.title + ' logo'" (error)="onLogoError(tour)" />
+                                <span *ngIf="!tour.logo">{{ tour.initials }}</span>
+                            </div>
 
+                            <!-- Title + dates -->
+                            <h3 class="mt-4 text-xl font-semibold tracking-tight leading-snug line-clamp-2"
+                                [title]="tour.title">
+                                {{ tour.title }}
+                            </h3>
+                            <div class="flex items-center mt-2 text-md text-secondary">
+                                <mat-icon class="icon-size-4 text-hint" [svgIcon]="'heroicons_solid:calendar'"></mat-icon>
+                                <span class="ml-1.5">
+                                    {{ tour.startDate | date: 'd MMM y' }} – {{ tour.endDate | date: 'd MMM y' }}
+                                </span>
+                            </div>
 
-                    </ng-container>
+                            <!-- Stats -->
+                            <div class="grid grid-cols-2 gap-3 mt-5">
+                                <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60">
+                                    <div
+                                        class="flex items-center justify-center w-9 h-9 rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                                        <mat-icon class="icon-size-5 text-current"
+                                            [svgIcon]="'heroicons_outline:flag'"></mat-icon>
+                                    </div>
+                                    <div class="leading-tight">
+                                        <div class="text-xl font-semibold">{{ tour.tournaments }}</div>
+                                        <div class="text-sm text-secondary">Tournaments</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60">
+                                    <div
+                                        class="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300">
+                                        <mat-icon class="icon-size-5 text-current"
+                                            [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
+                                    </div>
+                                    <div class="leading-tight">
+                                        <div class="text-xl font-semibold">{{ tour.members }}</div>
+                                        <div class="text-sm text-secondary">Members</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Timeline progress -->
+                            <div class="mt-5">
+                                <div class="flex items-center justify-between text-md">
+                                    <span class="font-medium">{{ tour.timing }}</span>
+                                    <span class="text-secondary">{{ tour.duration }} {{ tour.duration === 1 ? 'day' : 'days' }}</span>
+                                </div>
+                                <div class="mt-2 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
+                                    role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                                    [attr.aria-valuenow]="tour.progress" [attr.aria-label]="tour.title + ' progress'">
+                                    <div class="h-full rounded-full bg-primary-500 transition-all"
+                                        [style.width.%]="tour.progress"></div>
+                                </div>
+                            </div>
+
+                            <!-- CTA -->
+                            <a mat-stroked-button [routerLink]="[tour.id]" class="mt-6 w-full">
+                                <span class="inline-flex items-center">
+                                    <span>View Details</span>
+                                    <mat-icon class="ml-1.5 icon-size-5"
+                                        [svgIcon]="'heroicons_solid:arrow-sm-right'"></mat-icon>
+                                </span>
+                            </a>
+                        </div>
+                    </article>
                 </div>
             </ng-container>
-        </div>
-        <!-- New board -->
-        <ng-template #noCourses>
-            <div class="flex flex-auto flex-col items-center justify-center bg-gray-100 dark:bg-transparent">
-                <mat-icon class="icon-size-24" [svgIcon]="'heroicons_outline:document-search'"></mat-icon>
-                <div class="mt-6 text-2xl font-semibold tracking-tight text-secondary">
-                    No Tour found!
+
+            <!-- No tours at all -->
+            <ng-template #noTours>
+                <div
+                    class="flex flex-col flex-auto items-center justify-center text-center py-20 px-6 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-card">
+                    <div
+                        class="flex items-center justify-center w-20 h-20 rounded-full bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300">
+                        <mat-icon class="icon-size-10 text-current" [svgIcon]="'heroicons_outline:map'"></mat-icon>
+                    </div>
+                    <div class="mt-6 text-3xl font-semibold tracking-tight">No tours yet</div>
+                    <div class="mt-2 max-w-md text-lg text-secondary">
+                        Create your first tour to start building an itinerary, inviting members and scheduling tournaments.
+                    </div>
+                    <button class="mt-8" mat-flat-button [color]="'primary'" (click)="addnewTour()">
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
+                        <span class="ml-2">Create your first tour</span>
+                    </button>
                 </div>
-            </div>
-        </ng-template>
+            </ng-template>
+
+            <!-- Filters matched nothing -->
+            <ng-template #noMatches>
+                <div class="flex flex-col items-center justify-center text-center py-20">
+                    <mat-icon class="icon-size-16 text-hint" [svgIcon]="'heroicons_outline:document-search'"></mat-icon>
+                    <div class="mt-4 text-2xl font-semibold tracking-tight text-secondary">No tours match your search</div>
+                    <button *ngIf="hasActiveFilters" class="mt-4" mat-stroked-button (click)="clearFilters()">
+                        Clear filters
+                    </button>
+                </div>
+            </ng-template>
+        </div>
     </div>
-
-
-
 </div>

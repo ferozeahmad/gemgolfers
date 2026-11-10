@@ -1,38 +1,104 @@
-<div class="p-6 lg:p-8">
-    <div class="flex flex-col sm:flex-row items-center justify-between">
-        <div class="text-2xl font-semibold leading-tight">Tour Tournaments</div>
-        <button mat-flat-button [color]="'primary'" class="mt-4 sm:mt-0" (click)="loadTourTournaments()">
-            <mat-icon [svgIcon]="'heroicons_outline:refresh'"></mat-icon>
-            <span class="ml-2">Refresh Tournaments</span>
+<section class="flex flex-col rounded-2xl bg-card border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+
+    <!-- Header -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6">
+        <div>
+            <div class="text-2xl font-semibold tracking-tight leading-tight">Tour tournaments</div>
+            <div class="mt-0.5 text-md text-secondary">
+                Tournaments created from here are automatically added to this tour.
+            </div>
+        </div>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+            <button mat-stroked-button (click)="loadTourTournaments()" [disabled]="isLoading">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:refresh'"></mat-icon>
+                <span class="ml-2">Refresh</span>
+            </button>
+            <button mat-flat-button [color]="'primary'" (click)="createTournament()">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
+                <span class="ml-2">Create Tournament</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading && !tournaments.length" class="flex justify-center items-center h-40 border-t" role="status">
+        <mat-spinner [diameter]="36"></mat-spinner>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="!isLoading && loadFailed"
+        class="flex flex-col items-center justify-center text-center py-14 px-6 border-t">
+        <mat-icon class="icon-size-12 text-hint" [svgIcon]="'heroicons_outline:exclamation-circle'"></mat-icon>
+        <div class="mt-3 text-xl font-semibold">We couldn't load the tournaments</div>
+        <button class="mt-4" mat-stroked-button (click)="loadTourTournaments()">Try again</button>
+    </div>
+
+    <!-- Empty -->
+    <div *ngIf="!isLoading && !loadFailed && !tournaments.length"
+        class="flex flex-col items-center justify-center text-center py-16 px-6 border-t">
+        <div
+            class="flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+            <mat-icon class="icon-size-8 text-current" [svgIcon]="'heroicons_outline:flag'"></mat-icon>
+        </div>
+        <div class="mt-4 text-2xl font-semibold tracking-tight">No tournaments yet</div>
+        <div class="mt-1 max-w-md text-secondary">
+            Create the first tournament of this tour. You will set up the course, format and players, and it will be
+            added to this tour once saved.
+        </div>
+        <button class="mt-6" mat-flat-button [color]="'primary'" (click)="createTournament()">
+            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
+            <span class="ml-2">Create the first tournament</span>
         </button>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-6">
-        <ng-container *ngIf="!isLoading && tournaments.length > 0">
-            <div *ngFor="let tournament of tournaments; trackBy: trackByFn"
-                class="flex flex-col rounded-2xl shadow overflow-hidden bg-card transition-shadow ease-in-out duration-150">
-                <div class="flex flex-col flex-auto p-6 text-center">
-                    <div class="text-xl font-semibold">{{ tournament.title }}</div>
-                    <div class="mt-1 text-secondary">{{ tournament.startDate | date:'mediumDate' }} - {{
-                        tournament.endDate | date:'mediumDate' }}</div>
-                    <div class="mt-2 text-md">{{ tournament.matchFormat }}</div>
+    <!-- List -->
+    <ul *ngIf="tournaments.length && !loadFailed" class="divide-y divide-gray-200 dark:divide-gray-700 border-t">
+        <li *ngFor="let tournament of tournaments; trackBy: trackByFn"
+            class="flex flex-col sm:flex-row sm:items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+
+            <!-- Date tile -->
+            <div
+                class="flex flex-0 flex-col items-center justify-center w-16 h-16 rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-300">
+                <span class="text-sm font-semibold uppercase leading-none">{{ tournament.startDate | date: 'MMM' }}</span>
+                <span class="mt-1 text-2xl font-bold leading-none">{{ tournament.startDate | date: 'd' }}</span>
+            </div>
+
+            <!-- Info -->
+            <div class="flex flex-col min-w-0 flex-auto">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-lg font-semibold truncate">{{ tournament.title }}</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold ring-1 ring-inset"
+                        [ngClass]="tournament.statusClass">{{ tournament.statusLabel }}</span>
+                    <span *ngIf="!tournament.setupComplete"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold ring-1 ring-inset bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300">
+                        Setup incomplete
+                    </span>
                 </div>
-                <div
-                    class="flex items-center justify-center py-4 px-8 text-primary-500 cursor-pointer dark:text-primary-400 bg-gray-50 dark:bg-transparent dark:border-t">
-                    <div class="flex items-center" (click)="viewTournamentDetails(tournament.id)">
-                        <span class="font-medium">View Details</span>
-                        <mat-icon class="ml-2 icon-size-5 text-current"
-                            [svgIcon]="'heroicons_solid:arrow-narrow-right'"></mat-icon>
-                    </div>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-md text-secondary">
+                    <span class="inline-flex items-center">
+                        <mat-icon class="icon-size-4 text-hint" [svgIcon]="'heroicons_solid:calendar'"></mat-icon>
+                        <span class="ml-1">
+                            {{ tournament.startDate | date: 'd MMM y' }}<ng-container *ngIf="tournament.duration > 1"> – {{ tournament.endDate | date: 'd MMM y' }}</ng-container>
+                        </span>
+                    </span>
+                    <span *ngIf="tournament.formatLabel" class="inline-flex items-center">
+                        <mat-icon class="icon-size-4 text-hint" [svgIcon]="'heroicons_solid:flag'"></mat-icon>
+                        <span class="ml-1">{{ tournament.formatLabel }}</span>
+                    </span>
+                    <span *ngIf="tournament.rounds" class="inline-flex items-center">
+                        <mat-icon class="icon-size-4 text-hint" [svgIcon]="'heroicons_solid:collection'"></mat-icon>
+                        <span class="ml-1">{{ tournament.rounds }} {{ tournament.rounds === 1 ? 'round' : 'rounds' }}</span>
+                    </span>
                 </div>
             </div>
-        </ng-container>
 
-        <div *ngIf="isLoading" class="flex justify-center items-center h-32 col-span-full">
-            <mat-spinner [diameter]="40"></mat-spinner>
-        </div>
-        <div *ngIf="!isLoading && tournaments.length === 0" class="p-4 text-center text-secondary col-span-full">
-            No tournaments found for this tour.
-        </div>
-    </div>
-</div>
+            <!-- Action -->
+            <button mat-stroked-button class="flex-0 self-start sm:self-center" (click)="openTournament(tournament)">
+                <span class="inline-flex items-center">
+                    <span>{{ tournament.setupComplete ? 'View Details' : 'Continue setup' }}</span>
+                    <mat-icon class="ml-1.5 icon-size-5" [svgIcon]="'heroicons_solid:arrow-narrow-right'"></mat-icon>
+                </span>
+            </button>
+        </li>
+    </ul>
+</section>

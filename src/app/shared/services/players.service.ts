@@ -1147,6 +1147,42 @@ export class PlayersService {
                 );
         });
     }
+    /**
+     * Finds players whose email equals `email` (case-insensitive).
+     * Rejects when the request fails so callers can tell "not found" from "error".
+     */
+    public findPlayersByEmail(email: string): Promise<any[]> {
+        const pattern = (email || '').trim().replace(/[\\%_]/g, '\\$&');
+        return new Promise((resolve, reject) => {
+            this.apollo
+                .query<any>({
+                    query: Query.GetPlayersByEmailIlike,
+                    variables: { email: pattern },
+                    fetchPolicy: 'network-only',
+                })
+                .subscribe({
+                    next: ({ data }) => resolve(data?.player ?? []),
+                    error: (error) => reject(error),
+                });
+        });
+    }
+
+    /** Links already registered players to a tour. */
+    public addTourMembers(tourId: string, playerIds: string[]): Promise<boolean> {
+        return new Promise((resolve) => {
+            this.apollo
+                .mutate<any>({
+                    mutation: Query.InsertTourMembersMutation,
+                    variables: {
+                        tourMember: playerIds.map((playerId) => ({ tourId, playerId })),
+                    },
+                })
+                .subscribe({
+                    next: () => resolve(true),
+                    error: () => resolve(false),
+                });
+        });
+    }
     public AddLeaguePlayer(
         player: Player,
         leagueMember: any,

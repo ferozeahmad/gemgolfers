@@ -538,6 +538,7 @@ export const GetTourByIdQL = gql`
         tour(where: { id: { _eq: $id } }) {
             id
             name
+            logo
             startDate
             endDate
             tournaments {
@@ -550,6 +551,37 @@ export const GetTourByIdQL = gql`
                     id
                     firstName
                     lastName
+                }
+            }
+        }
+    }
+`;
+export const getTourOperatorDashboard = gql`
+    query getTourOperatorDashboard($adminId: String!) {
+        tour(
+            where: { adminId: { _eq: $adminId } }
+            order_by: [{ startDate: desc }]
+        ) {
+            id
+            name
+            logo
+            dateCreated
+            startDate
+            endDate
+            tournaments {
+                id
+                title
+                matchFormat
+                noOfRounds
+                startDate
+                endDate
+                isSetupComplete
+            }
+            members {
+                playerId
+                player {
+                    id
+                    playerCategory
                 }
             }
         }
